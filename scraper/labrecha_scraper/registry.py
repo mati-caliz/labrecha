@@ -63,7 +63,9 @@ CONNECTORS: dict[str, Connector] = {
 }
 
 ACTIVE_CONNECTORS: dict[str, Connector] = {
-    name: connector for name, connector in CONNECTORS.items() if name not in DISABLED_CONNECTOR_NAMES
+    name: connector
+    for name, connector in CONNECTORS.items()
+    if name not in DISABLED_CONNECTOR_NAMES
 }
 
 

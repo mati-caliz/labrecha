@@ -5,6 +5,7 @@ import re
 import time
 from dataclasses import dataclass, field
 from datetime import date
+from functools import partial
 
 import httpx
 from labrecha_db import CHAMBER_SENATE, CongressVote, CongressVoteDetail
@@ -112,7 +113,7 @@ class SenateVotesConnector(Connector):
         with self.build_client() as client:
             for year in years:
                 actas = retry_invalid_response(
-                    lambda: self._download_and_parse_listing(client, year),
+                    partial(self._download_and_parse_listing, client, year),
                     source=ACTAS_URL,
                     max_attempts=settings.http_max_attempts,
                 )

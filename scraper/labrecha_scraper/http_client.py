@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 import time
 from collections.abc import Callable
-from typing import TypeVar
 
 import httpx
 
@@ -13,7 +12,6 @@ RETRYABLE_STATUS_CODES = frozenset({429, 500, 502, 503, 504})
 RETRYABLE_ERRORS = (httpx.TimeoutException, httpx.NetworkError)
 BACKOFF_BASE_SECONDS = 1.0
 BACKOFF_MAX_SECONDS = 20.0
-ResponseData = TypeVar("ResponseData")
 
 
 class InvalidResponseError(ValueError):
@@ -24,7 +22,7 @@ def _retry_delay(attempt: int) -> float:
     return min(BACKOFF_BASE_SECONDS * 2 ** (attempt - 1), BACKOFF_MAX_SECONDS)
 
 
-def retry_invalid_response(
+def retry_invalid_response[ResponseData](
     operation: Callable[[], ResponseData],
     *,
     source: str,
