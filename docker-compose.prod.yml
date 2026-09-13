@@ -2,7 +2,7 @@ name: labrecha
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: base-images/postgres:16
     container_name: labrecha-postgres-prod
     environment:
       POSTGRES_DB: ${DB_NAME}
@@ -164,7 +164,7 @@ services:
       - /tmp
 
   nginx:
-    image: nginx:alpine
+    image: base-images/nginx:alpine
     container_name: labrecha-nginx
     profiles:
       - legacy-edge

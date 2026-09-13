@@ -1,7 +1,7 @@
 # Multi-stage build para optimizar el tamaño de la imagen
 
 # Stage 1: Dependencies
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 WORKDIR /app
 
 # Instalar dependencias necesarias para compilación
@@ -12,7 +12,7 @@ COPY package.json package-lock.json* ./
 RUN npm ci
 
 # Stage 2: Build
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 
 # Copiar dependencias desde la etapa anterior
@@ -32,8 +32,15 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # Stage 3: Runtime
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 WORKDIR /app
+
+# npm, yarn y corepack sólo sirven para instalar: sus dependencias propias (tar, pacote,
+# sigstore) eran las vulnerabilidades de la imagen.
+RUN apk upgrade --no-cache \
+ && rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
+        /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
+        /opt/yarn-* /usr/local/bin/yarn /usr/local/bin/yarnpkg
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1

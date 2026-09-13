@@ -1,5 +1,10 @@
 FROM python:3.12-slim
 
+# La imagen oficial sale con paquetes de Debian atrasados (perl-base con CVE crítica).
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 ENV PYTHONUNBUFFERED=1 \
