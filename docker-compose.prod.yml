@@ -14,10 +14,19 @@ services:
       - db-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
-      interval: 10s
+      interval: 30s
       timeout: 5s
       retries: 5
+      start_period: 60s
+      start_interval: 2s
     restart: always
+    # El planner venia con effective_cache_size en los 4 GB de fabrica dentro de un
+    # contenedor de 512M: elegia planes creyendo que tenia varias veces la memoria real.
+    # random_page_cost 4.0 asume disco rotativo y este server es NVMe.
+    command: >
+      postgres
+      -c effective_cache_size=320MB
+      -c random_page_cost=1.1
     deploy:
       resources:
         limits:
@@ -62,7 +71,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 15s
+      start_period: 60s
+      start_interval: 2s
     deploy:
       resources:
         limits:
