@@ -2,17 +2,19 @@
 
 # Stage 1: Dependencies
 FROM node:22-alpine AS deps
+RUN corepack enable
 WORKDIR /app
 
 # Instalar dependencias necesarias para compilación
 RUN apk add --no-cache libc6-compat
 
 # Copiar archivos de dependencias
-COPY package.json package-lock.json* ./
-RUN npm ci
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile
 
 # Stage 2: Build
 FROM node:22-alpine AS builder
+RUN corepack enable
 WORKDIR /app
 
 # Copiar dependencias desde la etapa anterior
@@ -29,14 +31,14 @@ ENV BACKEND_URL=$BACKEND_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build de la aplicación
-RUN npm run build
+RUN pnpm run build
 
 # Stage 3: Runtime
 FROM node:22-alpine AS runner
 WORKDIR /app
 
 # npm, yarn y corepack sólo sirven para instalar: sus dependencias propias (tar, pacote,
-# sigstore) eran las vulnerabilidades de la imagen.
+# sigstore) eran las vulnerabilidades de la imagen. pnpm no queda en la etapa final.
 RUN apk upgrade --no-cache \
  && rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
         /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \

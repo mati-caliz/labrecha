@@ -38,7 +38,7 @@ echo -e "${BLUE}Checking if server is running...${NC}"
 if ! curl -s -o /dev/null -w "%{http_code}" "$URL" | grep -q "200"; then
     echo -e "${RED}Error: Server at $URL is not accessible${NC}"
     echo -e "${YELLOW}Please start the server first:${NC}"
-    echo -e "  cd web && npm run build && npm run start"
+    echo -e "  cd web && pnpm run build && pnpm run start"
     exit 1
 fi
 echo -e "${GREEN}✓ Server is running${NC}"
@@ -48,7 +48,7 @@ echo ""
 echo -e "${BLUE}Running Lighthouse audit...${NC}"
 
 if [ "$FORM_FACTOR" = "mobile" ]; then
-    npx lighthouse "$URL" \
+    pnpm exec lighthouse "$URL" \
         --output=json \
         --output=html \
         --output-path="$OUTPUT_DIR/lighthouse-$TIMESTAMP-$FORM_FACTOR" \
@@ -58,7 +58,7 @@ if [ "$FORM_FACTOR" = "mobile" ]; then
         --form-factor=mobile \
         --quiet
 else
-    npx lighthouse "$URL" \
+    pnpm exec lighthouse "$URL" \
         --output=json \
         --output=html \
         --output-path="$OUTPUT_DIR/lighthouse-$TIMESTAMP-$FORM_FACTOR" \

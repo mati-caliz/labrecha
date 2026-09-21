@@ -190,8 +190,8 @@ Rigen las reglas globales. Lo propio de este repo:
 
 ## Verificación
 
-- Front (`cd web`): `npx tsc --noEmit`, `npm run lint:check` (Biome, **no** ESLint), `npm test`,
-  `npm run build`.
+- Front (`cd web`): `pnpm exec tsc --noEmit`, `pnpm run lint:check` (Biome, **no** ESLint), `pnpm test`,
+  `pnpm run build`.
 - Python: `ruff check` + `ruff format --check` sobre `api-py/labrecha_api api-py/tests
   scraper/labrecha_scraper shared/labrecha_db` (`ruff.toml` es estricto), `python -m compileall` y
   `python -m pytest api-py/tests`. La suite tiene dos mitades: lógica pura de cálculo (corre sin

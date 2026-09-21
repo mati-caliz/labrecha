@@ -45,7 +45,7 @@ if [ ! -f ".env.local" ] && [ -f ".env.example" ]; then
 fi
 if [ ! -d "node_modules" ]; then
     echo -e "${YELLOW}[INFO]${NC} Instalando dependencias del frontend..."
-    npm install
+    pnpm install
 fi
 
 echo -e "${GREEN}[4/4]${NC} Iniciando servicios..."
@@ -72,6 +72,6 @@ cd "${API_DIR}" || exit 1
 ./.venv/bin/uvicorn labrecha_api.main:app --reload --port 8000 2>&1 | sed "s/^/[API] /" &
 
 cd "${WEB_DIR}" || exit 1
-LABRECHA_API_INTERNAL_URL=http://localhost:8000 npm run dev 2>&1 | sed "s/^/[WEB] /" &
+LABRECHA_API_INTERNAL_URL=http://localhost:8000 pnpm run dev 2>&1 | sed "s/^/[WEB] /" &
 
 wait

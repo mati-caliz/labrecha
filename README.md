@@ -34,7 +34,7 @@ docker compose up -d          # postgres + api-py + web
 Para iterar el frontend con hot-reload, corré `web/` localmente contra la API en Docker:
 
 ```bash
-cd web && npm install && npm run dev
+cd web && pnpm install && pnpm run dev
 ```
 
 El scraper se corre on-demand:
@@ -65,7 +65,7 @@ Sin comentarios en el código; igualdad estricta; nombres completos en inglés (
 argentino en español); sin `any`/casteos inseguros/supresores de lint. Detalle en
 [CLAUDE.md](./CLAUDE.md).
 
-Antes de commitear (frontend): `cd web && npx tsc --noEmit && npm run lint:check && npm run build`.
+Antes de commitear (frontend): `cd web && pnpm exec tsc --noEmit && pnpm run lint:check && pnpm run build`.
 
 ## Licencia
 

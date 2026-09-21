@@ -1,20 +1,21 @@
 {
   "name": "labrecha",
   "version": "1.0.0",
+  "packageManager": "pnpm@10.10.0",
   "private": true,
   "description": "La Brecha - Monorepo (scraper + API + web) de indicadores económicos y políticos de Argentina",
   "scripts": {
     "dev": "./scripts/run-local.sh",
     "dev:docker": "./scripts/run-docker.sh",
     "dev:infra": "./scripts/dev-infra.sh",
-    "format": "npm run format:frontend",
-    "format:frontend": "cd web && npm run format",
-    "format:check": "npm run format:check:frontend",
-    "format:check:frontend": "cd web && npm run format:check",
-    "lint:frontend": "cd web && npm run lint",
-    "lint": "npm run lint:frontend",
-    "check": "npm run check:frontend",
-    "check:frontend": "cd web && npm run check",
+    "format": "pnpm run format:frontend",
+    "format:frontend": "pnpm --dir web run format",
+    "format:check": "pnpm run format:check:frontend",
+    "format:check:frontend": "pnpm --dir web run format:check",
+    "lint:frontend": "pnpm --dir web run lint",
+    "lint": "pnpm run lint:frontend",
+    "check": "pnpm run check:frontend",
+    "check:frontend": "pnpm --dir web run check",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -23,6 +24,8 @@
     "lint-staged": "^16.2.7"
   },
   "lint-staged": {
-    "web/**/*.{js,jsx,ts,tsx,json,css}": ["npx biome check --write --no-errors-on-unmatched"]
+    "web/**/*.{js,jsx,ts,tsx,json,css}": [
+      "pnpm exec biome check --write --no-errors-on-unmatched"
+    ]
   }
 }
