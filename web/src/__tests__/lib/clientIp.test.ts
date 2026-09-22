@@ -7,7 +7,7 @@ import { NextRequest } from "next/server";
 const REAL_CLIENT = "181.45.6.7";
 
 function requestWith(headers: Record<string, string>): NextRequest {
-  return new NextRequest("https://labrecha.ar/api/admin/session", { headers });
+  return new NextRequest("https://labrecha.ar/api/posts", { headers });
 }
 
 describe("clientIp", () => {

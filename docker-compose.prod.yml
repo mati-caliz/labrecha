@@ -106,8 +106,6 @@ services:
     environment:
       NEXT_PUBLIC_GA_MEASUREMENT_ID: ${NEXT_PUBLIC_GA_MEASUREMENT_ID}
       LABRECHA_API_INTERNAL_URL: http://api-py:8000
-      LABRECHA_ADMIN_TOKEN: ${ADMIN_TOKEN}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
     networks:
       - app-network
       - shared-nginx
