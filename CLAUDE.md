@@ -199,13 +199,15 @@ Rigen las reglas globales. Lo propio de este repo:
   migraciones contra los modelos. Sin base, esa mitad se saltea sola; con `REQUIRE_TEST_DATABASE=1`
   (lo que usa el CI) el skip pasa a ser error. La base de test se crea sola; se apunta con
   `TEST_DATABASE_URL` (default `…@localhost:5433/labrecha_test`).
-- **El CI corre todo esto y bloquea el deploy**: `deploy.yml` invoca a `ci.yml` (`needs: verify`), así
-  que un push a `main` que rompa lint/tipos/tests/build no llega al VPS.
+- **Nada de esto lo corre nadie por vos**: desde el 2026-09-22 el deploy no se dispara por push
+  (`deploy.yml` quedó en `workflow_dispatch`) y el CI sólo corre en pull requests, que en este
+  repo no se usan. Un push a `main` que rompa lint, tipos, tests o build no se entera hasta el
+  próximo deploy: la verificación local es el único gate real.
 - Datos: `python -m labrecha_scraper run <job|all>` (ver `list`, `status`). Postgres local en el 5433;
   `docker compose up -d` levanta postgres + api-py + web y el scraper corre on-demand.
 
 ## Notas
 
 - `nginx/nginx.conf` es **compartido** con otros sitios en producción (gastronova, portfolio,
-  jobhunter): editarlo con cuidado quirúrgico, tocando sólo el server de este sitio.
+  conseguilo): editarlo con cuidado quirúrgico, tocando sólo el server de este sitio.
 - Este archivo se carga entero en cada request: sólo contexto de negocio no obvio.

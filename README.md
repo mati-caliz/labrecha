@@ -5,14 +5,17 @@ Observatorio público de métricas político-económicas de Argentina: reúne in
 definitorias: **la brecha entre mediciones** (un mismo indicador según fuentes distintas) y las
 **series anotadas con eventos políticos**. Solo lectura, sin login.
 
-> Antes se llamaba **FinArg**. El plan del pivot y su historial están en [ROADMAP.md](ROADMAP.md).
+> Antes se llamaba **FinArg**: el stack Spring original se retiró por completo y el historial
+> del pivot vive en el git del repo.
 
 ## Arquitectura
 
-Monorepo de tres piezas; **PostgreSQL es el contrato** entre ellas:
+Monorepo de cuatro piezas; **PostgreSQL es el contrato** entre ellas:
 
 ```
-scraper/   Python — ingesta por fuente (un conector = un módulo), corrido por cron. Escribe a Postgres.
+shared/    paquete labrecha_db: los modelos SQLAlchemy y las migraciones Alembic. La única
+           definición del esquema; el scraper y la API lo instalan y ninguno define tablas.
+scraper/   Python — ingesta por fuente (un conector = un módulo), corrido por cron.
 api-py/    FastAPI de solo lectura sobre Postgres + calculadoras. Sin estado, sin auth.
 web/       Next.js (App Router) + React + TypeScript + Tailwind + Recharts.
 ```

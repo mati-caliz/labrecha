@@ -1,6 +1,6 @@
 # La Brecha — Scraper
 
-App de ingesta (Fase 1 del [ROADMAP](../ROADMAP.md)). Corre por cron, scrapea/consulta fuentes
+App de ingesta. Corre por cron, scrapea/consulta fuentes
 públicas y escribe indicadores normalizados a PostgreSQL. No expone HTTP: el contrato con la app
 web/API es el esquema de la base.
 
@@ -49,8 +49,8 @@ datos.gob.ar (`source=datosgobar`) y la diaria del BCRA (`source=bcra`, desde 19
 caso real del comparador de mediciones.
 
 La ingesta de `news` guarda el artículo crudo (título, contenido, fuente, fecha, imagen) con
-`category=ECONOMY_GENERAL` fijo; la clasificación por categoría y el resumen AI que hacía el módulo
-Java quedan para más adelante. Es idempotente por `source_url` (no repisa artículos ya guardados).
+`category=ECONOMY_GENERAL` fijo; la clasificación por categoría y el resumen con IA quedan
+para más adelante. Es idempotente por `source_url` (no repisa artículos ya guardados).
 Sumar feeds es agregar una entrada a `FEEDS` en el conector.
 
 Pendientes: fuentes frágiles (inflación diaria de inflacionverdadera.com, Nowcast pobreza UTDT,

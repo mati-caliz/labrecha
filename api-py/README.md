@@ -1,10 +1,8 @@
 # La Brecha — API (FastAPI)
 
-API de solo lectura sobre los indicadores que el `scraper/` ingiere a PostgreSQL (Fase 2 del
-[ROADMAP](../ROADMAP.md)). Sin estado, sin auth. PostgreSQL es el contrato: esta app define sus
-propios modelos de lectura, desacoplados del scraper.
-
-Convive con el backend Java (`api/`) durante la transición; se apaga Spring cuando haya paridad.
+API de solo lectura sobre los indicadores que el `scraper/` ingiere a PostgreSQL. Sin estado y
+sin auth. Los modelos salen del paquete `labrecha_db` de `shared/`, que es la única definición
+del esquema: esta app no define tablas propias.
 
 ## Endpoints
 
@@ -46,10 +44,6 @@ docker compose up -d api-py
 
 Configuración por entorno (ver `.env.example`): `DATABASE_URL`, `CORS_ALLOWED_ORIGINS`.
 
-Las tres calculadoras del Java están portadas. Los importes de la escala de Ganancias son
-constantes en `income_tax.py` (período fiscal vigente al portar); actualizarlas es editar ese módulo.
-
-## Pendiente (próximos slices de Fase 2)
-
-- Evaluar si Redis hace falta sirviendo desde PostgreSQL local.
-- (Fase 3) Apuntar el frontend a esta API y apagar el backend Java.
+Los importes de la escala de Ganancias son constantes en `income_tax.py`, con su
+`effective_from` y su fuente: ARCA los actualiza cada seis meses y actualizarlos es editar ese
+módulo. La respuesta lleva esos datos, y la UI avisa sola cuando pasó un semestre.
