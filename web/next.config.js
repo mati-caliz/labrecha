@@ -28,12 +28,12 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       isProd
-        ? "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com"
-        : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com",
+        ? "script-src 'self' 'unsafe-inline'"
+        : "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self'",
-      "img-src 'self' data: https://statics.eleconomista.com.ar https://www.bcra.gob.ar https://icon.horse https://icons.com.ar https://www.google-analytics.com",
-      "connect-src 'self' https://www.bcra.gob.ar https://icon.horse https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://www.googletagmanager.com",
+      "img-src 'self' data: https://statics.eleconomista.com.ar https://www.bcra.gob.ar https://icon.horse https://icons.com.ar",
+      "connect-src 'self' https://www.bcra.gob.ar https://icon.horse",
       "base-uri 'self'",
       "form-action 'self'",
       "frame-ancestors 'self' https://matiascaliz.com.ar",

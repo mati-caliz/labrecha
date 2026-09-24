@@ -1,10 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, JetBrains_Mono, Newsreader } from "next/font/google";
-import Script from "next/script";
-import { Suspense } from "react";
 import "./globals.css";
 import { CafecitoModal } from "@/components/CafecitoModal";
-import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { JsonLd } from "@/components/JsonLd";
 import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
 import { UmamiAnalytics } from "@/components/UmamiAnalytics";
@@ -82,8 +79,6 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
-
   return (
     <html
       lang="es"
@@ -99,24 +94,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <JsonLd data={websiteStructuredData()} />
       </head>
       <body className={newsreader.className}>
-        {gaMeasurementId && (
-          <>
-            <Script
-              strategy="lazyOnload"
-              src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
-            />
-            <Script id="google-analytics" strategy="lazyOnload">
-              {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', '${gaMeasurementId}', {
-            page_path: window.location.pathname,
-          });
-        `}
-            </Script>
-          </>
-        )}
         <Providers>
           <PrefetchedQueries queries={layoutQueries()}>
             <SiteChrome>{children}</SiteChrome>
@@ -125,9 +102,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Providers>
         <ServiceWorkerRegistration />
         <UmamiAnalytics />
-        <Suspense fallback={null}>
-          <GoogleAnalytics />
-        </Suspense>
       </body>
     </html>
   );

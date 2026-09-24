@@ -97,14 +97,11 @@ services:
     build:
       context: ./web
       dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_GA_MEASUREMENT_ID: ${NEXT_PUBLIC_GA_MEASUREMENT_ID}
     container_name: web-prod
     depends_on:
       api-py:
         condition: service_healthy
     environment:
-      NEXT_PUBLIC_GA_MEASUREMENT_ID: ${NEXT_PUBLIC_GA_MEASUREMENT_ID}
       LABRECHA_API_INTERNAL_URL: http://api-py:8000
     networks:
       - app-network

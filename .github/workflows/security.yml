@@ -62,8 +62,6 @@ jobs:
           push: false
           load: true
           tags: web:scan
-          build-args: |
-            NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
