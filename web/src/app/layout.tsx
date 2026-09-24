@@ -7,6 +7,7 @@ import { CafecitoModal } from "@/components/CafecitoModal";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { JsonLd } from "@/components/JsonLd";
 import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
+import { UmamiAnalytics } from "@/components/UmamiAnalytics";
 import { SiteChrome } from "@/components/layout/SiteChrome";
 import { layoutQueries } from "@/lib/pageQueries";
 import { PrefetchedQueries } from "@/lib/prefetch";
@@ -123,6 +124,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <CafecitoModal />
         </Providers>
         <ServiceWorkerRegistration />
+        <UmamiAnalytics />
         <Suspense fallback={null}>
           <GoogleAnalytics />
         </Suspense>
