@@ -14,6 +14,9 @@ readonly DATABASE_PASSWORD="labrecha123"
 readonly PYTHON_MEMORY_LIMIT="1500m"
 readonly DATABASE_MEMORY_LIMIT="256m"
 readonly DATABASE_READY_ATTEMPTS=30
+HOST_UID="$(id -u)"
+HOST_GID="$(id -g)"
+readonly HOST_OWNER="${HOST_UID}:${HOST_GID}"
 
 remove_database() {
   docker rm -f "${DATABASE_CONTAINER}" >/dev/null 2>&1 || true
@@ -44,10 +47,10 @@ check_python() {
     -e MYPY_CACHE_DIR=/tmp/mypy -e RUFF_CACHE_DIR=/tmp/ruff -e COVERAGE_FILE=/tmp/coverage \
     -e REQUIRE_TEST_DATABASE=1 \
     -e TEST_DATABASE_URL="postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_CONTAINER}:5432/labrecha_test" \
-    -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" \
+    -e HOST_OWNER="${HOST_OWNER}" \
     "${UV_IMAGE}" sh -c '
       set -e
-      trap "chown -R ${HOST_UID}:${HOST_GID} shared api-py scraper" EXIT
+      trap "chown -R ${HOST_OWNER} shared api-py scraper" EXIT
       [ -x /venv/bin/python ] || uv venv --quiet /venv
       uv pip install --quiet -e shared -e "api-py[dev]" -e scraper ruff mypy pytest-cov
       ruff format --check .
