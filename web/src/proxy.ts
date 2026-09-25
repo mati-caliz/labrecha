@@ -1,18 +1,23 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { hasText } from "@/lib/utils";
 
 const PROTECTED_ROUTES: string[] = [];
 
 const PUBLIC_ONLY_ROUTES = ["/login"];
 
-export function proxy(request: NextRequest) {
-  const pathname = request.nextUrl.pathname;
-
-  if (
+function isNextInternalChunk(pathname: string): boolean {
+  return (
     pathname.includes("app-pages-internals") ||
     pathname.includes("main-app") ||
     pathname.endsWith("main-app.js")
-  ) {
+  );
+}
+
+export function proxy(request: NextRequest): NextResponse {
+  const pathname = request.nextUrl.pathname;
+
+  if (isNextInternalChunk(pathname)) {
     return new NextResponse(null, { status: 204 });
   }
 
@@ -23,7 +28,8 @@ export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const isProtectedRoute = PROTECTED_ROUTES.some((route) => path.startsWith(route));
   const isPublicOnlyRoute = PUBLIC_ONLY_ROUTES.includes(path);
-  const token = request.cookies.get("accessToken")?.value || "";
+  const cookieValue = request.cookies.get("accessToken")?.value;
+  const token = hasText(cookieValue) ? cookieValue : "";
 
   if (isProtectedRoute && !token) {
     return NextResponse.redirect(new URL("/login", request.url));

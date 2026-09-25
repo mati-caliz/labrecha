@@ -1,18 +1,20 @@
 "use client";
 
-import { BlocRow, TallyBar, TallyCounts, VoteLegend } from "@/components/congress/VoteBars";
+import { BlocRow, TallyBar, TallyCounts, tallyOf, VoteLegend } from "@/components/congress/VoteBars";
 import { TopicChip, VoteSummary } from "@/components/congress/VoteSummary";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCongressVoteDetails, useCongressVotes } from "@/hooks/useLabrecha";
 import { type Chamber, chamberLabel, chamberMemberLabel, chamberSourceLabel } from "@/lib/chambers";
-import { normalizeResult, tallyByBloc } from "@/lib/congress";
+import { type BlocVoteTally, normalizeResult, tallyByBloc } from "@/lib/congress";
 import { formatDateAR } from "@/lib/indicators";
 import type { CongressVote } from "@/lib/labrechaApi";
 import Link from "next/link";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactElement } from "react";
+import { hasText } from "@/lib/utils";
 
 const MONO = "var(--font-jb-mono)";
 const MAX_BLOCS = 6;
+const RECENT_VOTES_SHOWN = 5;
 
 function resultChip(vote: CongressVote): { label: string; color: string; background: string } {
   const { won } = normalizeResult(vote.result);
@@ -21,7 +23,7 @@ function resultChip(vote: CongressVote): { label: string; color: string; backgro
     : { label: "Rechazado", color: "var(--neg)", background: "var(--neg-bg)" };
 }
 
-function ChamberChip({ chamber }: { chamber: Chamber }) {
+function ChamberChip({ chamber }: Readonly<{ chamber: Chamber }>): ReactElement {
   return (
     <span
       style={{
@@ -41,16 +43,51 @@ function ChamberChip({ chamber }: { chamber: Chamber }) {
   );
 }
 
-function tallyOf(vote: CongressVote) {
-  return {
-    afirmativos: vote.affirmative_votes ?? 0,
-    negativos: vote.negative_votes ?? 0,
-    abstenciones: vote.abstentions ?? 0,
-    ausentes: vote.absents ?? 0,
-  };
+function FeaturedBlocBreakdown({
+  blocs,
+  chamber,
+  isLoading,
+}: Readonly<{ blocs: BlocVoteTally[]; chamber: Chamber; isLoading: boolean }>): ReactElement {
+  if (isLoading) {
+    return <Skeleton className="h-40 w-full rounded-[6px]" />;
+  }
+  if (blocs.length === 0) {
+    return (
+      <p
+        style={{
+          fontFamily: "var(--font-serif)",
+          fontSize: "0.9rem",
+          color: "var(--ink2)",
+          margin: 0,
+        }}
+      >
+        No hay detalle de voto por {chamberMemberLabel(chamber)} para esta votación.
+      </p>
+    );
+  }
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {blocs.map((bloc) => (
+        <BlocRow key={bloc.bloc} tally={bloc} />
+      ))}
+    </div>
+  );
 }
 
-function FeaturedFicha({ vote }: { vote: CongressVote }) {
+function recentItemBorderRadius(index: number, count: number): string {
+  if (count === 1) {
+    return "9px";
+  }
+  if (index === 0) {
+    return "9px 9px 0 0";
+  }
+  if (index === count - 1) {
+    return "0 0 9px 9px";
+  }
+  return "0";
+}
+
+function FeaturedFicha({ vote }: Readonly<{ vote: CongressVote }>): ReactElement {
   const { data: details, isLoading } = useCongressVoteDetails(vote.vote_record_id);
   const chip = resultChip(vote);
   const blocs = tallyByBloc(details ?? []).slice(0, MAX_BLOCS);
@@ -91,10 +128,10 @@ function FeaturedFicha({ vote }: { vote: CongressVote }) {
         </span>
         <ChamberChip chamber={vote.chamber} />
         <span style={{ fontFamily: MONO, fontSize: "0.72rem", color: "var(--ink3)" }}>
-          {vote.date ? formatDateAR(vote.date) : "s/f"}
+          {hasText(vote.date) ? formatDateAR(vote.date) : "s/f"}
           {vote.vote_record_id ? ` · Acta ${vote.vote_record_id}` : ""}
         </span>
-        {vote.topic ? <TopicChip topic={vote.topic} /> : null}
+        {hasText(vote.topic) ? <TopicChip topic={vote.topic} /> : null}
       </div>
       <h2
         style={{
@@ -109,7 +146,7 @@ function FeaturedFicha({ vote }: { vote: CongressVote }) {
       >
         {vote.title ?? "Votación sin título"}
       </h2>
-      {vote.summary ? <VoteSummary summary={vote.summary} /> : null}
+      {hasText(vote.summary) ? <VoteSummary summary={vote.summary} /> : null}
 
       <div style={{ marginBottom: 8 }}>
         <TallyBar tally={tallyOf(vote)} />
@@ -130,26 +167,7 @@ function FeaturedFicha({ vote }: { vote: CongressVote }) {
       >
         Por bloque
       </div>
-      {isLoading ? (
-        <Skeleton className="h-40 w-full rounded-[6px]" />
-      ) : blocs.length === 0 ? (
-        <p
-          style={{
-            fontFamily: "var(--font-serif)",
-            fontSize: "0.9rem",
-            color: "var(--ink2)",
-            margin: 0,
-          }}
-        >
-          No hay detalle de voto por {chamberMemberLabel(vote.chamber)} para esta votación.
-        </p>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {blocs.map((bloc) => (
-            <BlocRow key={bloc.bloc} tally={bloc} />
-          ))}
-        </div>
-      )}
+      <FeaturedBlocBreakdown blocs={blocs} chamber={vote.chamber} isLoading={isLoading} />
 
       <div
         style={{
@@ -172,14 +190,14 @@ function FeaturedFicha({ vote }: { vote: CongressVote }) {
           }}
         >
           Fuente: {chamberSourceLabel(vote.chamber)}
-          {vote.date ? ` · ${formatDateAR(vote.date)}` : ""}
+          {hasText(vote.date) ? ` · ${formatDateAR(vote.date)}` : ""}
         </span>
       </div>
     </div>
   );
 }
 
-function RecentItem({ vote, style }: { vote: CongressVote; style: CSSProperties }) {
+function RecentItem({ vote, style }: Readonly<{ vote: CongressVote; style: CSSProperties }>): ReactElement {
   const chip = resultChip(vote);
   return (
     <Link
@@ -227,8 +245,8 @@ function RecentItem({ vote, style }: { vote: CongressVote; style: CSSProperties 
           }}
         >
           <ChamberChip chamber={vote.chamber} />
-          {vote.topic ? <TopicChip topic={vote.topic} /> : null}
-          {vote.date ? formatDateAR(vote.date) : "s/f"}
+          {hasText(vote.topic) ? <TopicChip topic={vote.topic} /> : null}
+          {hasText(vote.date) ? formatDateAR(vote.date) : "s/f"}
         </span>
       </div>
       <div
@@ -244,7 +262,7 @@ function RecentItem({ vote, style }: { vote: CongressVote; style: CSSProperties 
       >
         {vote.title ?? "Votación sin título"}
       </div>
-      {vote.summary ? (
+      {hasText(vote.summary) ? (
         <p
           style={{
             fontFamily: "var(--font-serif)",
@@ -264,7 +282,7 @@ function RecentItem({ vote, style }: { vote: CongressVote; style: CSSProperties 
   );
 }
 
-export function VotesBoard() {
+export function VotesBoard(): ReactElement {
   const { data, isLoading } = useCongressVotes({ limit: 8 });
   const votes = data ?? [];
 
@@ -284,7 +302,7 @@ export function VotesBoard() {
     );
   }
 
-  const recent = votes.slice(1, 6);
+  const recent = votes.slice(1, 1 + RECENT_VOTES_SHOWN);
 
   return (
     <div className="lb-congress-grid" style={{ gap: 32 }}>
@@ -309,14 +327,7 @@ export function VotesBoard() {
               vote={vote}
               style={{
                 borderTop: index === 0 ? "1px solid var(--line)" : "none",
-                borderRadius:
-                  recent.length === 1
-                    ? "9px"
-                    : index === 0
-                      ? "9px 9px 0 0"
-                      : index === recent.length - 1
-                        ? "0 0 9px 9px"
-                        : "0",
+                borderRadius: recentItemBorderRadius(index, recent.length),
               }}
             />
           ))}

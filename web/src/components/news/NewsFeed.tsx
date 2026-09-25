@@ -6,7 +6,9 @@ import { useNews } from "@/hooks/useLabrecha";
 import type { NewsArticle } from "@/lib/labrechaApi";
 import { NEWS_LIMIT } from "@/lib/queryParams";
 import { ArrowUpRight } from "lucide-react";
-import { useState } from "react";
+import Image from "next/image";
+import { useState, type ReactElement } from "react";
+import { hasText } from "@/lib/utils";
 
 const MONO = "var(--font-jb-mono)";
 
@@ -17,6 +19,9 @@ const CATEGORY_LABELS: Record<string, string> = {
   ENERGY: "Energía",
   POLITICS: "Política",
 };
+
+const MAIN_LIST_SIZE = 5;
+const SIDEBAR_LIST_SIZE = 4;
 
 const SKELETON_KEYS = ["n1", "n2", "n3", "n4", "n5", "n6"];
 
@@ -37,22 +42,32 @@ function formatPublished(value: string): string {
   });
 }
 
-function NewsImage({ article, ratio, width }: { article: NewsArticle; ratio: string; width?: number }) {
+function NewsImage({
+  article,
+  ratio,
+  width,
+}: Readonly<{ article: NewsArticle; ratio: string; width?: number }>): ReactElement | null {
   const [failed, setFailed] = useState(false);
-  if (!article.image_url || failed) {
+  if (!hasText(article.image_url) || failed) {
     return null;
   }
   return (
-    <img
+    <Image
       src={article.image_url}
       alt=""
+      unoptimized
+      width={0}
+      height={0}
       loading="lazy"
       decoding="async"
       referrerPolicy="no-referrer"
-      onError={() => setFailed(true)}
+      onError={() => {
+        setFailed(true);
+      }}
       style={{
         display: "block",
-        width: width ? width : "100%",
+        width: width ?? "100%",
+        height: "auto",
         flexShrink: 0,
         aspectRatio: ratio,
         objectFit: "cover",
@@ -63,7 +78,7 @@ function NewsImage({ article, ratio, width }: { article: NewsArticle; ratio: str
   );
 }
 
-function LeadArticle({ article }: { article: NewsArticle }) {
+function LeadArticle({ article }: Readonly<{ article: NewsArticle }>): ReactElement {
   return (
     <a
       href={article.source_url}
@@ -133,7 +148,7 @@ function LeadArticle({ article }: { article: NewsArticle }) {
             </p>
           ) : null}
         </div>
-        {article.image_url ? (
+        {hasText(article.image_url) ? (
           <div className="lb-media-side">
             <NewsImage article={article} ratio="4 / 3" />
           </div>
@@ -143,7 +158,7 @@ function LeadArticle({ article }: { article: NewsArticle }) {
   );
 }
 
-function ListArticle({ article }: { article: NewsArticle }) {
+function ListArticle({ article }: Readonly<{ article: NewsArticle }>): ReactElement {
   return (
     <a
       href={article.source_url}
@@ -179,11 +194,120 @@ function ListArticle({ article }: { article: NewsArticle }) {
   );
 }
 
-export function NewsFeed() {
+function SidebarHeadlines({ articles }: Readonly<{ articles: NewsArticle[] }>): ReactElement {
+  return (
+    <>
+      <div
+        style={{
+          fontFamily: MONO,
+          fontSize: "0.68rem",
+          letterSpacing: "0.12em",
+          textTransform: "uppercase",
+          color: "var(--ink3)",
+          marginBottom: 16,
+        }}
+      >
+        Más titulares
+      </div>
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {articles.map((article, index) => (
+          <a
+            key={article.source_url}
+            href={article.source_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "flex",
+              gap: 16,
+              padding: "16px 0",
+              borderBottom: index === articles.length - 1 ? "none" : "1px solid var(--line)",
+              textDecoration: "none",
+            }}
+          >
+            <span
+              style={{
+                fontFamily: MONO,
+                fontWeight: 700,
+                fontSize: "1.25rem",
+                color: index === 0 ? "var(--gap)" : "var(--ink3)",
+              }}
+            >
+              {index + 1}
+            </span>
+            <div>
+              <h4
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 700,
+                  fontSize: "1rem",
+                  lineHeight: 1.15,
+                  margin: "0 0 5px",
+                  color: "var(--ink)",
+                }}
+              >
+                {article.title}
+              </h4>
+              <span style={{ fontFamily: MONO, fontSize: "0.66rem", color: "var(--ink3)" }}>
+                {article.source} · {formatPublished(article.published_date)}
+              </span>
+            </div>
+          </a>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function AggregatedSources({ sources }: Readonly<{ sources: string[] }>): ReactElement {
+  return (
+    <div
+      style={{
+        marginTop: 24,
+        background: "var(--surface)",
+        border: "1px solid var(--line)",
+        borderRadius: 9,
+        padding: "16px 18px",
+      }}
+    >
+      <div
+        style={{
+          fontFamily: MONO,
+          fontSize: "0.66rem",
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
+          color: "var(--ink3)",
+          marginBottom: 10,
+        }}
+      >
+        Fuentes agregadas
+      </div>
+      <p
+        style={{
+          fontFamily: MONO,
+          fontSize: "0.72rem",
+          lineHeight: 1.8,
+          color: "var(--ink2)",
+          margin: 0,
+        }}
+      >
+        {sources.join(" · ")}
+      </p>
+    </div>
+  );
+}
+
+export function NewsFeed(): ReactElement {
   const { data, isLoading, isError, error, refetch } = useNews({ limit: NEWS_LIMIT });
 
   if (isError) {
-    return <QueryError error={error} onRetry={() => refetch()} />;
+    return (
+      <QueryError
+        error={error}
+        onRetry={() => {
+          void refetch();
+        }}
+      />
+    );
   }
 
   if (isLoading) {
@@ -212,8 +336,8 @@ export function NewsFeed() {
     );
   }
 
-  const mainList = rest.slice(0, 5);
-  const sidebarList = rest.slice(5, 9);
+  const mainList = rest.slice(0, MAIN_LIST_SIZE);
+  const sidebarList = rest.slice(MAIN_LIST_SIZE, MAIN_LIST_SIZE + SIDEBAR_LIST_SIZE);
   const sources = Array.from(new Set(articles.map((article) => article.source)));
 
   return (
@@ -229,100 +353,8 @@ export function NewsFeed() {
         </div>
 
         <aside>
-          {sidebarList.length > 0 && (
-            <>
-              <div
-                style={{
-                  fontFamily: MONO,
-                  fontSize: "0.68rem",
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  color: "var(--ink3)",
-                  marginBottom: 16,
-                }}
-              >
-                Más titulares
-              </div>
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                {sidebarList.map((article, index) => (
-                  <a
-                    key={article.source_url}
-                    href={article.source_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: "flex",
-                      gap: 16,
-                      padding: "16px 0",
-                      borderBottom: index === sidebarList.length - 1 ? "none" : "1px solid var(--line)",
-                      textDecoration: "none",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontFamily: MONO,
-                        fontWeight: 700,
-                        fontSize: "1.25rem",
-                        color: index === 0 ? "var(--gap)" : "var(--ink3)",
-                      }}
-                    >
-                      {index + 1}
-                    </span>
-                    <div>
-                      <h4
-                        style={{
-                          fontFamily: "var(--font-display)",
-                          fontWeight: 700,
-                          fontSize: "1rem",
-                          lineHeight: 1.15,
-                          margin: "0 0 5px",
-                          color: "var(--ink)",
-                        }}
-                      >
-                        {article.title}
-                      </h4>
-                      <span style={{ fontFamily: MONO, fontSize: "0.66rem", color: "var(--ink3)" }}>
-                        {article.source} · {formatPublished(article.published_date)}
-                      </span>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </>
-          )}
-          <div
-            style={{
-              marginTop: 24,
-              background: "var(--surface)",
-              border: "1px solid var(--line)",
-              borderRadius: 9,
-              padding: "16px 18px",
-            }}
-          >
-            <div
-              style={{
-                fontFamily: MONO,
-                fontSize: "0.66rem",
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                color: "var(--ink3)",
-                marginBottom: 10,
-              }}
-            >
-              Fuentes agregadas
-            </div>
-            <p
-              style={{
-                fontFamily: MONO,
-                fontSize: "0.72rem",
-                lineHeight: 1.8,
-                color: "var(--ink2)",
-                margin: 0,
-              }}
-            >
-              {sources.join(" · ")}
-            </p>
-          </div>
+          {sidebarList.length > 0 && <SidebarHeadlines articles={sidebarList} />}
+          <AggregatedSources sources={sources} />
         </aside>
       </div>
 

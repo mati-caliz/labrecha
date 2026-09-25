@@ -1,4 +1,5 @@
 "use client";
+import type { ReactElement } from "react";
 
 import { Card } from "@/components/core";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -6,7 +7,21 @@ import { useCongressAttendance } from "@/hooks/useLabrecha";
 import { chamberLabel } from "@/lib/chambers";
 import { formatNumberAR } from "@/lib/indicators";
 
-export function BlocAttendance() {
+const PERCENT_CAP = 100;
+const HIGH_ATTENDANCE_PCT = 85;
+const MEDIUM_ATTENDANCE_PCT = 75;
+
+function attendanceColor(attendancePct: number): string {
+  if (attendancePct >= HIGH_ATTENDANCE_PCT) {
+    return "var(--pos)";
+  }
+  if (attendancePct >= MEDIUM_ATTENDANCE_PCT) {
+    return "var(--serie-1)";
+  }
+  return "var(--neg)";
+}
+
+export function BlocAttendance(): ReactElement | null {
   const { data, isLoading } = useCongressAttendance();
 
   if (isLoading) {
@@ -32,7 +47,7 @@ export function BlocAttendance() {
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {rows.map((row) => {
           const pct = Number.parseFloat(row.attendance_pct);
-          const fill = Math.min(100, Math.max(0, pct));
+          const fill = Math.min(PERCENT_CAP, Math.max(0, pct));
           return (
             <div key={`${row.chamber}-${row.bloc}`} style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span
@@ -67,7 +82,7 @@ export function BlocAttendance() {
                     width: `${fill}%`,
                     height: "100%",
                     borderRadius: 3,
-                    background: pct >= 85 ? "var(--pos)" : pct >= 75 ? "var(--serie-1)" : "var(--neg)",
+                    background: attendanceColor(pct),
                   }}
                 />
               </div>

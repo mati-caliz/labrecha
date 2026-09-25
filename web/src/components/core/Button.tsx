@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties, MouseEvent, ReactNode } from "react";
+import type { CSSProperties, MouseEvent, ReactNode, ReactElement } from "react";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 export type ButtonSize = "sm" | "md" | "lg";
@@ -15,7 +15,17 @@ interface ButtonProps {
   style?: CSSProperties;
 }
 
-const variants: Record<ButtonVariant, CSSProperties> = {
+type ButtonVariantStyle = CSSProperties & { background: string };
+
+const DISABLED_OPACITY = 0.5;
+
+const paddingBySize: Record<ButtonSize, string> = {
+  sm: "6px 12px",
+  md: "8px 16px",
+  lg: "11px 22px",
+};
+
+const variants: Record<ButtonVariant, ButtonVariantStyle> = {
   primary: { background: "var(--ink)", color: "var(--paper)", border: "1px solid var(--ink)" },
   secondary: {
     background: "var(--surface)",
@@ -41,8 +51,8 @@ export function Button({
   disabled,
   onClick,
   style,
-}: ButtonProps) {
-  const padding = size === "sm" ? "6px 12px" : size === "lg" ? "11px 22px" : "8px 16px";
+}: Readonly<ButtonProps>): ReactElement {
+  const padding = paddingBySize[size];
   const fontSize = size === "sm" ? "0.72rem" : "0.8125rem";
   const base: CSSProperties = {
     display: "inline-flex",
@@ -55,7 +65,7 @@ export function Button({
     borderRadius: "var(--radius-pill)",
     cursor: disabled ? "not-allowed" : "pointer",
     transition: "background 120ms ease-out,border-color 120ms ease-out",
-    opacity: disabled ? 0.5 : 1,
+    opacity: disabled === true ? DISABLED_OPACITY : 1,
     lineHeight: 1.2,
   };
   return (
@@ -68,10 +78,10 @@ export function Button({
         if (disabled) {
           return;
         }
-        event.currentTarget.style.background = hoverBackground[variant];
+        event.currentTarget.style.setProperty("background", hoverBackground[variant]);
       }}
       onMouseLeave={(event) => {
-        event.currentTarget.style.background = variants[variant].background as string;
+        event.currentTarget.style.setProperty("background", variants[variant].background);
       }}
     >
       {icon}

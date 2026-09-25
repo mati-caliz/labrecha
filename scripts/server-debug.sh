@@ -3,7 +3,8 @@
 # Debugging del servidor en producción.
 # Uso: ./scripts/server-debug.sh
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit 1
+set -o pipefail
 
 echo "🔧 Debugging del Servidor de La Brecha"
 echo "═══════════════════════════════════════════════════════════"

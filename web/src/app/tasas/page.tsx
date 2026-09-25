@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import { RateComparator } from "@/components/rates/RateComparator";
 import type { Metadata } from "next";
 
@@ -7,7 +8,7 @@ export const metadata: Metadata = {
     "Compará los rendimientos en pesos de billeteras, tasas de plazo fijo y créditos hipotecarios UVA de entidades argentinas.",
 };
 
-export default function RatesPage() {
+export default function RatesPage(): ReactElement {
   return (
     <div style={{ maxWidth: "var(--container-max)", margin: "0 auto", padding: "44px 24px 72px" }}>
       <header style={{ borderBottom: "2px solid var(--ink)", paddingBottom: 22, marginBottom: 26 }}>

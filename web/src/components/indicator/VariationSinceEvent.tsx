@@ -2,9 +2,16 @@
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIndicatorVariation, usePoliticalEvents } from "@/hooks/useLabrecha";
-import { formatDateAR, formatNumberAR, getIndicatorDisplay, sourceLabel } from "@/lib/indicators";
-import type { PoliticalEvent, TermMethod } from "@/lib/labrechaApi";
-import { type CSSProperties, useState } from "react";
+import {
+  type IndicatorDisplay,
+  formatDateAR,
+  formatNumberAR,
+  getIndicatorDisplay,
+  sourceLabel,
+} from "@/lib/indicators";
+import { compareIsoDates } from "@/lib/isoDates";
+import type { IndicatorVariation, PoliticalEvent, TermMethod } from "@/lib/labrechaApi";
+import { type CSSProperties, useState, type ReactElement } from "react";
 
 const MONO = "var(--font-jb-mono)";
 const CHANGE_DECIMALS = 1;
@@ -54,14 +61,111 @@ function eventOptionLabel(event: PoliticalEvent): string {
   return `${formatDateAR(event.date)} · ${event.title}`;
 }
 
-export function VariationSinceEvent({ code, source }: { code: string; source: string | undefined }) {
+function VariationResult({
+  indicator,
+  selected,
+  variation,
+}: Readonly<{
+  indicator: IndicatorDisplay;
+  selected: PoliticalEvent;
+  variation: IndicatorVariation;
+}>): ReactElement {
+  const change = Number.parseFloat(variation.change_pct);
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        alignItems: "flex-end",
+        gap: 28,
+        marginTop: 18,
+        padding: "18px 20px",
+        border: "1px solid var(--event-ln, var(--line))",
+        borderRadius: 10,
+        background: "var(--surface)",
+      }}
+    >
+      <div>
+        <div style={{ fontFamily: MONO, fontSize: "0.62rem", color: "var(--ink3)" }}>
+          {categoryLabel(selected.category)} · {formatDateAR(selected.date)}
+        </div>
+        <div
+          style={{
+            fontFamily: "var(--font-display)",
+            fontWeight: 600,
+            fontSize: "1rem",
+            color: "var(--ink)",
+            marginTop: 4,
+            maxWidth: 420,
+          }}
+        >
+          {selected.title}
+        </div>
+      </div>
+
+      <div style={{ marginLeft: "auto", textAlign: "right" }}>
+        <div
+          className="num"
+          style={{
+            fontFamily: MONO,
+            fontWeight: 700,
+            fontSize: "2rem",
+            lineHeight: 1,
+            color: changeColor(change, indicator.goodWhen),
+          }}
+        >
+          {formatChange(change)}
+        </div>
+        <div style={{ fontFamily: MONO, fontSize: "0.62rem", color: "var(--ink3)", marginTop: 6 }}>
+          {indicator.format(Number.parseFloat(variation.first_value))} →{" "}
+          {indicator.format(Number.parseFloat(variation.last_value))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function VariationOutcome({
+  indicator,
+  selected,
+  isLoading,
+  variation,
+}: Readonly<{
+  indicator: IndicatorDisplay;
+  selected: PoliticalEvent;
+  isLoading: boolean;
+  variation: IndicatorVariation | undefined;
+}>): ReactElement {
+  if (isLoading) {
+    return <Skeleton className="mt-4 h-[92px] w-full rounded-[10px]" />;
+  }
+  if (variation === undefined) {
+    return (
+      <p
+        style={{
+          fontFamily: "var(--font-serif)",
+          fontSize: "0.9375rem",
+          color: "var(--ink2)",
+          marginTop: 16,
+        }}
+      >
+        No hay al menos dos mediciones de {indicator.label} posteriores al {formatDateAR(selected.date)}, así
+        que no se puede calcular la variación desde ese evento.
+      </p>
+    );
+  }
+  return <VariationResult indicator={indicator} selected={selected} variation={variation} />;
+}
+
+export function VariationSinceEvent({
+  code,
+  source,
+}: Readonly<{ code: string; source: string | undefined }>): ReactElement | null {
   const indicator = getIndicatorDisplay(code);
   const { data: events } = usePoliticalEvents();
   const [selectedDate, setSelectedDate] = useState("");
 
-  const available = [...(events ?? [])].sort((first, second) =>
-    first.date < second.date ? 1 : first.date > second.date ? -1 : 0,
-  );
+  const available = [...(events ?? [])].sort((first, second) => compareIsoDates(second.date, first.date));
   const selected = available.find((event) => event.date === selectedDate);
 
   const variation = useIndicatorVariation(
@@ -107,7 +211,9 @@ export function VariationSinceEvent({ code, source }: { code: string; source: st
         <span style={{ fontFamily: MONO, fontSize: "0.66rem", color: "var(--ink3)" }}>Elegí un evento</span>
         <select
           value={selectedDate}
-          onChange={(changeEvent) => setSelectedDate(changeEvent.target.value)}
+          onChange={(changeEvent) => {
+            setSelectedDate(changeEvent.target.value);
+          }}
           style={selectStyle}
         >
           <option value="">—</option>
@@ -119,71 +225,13 @@ export function VariationSinceEvent({ code, source }: { code: string; source: st
         </select>
       </label>
 
-      {selected === undefined ? null : variation.isLoading ? (
-        <Skeleton className="mt-4 h-[92px] w-full rounded-[10px]" />
-      ) : variation.data === undefined ? (
-        <p
-          style={{
-            fontFamily: "var(--font-serif)",
-            fontSize: "0.9375rem",
-            color: "var(--ink2)",
-            marginTop: 16,
-          }}
-        >
-          No hay al menos dos mediciones de {indicator.label} posteriores al {formatDateAR(selected.date)},
-          así que no se puede calcular la variación desde ese evento.
-        </p>
-      ) : (
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "flex-end",
-            gap: 28,
-            marginTop: 18,
-            padding: "18px 20px",
-            border: "1px solid var(--event-ln, var(--line))",
-            borderRadius: 10,
-            background: "var(--surface)",
-          }}
-        >
-          <div>
-            <div style={{ fontFamily: MONO, fontSize: "0.62rem", color: "var(--ink3)" }}>
-              {categoryLabel(selected.category)} · {formatDateAR(selected.date)}
-            </div>
-            <div
-              style={{
-                fontFamily: "var(--font-display)",
-                fontWeight: 600,
-                fontSize: "1rem",
-                color: "var(--ink)",
-                marginTop: 4,
-                maxWidth: 420,
-              }}
-            >
-              {selected.title}
-            </div>
-          </div>
-
-          <div style={{ marginLeft: "auto", textAlign: "right" }}>
-            <div
-              className="num"
-              style={{
-                fontFamily: MONO,
-                fontWeight: 700,
-                fontSize: "2rem",
-                lineHeight: 1,
-                color: changeColor(Number.parseFloat(variation.data.change_pct), indicator.goodWhen),
-              }}
-            >
-              {formatChange(Number.parseFloat(variation.data.change_pct))}
-            </div>
-            <div style={{ fontFamily: MONO, fontSize: "0.62rem", color: "var(--ink3)", marginTop: 6 }}>
-              {indicator.format(Number.parseFloat(variation.data.first_value))} →{" "}
-              {indicator.format(Number.parseFloat(variation.data.last_value))}
-            </div>
-          </div>
-        </div>
+      {selected === undefined ? null : (
+        <VariationOutcome
+          indicator={indicator}
+          selected={selected}
+          isLoading={variation.isLoading}
+          variation={variation.data}
+        />
       )}
 
       {variation.data === undefined ? null : (

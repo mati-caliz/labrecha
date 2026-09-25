@@ -28,7 +28,7 @@ describe("the write side of the data proxy", () => {
         headers: { "content-type": "application/json" },
       }),
     );
-    global.fetch = fetchMock as unknown as typeof fetch;
+    global.fetch = fetchMock;
   });
 
   it("forwards the one path the API accepts writes on", async () => {

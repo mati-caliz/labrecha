@@ -1,12 +1,52 @@
+import type { ReactElement } from "react";
 import { cn } from "@/lib/utils";
-import { Minus, TrendingDown, TrendingUp } from "lucide-react";
+import { Minus, TrendingDown, TrendingUp, type LucideIcon } from "lucide-react";
+
+type VariationFormat = "percentage" | "absolute";
 
 interface VariationBadgeProps {
   variation: number;
-  format?: "percentage" | "absolute";
+  format?: VariationFormat;
   decimals?: number;
   showSign?: boolean;
   className?: string;
+}
+
+type VariationDirection = "up" | "down" | "flat";
+
+const DIRECTION_CLASSES: Record<VariationDirection, string> = {
+  up: "text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/15",
+  down: "text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-500/15",
+  flat: "text-muted-foreground bg-muted",
+};
+
+const DIRECTION_ICONS: Record<VariationDirection, LucideIcon> = {
+  up: TrendingUp,
+  down: TrendingDown,
+  flat: Minus,
+};
+
+function variationDirection(variation: number): VariationDirection {
+  if (variation > 0) {
+    return "up";
+  }
+  if (variation < 0) {
+    return "down";
+  }
+  return "flat";
+}
+
+function formatVariation(
+  variation: number,
+  format: VariationFormat,
+  decimals: number,
+  showSign: boolean,
+): string {
+  if (format === "percentage") {
+    return `${variation.toFixed(decimals)}%`;
+  }
+  const sign = showSign && variation > 0 ? "+" : "";
+  return `${sign}${variation.toLocaleString("es-AR", { maximumFractionDigits: decimals })}`;
 }
 
 export function VariationBadge({
@@ -15,37 +55,20 @@ export function VariationBadge({
   decimals = 2,
   showSign = false,
   className,
-}: VariationBadgeProps) {
-  const isPositive = variation > 0;
-  const isNegative = variation < 0;
-
-  const formattedValue =
-    format === "percentage"
-      ? `${variation.toFixed(decimals)}%`
-      : `${showSign && variation > 0 ? "+" : ""}${variation.toLocaleString("es-AR", {
-          maximumFractionDigits: decimals,
-        })}`;
+}: Readonly<VariationBadgeProps>): ReactElement {
+  const direction = variationDirection(variation);
+  const DirectionIcon = DIRECTION_ICONS[direction];
 
   return (
     <div
       className={cn(
         "flex items-center gap-1 text-sm px-2 py-1 rounded-full",
-        isPositive
-          ? "text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/15"
-          : isNegative
-            ? "text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-500/15"
-            : "text-muted-foreground bg-muted",
+        DIRECTION_CLASSES[direction],
         className,
       )}
     >
-      {isPositive ? (
-        <TrendingUp className="h-3.5 w-3.5" />
-      ) : isNegative ? (
-        <TrendingDown className="h-3.5 w-3.5" />
-      ) : (
-        <Minus className="h-3.5 w-3.5" />
-      )}
-      <span className="text-xs font-medium">{formattedValue}</span>
+      <DirectionIcon className="h-3.5 w-3.5" />
+      <span className="text-xs font-medium">{formatVariation(variation, format, decimals, showSign)}</span>
     </div>
   );
 }

@@ -1,9 +1,12 @@
 "use client";
+import type { ReactElement } from "react";
 
 import { Card } from "@/components/core";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useErrorEvents } from "@/hooks/useLabrecha";
 import type { ErrorEvent } from "@/lib/labrechaApi";
+
+import { formatElapsedSince } from "./relativeTime";
 
 const MONO = "var(--font-jb-mono)";
 const SKELETON_KEYS = ["e1", "e2", "e3"];
@@ -18,26 +21,7 @@ function originLabel(origin: string): string {
   return ORIGIN_LABELS[origin] ?? origin;
 }
 
-function relativeTime(iso: string): string {
-  const minutes = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000);
-  if (Number.isNaN(minutes)) {
-    return "—";
-  }
-  if (minutes < 1) {
-    return "recién";
-  }
-  if (minutes < 60) {
-    return `hace ${minutes} min`;
-  }
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) {
-    return `hace ${hours} h`;
-  }
-  const days = Math.floor(hours / 24);
-  return `hace ${days} día${days === 1 ? "" : "s"}`;
-}
-
-function ErrorRow({ event }: { event: ErrorEvent }) {
+function ErrorRow({ event }: Readonly<{ event: ErrorEvent }>): ReactElement {
   return (
     <div
       style={{
@@ -62,7 +46,7 @@ function ErrorRow({ event }: { event: ErrorEvent }) {
         <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--neg)" }}>{event.kind}</span>
         <span style={{ fontFamily: MONO, fontSize: "0.68rem", color: "var(--ink3)" }}>
           {originLabel(event.origin)} · {event.occurrences} {event.occurrences === 1 ? "vez" : "veces"} ·{" "}
-          {relativeTime(event.last_seen_at)}
+          {formatElapsedSince(event.last_seen_at)}
         </span>
       </div>
       <div style={{ fontSize: "0.8125rem", color: "var(--ink2)", wordBreak: "break-word" }}>
@@ -75,7 +59,7 @@ function ErrorRow({ event }: { event: ErrorEvent }) {
   );
 }
 
-export function ErrorEvents() {
+export function ErrorEvents(): ReactElement {
   const { data, isLoading } = useErrorEvents();
 
   if (isLoading) {

@@ -13,7 +13,7 @@ function parseThreshold(request: Request): number {
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : DEFAULT_THRESHOLD_PCT;
 }
 
-export async function GET(request: Request) {
+export async function GET(request: Request): Promise<Response> {
   const threshold = parseThreshold(request);
 
   let gaps: SourceGap[] = [];

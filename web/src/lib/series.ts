@@ -1,5 +1,7 @@
 import type { ChartEvent } from "@/components/core";
+import { ISO_DATE_LENGTH, ISO_YEAR_LENGTH, compareIsoDates } from "@/lib/isoDates";
 import type { IndicatorPoint, PoliticalEvent } from "@/lib/labrechaApi";
+import { hasText } from "@/lib/utils";
 
 export interface ParsedPoint {
   date: string;
@@ -20,7 +22,7 @@ export function parsePoints(points: IndicatorPoint[]): ParsedPoint[] {
   return points
     .map((point) => ({ date: point.date, value: Number.parseFloat(point.value) }))
     .filter((point) => Number.isFinite(point.value))
-    .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+    .sort((first, second) => compareIsoDates(first.date, second.date));
 }
 
 export function mergePoints(history: ParsedPoint[], live: ParsedPoint[]): ParsedPoint[] {
@@ -31,7 +33,7 @@ export function mergePoints(history: ParsedPoint[], live: ParsedPoint[]): Parsed
   for (const point of live) {
     byDate.set(point.date, point);
   }
-  return Array.from(byDate.values()).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  return Array.from(byDate.values()).sort((first, second) => compareIsoDates(first.date, second.date));
 }
 
 function downsample(dates: string[], maxPoints: number): string[] {
@@ -74,7 +76,7 @@ export function alignSources(
       dateSet.add(point.date);
     }
   }
-  const union = Array.from(dateSet).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+  const union = Array.from(dateSet).sort(compareIsoDates);
   const axis = downsample(union, maxPoints);
   const lines = sources.map((source) => ({
     source: source.source,
@@ -100,8 +102,8 @@ function nearestIndex(axis: string[], date: string): number {
   return lo;
 }
 
-function dateDiff(a: string, b: string): number {
-  return new Date(a).getTime() - new Date(b).getTime();
+function dateDiff(minuend: string, subtrahend: string): number {
+  return new Date(minuend).getTime() - new Date(subtrahend).getTime();
 }
 
 export function eventsToChartEvents(axis: string[], events: PoliticalEvent[]): ChartEvent[] {
@@ -124,7 +126,7 @@ export function yearLabels(axis: string[], count = 5): string[] {
   let lastYear = "";
   for (let i = 0; i < count; i += 1) {
     const position = Math.round(i * step);
-    const year = axis[position]?.slice(0, 4) ?? "";
+    const year = axis[position]?.slice(0, ISO_YEAR_LENGTH) ?? "";
     if (year && year !== lastYear) {
       labels[position] = year;
       lastYear = year;
@@ -134,16 +136,16 @@ export function yearLabels(axis: string[], count = 5): string[] {
 }
 
 export function rangeDateFrom(latestDate: string | undefined, months: number): string | undefined {
-  if (!latestDate || !Number.isFinite(months)) {
+  if (!hasText(latestDate) || !Number.isFinite(months)) {
     return undefined;
   }
   const date = new Date(latestDate);
   date.setMonth(date.getMonth() - months);
-  return date.toISOString().slice(0, 10);
+  return date.toISOString().slice(0, ISO_DATE_LENGTH);
 }
 
 export function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  return new Date().toISOString().slice(0, ISO_DATE_LENGTH);
 }
 
 export function orderIndicatorSources<T extends { source: string; count: number }>(

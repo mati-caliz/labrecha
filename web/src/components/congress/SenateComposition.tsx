@@ -1,4 +1,5 @@
 "use client";
+import type { ReactElement } from "react";
 
 import {
   BlocLegend,
@@ -9,25 +10,31 @@ import {
 import { Card } from "@/components/core";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSenateMembers } from "@/hooks/useLabrecha";
-import { blocColor } from "@/lib/congress";
+import {
+  blocNameOrUnknown,
+  blocRankLookup,
+  majorityOf,
+  rankBlocsBySeatCount,
+} from "@/components/congress/hemicycleBlocs";
 import type { Senator } from "@/lib/labrechaApi";
+import { hasText } from "@/lib/utils";
 
-const UNKNOWN_BLOC = "Sin bloque";
+const YEAR_LENGTH = 4;
 
 function senatorFullName(senator: Senator): string {
   return [senator.first_name, senator.last_name].filter(Boolean).join(" ") || senator.senator_id;
 }
 
 function mandateYears(senator: Senator): string | null {
-  const start = senator.mandate_start?.slice(0, 4);
-  const end = senator.mandate_end?.slice(0, 4);
-  if (!start && !end) {
+  const start = senator.mandate_start?.slice(0, YEAR_LENGTH);
+  const end = senator.mandate_end?.slice(0, YEAR_LENGTH);
+  if (!hasText(start) && !hasText(end)) {
     return null;
   }
   return `Mandato ${start ?? "?"}–${end ?? "?"}`;
 }
 
-export function SenateComposition() {
+export function SenateComposition(): ReactElement | null {
   const { data, isLoading } = useSenateMembers();
 
   if (isLoading) {
@@ -39,35 +46,23 @@ export function SenateComposition() {
     return null;
   }
 
-  const countByBloc = new Map<string, number>();
-  for (const senator of senators) {
-    const bloc = senator.bloc ?? UNKNOWN_BLOC;
-    countByBloc.set(bloc, (countByBloc.get(bloc) ?? 0) + 1);
-  }
-  const blocs: HemicycleBloc[] = [...countByBloc.entries()]
-    .sort((first, second) => second[1] - first[1] || first[0].localeCompare(second[0]))
-    .map(([name, count], index) => ({ name, count, color: blocColor(index) }));
-
-  const blocOrder = new Map(blocs.map((bloc, index) => [bloc.name, index]));
+  const blocs: HemicycleBloc[] = rankBlocsBySeatCount(senators.map((senator) => senator.bloc));
+  const blocRank = blocRankLookup(blocs);
   const seats: HemicycleSeat[] = [...senators]
-    .sort((first, second) => {
-      const firstBloc = blocOrder.get(first.bloc ?? UNKNOWN_BLOC) ?? Number.MAX_SAFE_INTEGER;
-      const secondBloc = blocOrder.get(second.bloc ?? UNKNOWN_BLOC) ?? Number.MAX_SAFE_INTEGER;
-      return firstBloc - secondBloc;
-    })
+    .sort((first, second) => blocRank(first.bloc) - blocRank(second.bloc))
     .map((senator) => ({
       id: senator.senator_id,
       occupantName: senatorFullName(senator),
-      bloc: senator.bloc ?? UNKNOWN_BLOC,
+      bloc: blocNameOrUnknown(senator.bloc),
       detailLines: [
         senator.province,
-        senator.party && senator.party !== senator.bloc ? senator.party : null,
+        hasText(senator.party) && senator.party !== senator.bloc ? senator.party : null,
         mandateYears(senator),
       ].filter((line): line is string => line !== null && line !== ""),
     }));
 
   const total = seats.length;
-  const majority = Math.floor(total / 2) + 1;
+  const majority = majorityOf(total);
 
   return (
     <Card

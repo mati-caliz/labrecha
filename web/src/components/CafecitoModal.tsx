@@ -1,21 +1,21 @@
 "use client";
 
 import { Coffee, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactElement } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
+import { hasText } from "@/lib/utils";
 
 const STORAGE_KEY = "cafecito-modal-closed";
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const SHOW_DELAY_MS = 8000;
 
-export function CafecitoModal() {
+export function CafecitoModal(): ReactElement | null {
   const [isVisible, setIsVisible] = useState(false);
-  const [shouldShow, setShouldShow] = useState(false);
 
   useEffect(() => {
     const lastClosedStr = localStorage.getItem(STORAGE_KEY);
-    if (lastClosedStr) {
+    if (hasText(lastClosedStr)) {
       const lastClosed = Number.parseInt(lastClosedStr, 10);
       const now = Date.now();
       if (now - lastClosed < ONE_DAY_MS) {
@@ -23,20 +23,21 @@ export function CafecitoModal() {
       }
     }
 
-    setShouldShow(true);
     const timer = setTimeout(() => {
       setIsVisible(true);
     }, SHOW_DELAY_MS);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+    };
   }, []);
 
-  const handleClose = () => {
+  const handleClose = (): void => {
     setIsVisible(false);
     localStorage.setItem(STORAGE_KEY, Date.now().toString());
   };
 
-  if (!shouldShow || !isVisible) {
+  if (!isVisible) {
     return null;
   }
 

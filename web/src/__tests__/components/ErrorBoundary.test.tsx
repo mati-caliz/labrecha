@@ -1,7 +1,6 @@
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { fireEvent, render, screen } from "@testing-library/react";
 
-// Component that throws an error
 const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
   if (shouldThrow) {
     throw new Error("Test error");
@@ -9,13 +8,12 @@ const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
   return <div>No error</div>;
 };
 
-// Suppress console.error for these tests
-const originalError = console.error;
+let consoleErrorSpy: jest.SpyInstance;
 beforeAll(() => {
-  console.error = jest.fn();
+  consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => undefined);
 });
 afterAll(() => {
-  console.error = originalError;
+  consoleErrorSpy.mockRestore();
 });
 
 describe("ErrorBoundary", () => {
@@ -58,8 +56,7 @@ describe("ErrorBoundary", () => {
       </ErrorBoundary>,
     );
 
-    expect(onError).toHaveBeenCalled();
-    expect(onError.mock.calls[0][0]).toBeInstanceOf(Error);
+    expect(onError).toHaveBeenCalledWith(expect.any(Error), expect.anything());
   });
 
   it("shows retry button that resets error state", () => {
@@ -93,9 +90,7 @@ describe("ErrorBoundary", () => {
   });
 
   it("displays error message in development mode", () => {
-    const originalEnv = process.env.NODE_ENV;
-    // @ts-expect-error - Testing environment variable override
-    process.env.NODE_ENV = "development";
+    const replacedNodeEnv = jest.replaceProperty(process.env, "NODE_ENV", "development");
 
     render(
       <ErrorBoundary>
@@ -105,7 +100,6 @@ describe("ErrorBoundary", () => {
 
     expect(screen.getByText("Test error")).toBeInTheDocument();
 
-    // @ts-expect-error - Restoring environment variable
-    process.env.NODE_ENV = originalEnv;
+    replacedNodeEnv.restore();
   });
 });

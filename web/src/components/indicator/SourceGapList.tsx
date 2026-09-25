@@ -1,4 +1,5 @@
 "use client";
+import type { ReactElement } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSourceGaps } from "@/hooks/useLabrecha";
@@ -10,20 +11,79 @@ import {
   getIndicatorMeta,
   sourceLabel,
 } from "@/lib/indicators";
+import type { IndicatorDisplay } from "@/lib/indicators";
 import type { SourceGap } from "@/lib/labrechaApi";
 import Link from "next/link";
 
 const MONO = "var(--font-jb-mono)";
 const SKELETON_KEYS = ["g1", "g2", "g3"];
+const HIGHLIGHTED_POSITIONS = 3;
 
-function GapRow({ gap, position }: { gap: SourceGap; position: number }) {
+function GapSourcesComparison({
+  gap,
+  indicator,
+  barWidth,
+}: Readonly<{ gap: SourceGap; indicator: IndicatorDisplay; barWidth: number }>): ReactElement {
+  const higher = Number.parseFloat(gap.higher_value);
+  const lower = Number.parseFloat(gap.lower_value);
+  return (
+    <div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          fontFamily: MONO,
+          fontSize: "0.72rem",
+          marginBottom: 8,
+          gap: 10,
+        }}
+      >
+        <span style={{ color: "var(--ink2)" }}>
+          {sourceLabel(gap.higher_source)} <b style={{ color: "var(--ink)" }}>{indicator.format(higher)}</b>
+        </span>
+        <span style={{ color: "var(--ink2)" }}>
+          {sourceLabel(gap.lower_source)} <b style={{ color: "var(--ink)" }}>{indicator.format(lower)}</b>
+        </span>
+      </div>
+      <div
+        style={{
+          height: 8,
+          background: "var(--line2)",
+          borderRadius: "var(--radius-pill)",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            width: `${barWidth}%`,
+            height: "100%",
+            background: "var(--gap)",
+            opacity: 0.9,
+          }}
+        />
+      </div>
+      <div style={{ fontFamily: MONO, fontSize: "0.62rem", color: "var(--ink3)", marginTop: 6 }}>
+        {gap.measurements.length} fuentes con la misma unidad ({gap.unit}) en la misma fecha ·{" "}
+        {formatDateAR(gap.date)}
+      </div>
+      {gap.excluded_sources.length > 0 && (
+        <div style={{ fontFamily: MONO, fontSize: "0.62rem", color: "var(--ink3)", marginTop: 4 }}>
+          fuera de la comparación:{" "}
+          {gap.excluded_sources
+            .map((excluded) => `${sourceLabel(excluded.source)} (${excluded.reason})`)
+            .join(" · ")}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function GapRow({ gap, position }: Readonly<{ gap: SourceGap; position: number }>): ReactElement {
   const indicator = getIndicatorDisplay(gap.indicator_code);
   const meta = getIndicatorMeta(gap.indicator_code);
   const familyLabel = meta ? INDICATOR_FAMILY_LABELS[meta.family] : "Indicador";
-  const higher = Number.parseFloat(gap.higher_value);
-  const lower = Number.parseFloat(gap.lower_value);
   const magnitude = automaticGapMagnitude(gap.unit, Number.parseFloat(gap.spread), gap.gap_pct);
-  const strong = position < 3;
+  const strong = position < HIGHLIGHTED_POSITIONS;
 
   return (
     <Link
@@ -77,54 +137,7 @@ function GapRow({ gap, position }: { gap: SourceGap; position: number }) {
         </div>
       </div>
 
-      <div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            fontFamily: MONO,
-            fontSize: "0.72rem",
-            marginBottom: 8,
-            gap: 10,
-          }}
-        >
-          <span style={{ color: "var(--ink2)" }}>
-            {sourceLabel(gap.higher_source)} <b style={{ color: "var(--ink)" }}>{indicator.format(higher)}</b>
-          </span>
-          <span style={{ color: "var(--ink2)" }}>
-            {sourceLabel(gap.lower_source)} <b style={{ color: "var(--ink)" }}>{indicator.format(lower)}</b>
-          </span>
-        </div>
-        <div
-          style={{
-            height: 8,
-            background: "var(--line2)",
-            borderRadius: "var(--radius-pill)",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              width: `${magnitude.barWidth}%`,
-              height: "100%",
-              background: "var(--gap)",
-              opacity: 0.9,
-            }}
-          />
-        </div>
-        <div style={{ fontFamily: MONO, fontSize: "0.62rem", color: "var(--ink3)", marginTop: 6 }}>
-          {gap.measurements.length} fuentes con la misma unidad ({gap.unit}) en la misma fecha ·{" "}
-          {formatDateAR(gap.date)}
-        </div>
-        {gap.excluded_sources.length > 0 && (
-          <div style={{ fontFamily: MONO, fontSize: "0.62rem", color: "var(--ink3)", marginTop: 4 }}>
-            fuera de la comparación:{" "}
-            {gap.excluded_sources
-              .map((excluded) => `${sourceLabel(excluded.source)} (${excluded.reason})`)
-              .join(" · ")}
-          </div>
-        )}
-      </div>
+      <GapSourcesComparison gap={gap} indicator={indicator} barWidth={magnitude.barWidth} />
 
       <div style={{ textAlign: "right" }}>
         <div
@@ -144,7 +157,7 @@ function GapRow({ gap, position }: { gap: SourceGap; position: number }) {
   );
 }
 
-export function SourceGapList() {
+export function SourceGapList(): ReactElement {
   const { data, isLoading } = useSourceGaps();
 
   if (isLoading) {

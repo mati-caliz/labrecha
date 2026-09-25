@@ -4,6 +4,7 @@ import { SITE_URL } from "@/lib/site";
 
 const AI_DISCLAIMER = "Resumen generado por IA. Verificá siempre contra la fuente oficial.";
 const REVALIDATE_SECONDS = 3600;
+const ISO_DATE_LENGTH = 10;
 
 function escapeXml(value: string): string {
   return value
@@ -15,7 +16,7 @@ function escapeXml(value: string): string {
 }
 
 function toRfc822(date: string): string {
-  const parsed = new Date(date.length <= 10 ? `${date}T12:00:00Z` : date);
+  const parsed = new Date(date.length <= ISO_DATE_LENGTH ? `${date}T12:00:00Z` : date);
   if (Number.isNaN(parsed.getTime())) {
     return new Date().toUTCString();
   }
@@ -23,7 +24,7 @@ function toRfc822(date: string): string {
 }
 
 function itemXml(summary: GazetteSummary): string {
-  const bullets = (summary.summary ?? []).map((line) => `• ${line}`).join("\n");
+  const bullets = summary.summary.map((line) => `• ${line}`).join("\n");
   const description = `${bullets}\n\n${AI_DISCLAIMER}`;
   return `    <item>
       <title>${escapeXml(summary.title)}</title>
@@ -35,7 +36,7 @@ function itemXml(summary: GazetteSummary): string {
     </item>`;
 }
 
-export async function GET() {
+export async function GET(): Promise<Response> {
   let summaries: GazetteSummary[] = [];
   try {
     summaries = await serverGet<GazetteSummary[]>("/gazette/summaries?limit=50", REVALIDATE_SECONDS);

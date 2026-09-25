@@ -4,9 +4,9 @@ import { CalculatorHeader } from "@/components/calculators/CalculatorHeader";
 import { Button, Card } from "@/components/core";
 import { formatMoneyAR, formatNumberAR } from "@/lib/indicators";
 import { calculatorsApi } from "@/lib/labrechaApi";
-import type { InflationAdjustmentRequest } from "@/lib/labrechaApi";
+import type { InflationAdjustmentRequest, InflationAdjustmentResponse } from "@/lib/labrechaApi";
 import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, type ReactElement } from "react";
 
 const fieldStyle = { display: "flex", flexDirection: "column" as const, gap: 4 };
 const inputStyle = {
@@ -19,14 +19,79 @@ const inputStyle = {
   fontSize: "0.9375rem",
 };
 const labelStyle = { fontSize: "0.75rem", fontWeight: 600, color: "var(--ink2)" };
+const DEFAULT_AMOUNT = 100000;
 
 function monthLabel(month: string): string {
   const [year, monthNumber] = month.split("-");
   return `${monthNumber}/${year}`;
 }
 
-export default function InflationAdjustmentPage() {
-  const [amount, setAmount] = useState(100000);
+interface InflationResultCardProps {
+  result: InflationAdjustmentResponse;
+  fromMonth: string;
+  toMonth: string;
+}
+
+function InflationResultCard({
+  result,
+  fromMonth,
+  toMonth,
+}: Readonly<InflationResultCardProps>): ReactElement {
+  return (
+    <Card
+      title="Resultado"
+      footer={
+        <span style={{ fontSize: "0.6875rem", color: "var(--ink3)" }}>
+          Fuente: IPC nivel general (INDEC) · {result.months_elapsed} meses
+        </span>
+      }
+    >
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div>
+          <div style={{ fontSize: "0.75rem", color: "var(--ink3)" }}>
+            Valor equivalente en {monthLabel(toMonth)}
+          </div>
+          <div className="num" style={{ fontSize: "var(--fs-num-xl)", fontWeight: 600, lineHeight: 1.1 }}>
+            {formatMoneyAR(Number.parseFloat(result.adjusted_amount))}
+          </div>
+        </div>
+        <p style={{ fontSize: "0.875rem", color: "var(--ink2)", margin: 0 }}>
+          {formatMoneyAR(Number.parseFloat(result.original_amount))} de {monthLabel(fromMonth)} equivalen a{" "}
+          {formatMoneyAR(Number.parseFloat(result.adjusted_amount))} de {monthLabel(toMonth)}.
+        </p>
+        <div>
+          <div style={{ fontSize: "0.75rem", color: "var(--ink3)" }}>Inflación acumulada del período</div>
+          <div className="num" style={{ fontWeight: 600, color: "var(--neg)" }}>
+            {formatNumberAR(Number.parseFloat(result.cumulative_inflation), 1)}%
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function InflationEmptyCard({ isError }: Readonly<{ isError: boolean }>): ReactElement {
+  return (
+    <Card>
+      <p
+        style={{
+          color: "var(--ink3)",
+          fontSize: "0.875rem",
+          margin: 0,
+          textAlign: "center",
+          padding: "40px 0",
+        }}
+      >
+        {isError
+          ? "No se pudo calcular. Revisá las fechas (debe haber IPC publicado para el rango)."
+          : "Elegí un monto y un rango de meses."}
+      </p>
+    </Card>
+  );
+}
+
+export default function InflationAdjustmentPage(): ReactElement {
+  const [amount, setAmount] = useState(DEFAULT_AMOUNT);
   const [fromMonth, setFromMonth] = useState("2023-01");
   const [toMonth, setToMonth] = useState("2025-12");
 
@@ -34,7 +99,7 @@ export default function InflationAdjustmentPage() {
     mutationFn: (body: InflationAdjustmentRequest) => calculatorsApi.inflationAdjustment(body),
   });
 
-  const onSubmit = (event: React.FormEvent) => {
+  const onSubmit = (event: React.FormEvent): void => {
     event.preventDefault();
     mutation.mutate({
       amount,
@@ -77,7 +142,9 @@ export default function InflationAdjustmentPage() {
                 type="number"
                 min={0}
                 value={amount}
-                onChange={(event) => setAmount(Number(event.target.value))}
+                onChange={(event) => {
+                  setAmount(Number(event.target.value));
+                }}
                 style={inputStyle}
               />
             </label>
@@ -88,7 +155,9 @@ export default function InflationAdjustmentPage() {
                   type="month"
                   value={fromMonth}
                   max={toMonth}
-                  onChange={(event) => setFromMonth(event.target.value)}
+                  onChange={(event) => {
+                    setFromMonth(event.target.value);
+                  }}
                   style={inputStyle}
                 />
               </label>
@@ -98,7 +167,9 @@ export default function InflationAdjustmentPage() {
                   type="month"
                   value={toMonth}
                   min={fromMonth}
-                  onChange={(event) => setToMonth(event.target.value)}
+                  onChange={(event) => {
+                    setToMonth(event.target.value);
+                  }}
                   style={inputStyle}
                 />
               </label>
@@ -110,57 +181,9 @@ export default function InflationAdjustmentPage() {
         </Card>
 
         {result ? (
-          <Card
-            title="Resultado"
-            footer={
-              <span style={{ fontSize: "0.6875rem", color: "var(--ink3)" }}>
-                Fuente: IPC nivel general (INDEC) · {result.months_elapsed} meses
-              </span>
-            }
-          >
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div>
-                <div style={{ fontSize: "0.75rem", color: "var(--ink3)" }}>
-                  Valor equivalente en {monthLabel(toMonth)}
-                </div>
-                <div
-                  className="num"
-                  style={{ fontSize: "var(--fs-num-xl)", fontWeight: 600, lineHeight: 1.1 }}
-                >
-                  {formatMoneyAR(Number.parseFloat(result.adjusted_amount))}
-                </div>
-              </div>
-              <p style={{ fontSize: "0.875rem", color: "var(--ink2)", margin: 0 }}>
-                {formatMoneyAR(Number.parseFloat(result.original_amount))} de {monthLabel(fromMonth)}{" "}
-                equivalen a {formatMoneyAR(Number.parseFloat(result.adjusted_amount))} de{" "}
-                {monthLabel(toMonth)}.
-              </p>
-              <div>
-                <div style={{ fontSize: "0.75rem", color: "var(--ink3)" }}>
-                  Inflación acumulada del período
-                </div>
-                <div className="num" style={{ fontWeight: 600, color: "var(--neg)" }}>
-                  {formatNumberAR(Number.parseFloat(result.cumulative_inflation), 1)}%
-                </div>
-              </div>
-            </div>
-          </Card>
+          <InflationResultCard result={result} fromMonth={fromMonth} toMonth={toMonth} />
         ) : (
-          <Card>
-            <p
-              style={{
-                color: "var(--ink3)",
-                fontSize: "0.875rem",
-                margin: 0,
-                textAlign: "center",
-                padding: "40px 0",
-              }}
-            >
-              {mutation.isError
-                ? "No se pudo calcular. Revisá las fechas (debe haber IPC publicado para el rango)."
-                : "Elegí un monto y un rango de meses."}
-            </p>
-          </Card>
+          <InflationEmptyCard isError={mutation.isError} />
         )}
       </div>
     </div>

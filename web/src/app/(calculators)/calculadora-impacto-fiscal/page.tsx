@@ -4,9 +4,9 @@ import { CalculatorHeader } from "@/components/calculators/CalculatorHeader";
 import { Button, Card, DataTable } from "@/components/core";
 import { formatMoneyAR, formatNumberAR } from "@/lib/indicators";
 import { calculatorsApi } from "@/lib/labrechaApi";
-import type { TaxImpactRequest } from "@/lib/labrechaApi";
+import type { TaxImpactRequest, TaxImpactResponse } from "@/lib/labrechaApi";
 import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, type ReactElement } from "react";
 
 const fieldStyle = { display: "flex", flexDirection: "column" as const, gap: 4 };
 const inputStyle = {
@@ -27,9 +27,16 @@ const checkboxRow = {
   color: "var(--ink)",
 };
 
+const DEFAULT_GROSS_SALARY = 2000000;
+const DEFAULT_MONTHLY_EXPENSES = 1200000;
+
+function isNonZeroNumber(value: number | undefined): value is number {
+  return value !== undefined && value !== 0 && !Number.isNaN(value);
+}
+
 function formatFreedomDate(isoDate: string): string {
   const [year, month, day] = isoDate.split("-").map(Number);
-  if (!year || !month || !day) {
+  if (!isNonZeroNumber(year) || !isNonZeroNumber(month) || !isNonZeroNumber(day)) {
     return isoDate;
   }
   return new Date(year, month - 1, day).toLocaleDateString("es-AR", {
@@ -38,16 +45,99 @@ function formatFreedomDate(isoDate: string): string {
   });
 }
 
-export default function TaxImpactPage() {
-  const [grossSalary, setGrossSalary] = useState(2000000);
-  const [monthlyExpenses, setMonthlyExpenses] = useState(1200000);
+function TaxImpactResultCard({ result }: Readonly<{ result: TaxImpactResponse }>): ReactElement {
+  return (
+    <Card
+      title="Cuánto le dejás al Estado"
+      footer={
+        <span style={{ fontSize: "0.6875rem", color: "var(--ink3)" }}>
+          Estimación. El IVA se calcula al 21% embebido en tus gastos y los Ingresos Brutos a una alícuota
+          provincial representativa del 4%; los aportes de la seguridad social financian tu jubilación y obra
+          social. No incluye impuestos internos ni tasas municipales.
+        </span>
+      }
+    >
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 16,
+            padding: "12px 14px",
+            borderRadius: "var(--radius-md)",
+            background: "var(--gap-bg)",
+            color: "var(--gap)",
+          }}
+        >
+          <div>
+            <div style={{ fontSize: "0.75rem", fontWeight: 600 }}>Trabajás para el Estado hasta el</div>
+            <div className="num" style={{ fontSize: "1.5rem", fontWeight: 600, lineHeight: 1.1 }}>
+              {formatFreedomDate(result.tax_freedom_date)}
+            </div>
+            <div style={{ fontSize: "0.6875rem" }}>{result.days_for_the_state} días del año</div>
+          </div>
+          <div>
+            <div style={{ fontSize: "0.75rem", fontWeight: 600 }}>Presión total</div>
+            <div className="num" style={{ fontSize: "1.5rem", fontWeight: 600, lineHeight: 1.1 }}>
+              {formatNumberAR(Number.parseFloat(result.total_pressure), 1)}%
+            </div>
+            <div style={{ fontSize: "0.6875rem" }}>
+              {formatMoneyAR(Number.parseFloat(result.total_monthly))} por mes
+            </div>
+          </div>
+        </div>
+        <DataTable
+          columns={[
+            { key: "concepto", label: "Concepto" },
+            { key: "mensual", label: "Mensual", align: "right", numeric: true },
+            { key: "anual", label: "Anual", align: "right", numeric: true },
+            { key: "share", label: "% ingreso", align: "right", numeric: true },
+          ]}
+          rows={result.items.map((item) => ({
+            id: item.concept,
+            cells: [
+              item.concept,
+              formatMoneyAR(Number.parseFloat(item.monthly_amount)),
+              formatMoneyAR(Number.parseFloat(item.annual_amount)),
+              `${formatNumberAR(Number.parseFloat(item.share_of_income), 1)}%`,
+            ],
+          }))}
+        />
+      </div>
+    </Card>
+  );
+}
+
+function TaxImpactEmptyCard({ isError }: Readonly<{ isError: boolean }>): ReactElement {
+  return (
+    <Card>
+      <p
+        style={{
+          color: "var(--ink3)",
+          fontSize: "0.875rem",
+          margin: 0,
+          textAlign: "center",
+          padding: "40px 0",
+        }}
+      >
+        {isError
+          ? "No se pudo calcular. Revisá los valores ingresados."
+          : "Completá tu situación y presioná Calcular."}
+      </p>
+    </Card>
+  );
+}
+
+export default function TaxImpactPage(): ReactElement {
+  const [grossSalary, setGrossSalary] = useState(DEFAULT_GROSS_SALARY);
+  const [monthlyExpenses, setMonthlyExpenses] = useState(DEFAULT_MONTHLY_EXPENSES);
   const [retired, setRetired] = useState(false);
 
   const mutation = useMutation({
     mutationFn: (body: TaxImpactRequest) => calculatorsApi.taxImpact(body),
   });
 
-  const onSubmit = (event: React.FormEvent) => {
+  const onSubmit = (event: React.FormEvent): void => {
     event.preventDefault();
     mutation.mutate({
       gross_monthly_salary: grossSalary,
@@ -90,7 +180,9 @@ export default function TaxImpactPage() {
                 type="number"
                 min={0}
                 value={grossSalary}
-                onChange={(event) => setGrossSalary(Number(event.target.value))}
+                onChange={(event) => {
+                  setGrossSalary(Number(event.target.value));
+                }}
                 style={inputStyle}
               />
             </label>
@@ -100,7 +192,9 @@ export default function TaxImpactPage() {
                 type="number"
                 min={0}
                 value={monthlyExpenses}
-                onChange={(event) => setMonthlyExpenses(Number(event.target.value))}
+                onChange={(event) => {
+                  setMonthlyExpenses(Number(event.target.value));
+                }}
                 style={inputStyle}
               />
             </label>
@@ -108,7 +202,9 @@ export default function TaxImpactPage() {
               <input
                 type="checkbox"
                 checked={retired}
-                onChange={(event) => setRetired(event.target.checked)}
+                onChange={(event) => {
+                  setRetired(event.target.checked);
+                }}
               />
               Soy jubilado / pensionado
             </label>
@@ -118,82 +214,7 @@ export default function TaxImpactPage() {
           </form>
         </Card>
 
-        {result ? (
-          <Card
-            title="Cuánto le dejás al Estado"
-            footer={
-              <span style={{ fontSize: "0.6875rem", color: "var(--ink3)" }}>
-                Estimación. El IVA se calcula al 21% embebido en tus gastos y los Ingresos Brutos a una
-                alícuota provincial representativa del 4%; los aportes de la seguridad social financian tu
-                jubilación y obra social. No incluye impuestos internos ni tasas municipales.
-              </span>
-            }
-          >
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: 16,
-                  padding: "12px 14px",
-                  borderRadius: "var(--radius-md)",
-                  background: "var(--gap-bg)",
-                  color: "var(--gap)",
-                }}
-              >
-                <div>
-                  <div style={{ fontSize: "0.75rem", fontWeight: 600 }}>Trabajás para el Estado hasta el</div>
-                  <div className="num" style={{ fontSize: "1.5rem", fontWeight: 600, lineHeight: 1.1 }}>
-                    {formatFreedomDate(result.tax_freedom_date)}
-                  </div>
-                  <div style={{ fontSize: "0.6875rem" }}>{result.days_for_the_state} días del año</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: "0.75rem", fontWeight: 600 }}>Presión total</div>
-                  <div className="num" style={{ fontSize: "1.5rem", fontWeight: 600, lineHeight: 1.1 }}>
-                    {formatNumberAR(Number.parseFloat(result.total_pressure), 1)}%
-                  </div>
-                  <div style={{ fontSize: "0.6875rem" }}>
-                    {formatMoneyAR(Number.parseFloat(result.total_monthly))} por mes
-                  </div>
-                </div>
-              </div>
-              <DataTable
-                columns={[
-                  { key: "concepto", label: "Concepto" },
-                  { key: "mensual", label: "Mensual", align: "right", numeric: true },
-                  { key: "anual", label: "Anual", align: "right", numeric: true },
-                  { key: "share", label: "% ingreso", align: "right", numeric: true },
-                ]}
-                rows={result.items.map((item) => ({
-                  id: item.concept,
-                  cells: [
-                    item.concept,
-                    formatMoneyAR(Number.parseFloat(item.monthly_amount)),
-                    formatMoneyAR(Number.parseFloat(item.annual_amount)),
-                    `${formatNumberAR(Number.parseFloat(item.share_of_income), 1)}%`,
-                  ],
-                }))}
-              />
-            </div>
-          </Card>
-        ) : (
-          <Card>
-            <p
-              style={{
-                color: "var(--ink3)",
-                fontSize: "0.875rem",
-                margin: 0,
-                textAlign: "center",
-                padding: "40px 0",
-              }}
-            >
-              {mutation.isError
-                ? "No se pudo calcular. Revisá los valores ingresados."
-                : "Completá tu situación y presioná Calcular."}
-            </p>
-          </Card>
-        )}
+        {result ? <TaxImpactResultCard result={result} /> : <TaxImpactEmptyCard isError={mutation.isError} />}
       </div>
     </div>
   );

@@ -8,6 +8,6 @@
     "dev": "./scripts/run-local.sh",
     "dev:docker": "./scripts/run-docker.sh",
     "dev:infra": "./scripts/dev-infra.sh",
-    "verify": "pnpm --dir web run verify"
+    "verify": "scripts/verify.sh"
   }
 }

@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import { GapComparison } from "@/components/indicator/GapComparison";
 import { GapRankList } from "@/components/indicator/GapRankList";
 import { SourceGapList } from "@/components/indicator/SourceGapList";
@@ -20,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function GapsPage() {
+export default function GapsPage(): ReactElement {
   return (
     <PrefetchedQueries queries={gapsQueries()}>
       <div>

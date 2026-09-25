@@ -1,4 +1,6 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, ReactNode, ReactElement } from "react";
+
+const CARD_BODY_PADDING = 20;
 
 interface CardProps {
   title?: ReactNode;
@@ -10,7 +12,15 @@ interface CardProps {
   style?: CSSProperties;
 }
 
-export function Card({ title, subtitle, actions, footer, children, pad = true, style }: CardProps) {
+export function Card({
+  title,
+  subtitle,
+  actions,
+  footer,
+  children,
+  pad = true,
+  style,
+}: Readonly<CardProps>): ReactElement {
   return (
     <div
       style={{
@@ -22,7 +32,7 @@ export function Card({ title, subtitle, actions, footer, children, pad = true, s
         ...style,
       }}
     >
-      {(title || actions) && (
+      {(Boolean(title) || Boolean(actions)) && (
         <div
           style={{
             display: "flex",
@@ -34,7 +44,7 @@ export function Card({ title, subtitle, actions, footer, children, pad = true, s
           }}
         >
           <div>
-            {title && (
+            {Boolean(title) && (
               <div
                 style={{
                   fontFamily: "var(--font-display)",
@@ -47,7 +57,7 @@ export function Card({ title, subtitle, actions, footer, children, pad = true, s
                 {title}
               </div>
             )}
-            {subtitle && (
+            {Boolean(subtitle) && (
               <div
                 style={{
                   fontFamily: "var(--font-serif)",
@@ -60,11 +70,11 @@ export function Card({ title, subtitle, actions, footer, children, pad = true, s
               </div>
             )}
           </div>
-          {actions && <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>{actions}</div>}
+          {Boolean(actions) && <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>{actions}</div>}
         </div>
       )}
-      <div style={{ padding: pad ? 20 : 0, flex: 1 }}>{children}</div>
-      {footer && (
+      <div style={{ padding: pad ? CARD_BODY_PADDING : 0, flex: 1 }}>{children}</div>
+      {Boolean(footer) && (
         <div
           style={{
             padding: "12px 20px",

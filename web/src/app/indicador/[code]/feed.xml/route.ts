@@ -4,6 +4,7 @@ import type { IndicatorPoint, IndicatorSeries } from "@/lib/labrechaApi";
 import { buildRssResponse, toRfc822 } from "@/lib/rss";
 import { serverGet } from "@/lib/serverApi";
 import { SITE_URL } from "@/lib/site";
+import { hasText } from "@/lib/utils";
 
 const REVALIDATE_SECONDS = 1800;
 const FEED_POINTS = 30;
@@ -34,7 +35,10 @@ function feedDescription(label: string, alert: ThresholdAlert | null, boundary: 
   }, con su fuente y su fecha.`;
 }
 
-export async function GET(request: Request, { params }: { params: Promise<{ code: string }> }) {
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ code: string }> },
+): Promise<Response> {
   const { code } = await params;
   const indicator = getIndicatorDisplay(code);
   const pageUrl = `${SITE_URL}/indicador/${code}`;
@@ -52,7 +56,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ code
   }
 
   const points = selectPoints(series?.points ?? [], alert);
-  const unitSuffix = indicator.unit ? ` ${indicator.unit}` : "";
+  const unitSuffix = hasText(indicator.unit) ? ` ${indicator.unit}` : "";
   const boundary = alert === null ? "" : `${indicator.format(alert.threshold)}${unitSuffix}`;
 
   return buildRssResponse(

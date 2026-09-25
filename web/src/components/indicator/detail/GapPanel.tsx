@@ -1,4 +1,5 @@
 "use client";
+import type { ReactElement } from "react";
 
 import { CARD_STYLE, MONO, sourceColor } from "@/components/indicator/detail/styles";
 import { GAPS } from "@/lib/gaps";
@@ -10,11 +11,11 @@ export function GapPanel({
   indicator,
   gapPct,
   sources,
-}: {
+}: Readonly<{
   indicator: IndicatorDisplay;
   gapPct: number;
   sources: IndicatorSourceSummary[];
-}) {
+}>): ReactElement | null {
   const [firstSource, secondSource] = sources;
   if (!firstSource || !secondSource) {
     return null;
@@ -124,7 +125,9 @@ export function GapPanel({
   );
 }
 
-export function SourcePanel({ primary }: { primary: IndicatorSourceSummary | undefined }) {
+export function SourcePanel({
+  primary,
+}: Readonly<{ primary: IndicatorSourceSummary | undefined }>): ReactElement {
   return (
     <div style={{ ...CARD_STYLE, padding: "28px 30px" }}>
       <div
@@ -156,7 +159,7 @@ export function SourcePanel({ primary }: { primary: IndicatorSourceSummary | und
   );
 }
 
-export function RelatedGapLinks({ code }: { code: string }) {
+export function RelatedGapLinks({ code }: Readonly<{ code: string }>): ReactElement | null {
   const relatedGaps = GAPS.filter((gap) => gap.legs.some((leg) => leg.code === code));
   if (relatedGaps.length === 0) {
     return null;

@@ -1,3 +1,4 @@
+import { hasText } from "@/lib/utils";
 export type ErrorOrigin = "web-server" | "web-browser";
 
 const KIND_MAX_LENGTH = 160;
@@ -21,11 +22,18 @@ function cut(text: string, max: number): string {
   return text.length > max ? text.slice(0, max) : text;
 }
 
+function rawMessageOf(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return typeof error === "string" ? error : "";
+}
+
 export function buildErrorReport(origin: ErrorOrigin, error: unknown, path?: string): ErrorReport {
   const isError = error instanceof Error;
   const kind = isError && error.name ? error.name : UNKNOWN_KIND;
-  const rawMessage = isError ? error.message : typeof error === "string" ? error : "";
-  const stack = isError && error.stack ? cut(error.stack, STACK_MAX_LENGTH) : undefined;
+  const rawMessage = rawMessageOf(error);
+  const stack = isError && hasText(error.stack) ? cut(error.stack, STACK_MAX_LENGTH) : undefined;
   return {
     origin,
     kind: cut(kind, KIND_MAX_LENGTH),

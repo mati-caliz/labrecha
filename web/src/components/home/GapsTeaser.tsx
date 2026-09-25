@@ -1,11 +1,14 @@
 "use client";
+import type { ReactElement } from "react";
 
 import { Eyebrow } from "@/components/home/homeShared";
 import { useIndicatorSources } from "@/hooks/useLabrecha";
 import { formatNumberAR, getIndicatorDisplay, sourceLabel } from "@/lib/indicators";
 import { TEASER_CODES } from "@/lib/queryParams";
 
-function GapItem({ code }: { code: string }) {
+const PERCENT_FACTOR = 100;
+
+function GapItem({ code }: Readonly<{ code: string }>): ReactElement | null {
   const indicator = getIndicatorDisplay(code);
   const { data } = useIndicatorSources(code);
   const sources = (data ?? []).slice(0, 2);
@@ -13,8 +16,9 @@ function GapItem({ code }: { code: string }) {
     return null;
   }
   const [firstValue = 0, secondValue = 0] = sources.map((source) => Number.parseFloat(source.latest_value));
-  const base = Math.max(Math.abs(firstValue), Math.abs(secondValue)) || 1;
-  const gapPct = (Math.abs(firstValue - secondValue) / base) * 100;
+  const largestMagnitude = Math.max(Math.abs(firstValue), Math.abs(secondValue));
+  const base = largestMagnitude === 0 || Number.isNaN(largestMagnitude) ? 1 : largestMagnitude;
+  const gapPct = (Math.abs(firstValue - secondValue) / base) * PERCENT_FACTOR;
 
   return (
     <div style={{ background: "var(--raise)", padding: "18px 20px" }}>
@@ -60,7 +64,7 @@ function GapItem({ code }: { code: string }) {
   );
 }
 
-export function GapsTeaser() {
+export function GapsTeaser(): ReactElement {
   return (
     <section className="lb-container" style={{ paddingTop: 40, paddingBottom: 40 }}>
       <div

@@ -26,7 +26,7 @@ sleep 10
 
 max_attempts=30
 attempt=0
-while [ $attempt -lt $max_attempts ]; do
+while [[ "${attempt}" -lt "${max_attempts}" ]]; do
   if docker compose -f docker-compose.prod.yml exec -T api-py \
       python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" >/dev/null 2>&1; then
     echo "✅ API funcionando correctamente!"
@@ -34,10 +34,10 @@ while [ $attempt -lt $max_attempts ]; do
     exit 0
   fi
   attempt=$((attempt + 1))
-  echo "⏳ Intento $attempt/$max_attempts..."
+  echo "⏳ Intento ${attempt}/${max_attempts}..."
   sleep 2
 done
 
-echo "❌ La API no respondió después de $max_attempts intentos"
+echo "❌ La API no respondió después de ${max_attempts} intentos"
 docker compose -f docker-compose.prod.yml logs --tail=100 api-py
 exit 1

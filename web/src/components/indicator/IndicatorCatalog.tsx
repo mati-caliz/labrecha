@@ -14,7 +14,7 @@ import {
   sourceLabel,
 } from "@/lib/indicators";
 import type { IndicatorSummary } from "@/lib/labrechaApi";
-import { type CSSProperties, useMemo, useState } from "react";
+import { type CSSProperties, useMemo, useState, type ReactElement } from "react";
 
 const OTHER_FAMILY_LABEL = "Otros";
 const ALL_FILTER = "Todos";
@@ -32,20 +32,18 @@ function normalize(text: string): string {
   return text.toLowerCase().normalize("NFD").replace(DIACRITICS, "");
 }
 
-function groupByFamily(
-  indicators: IndicatorSummary[],
-  query: string,
-  family: IndicatorFamily | null,
-): FamilyGroup[] {
-  const normalizedQuery = normalize(query.trim());
-  const matches = indicators.filter((indicator) => {
-    if (normalizedQuery.length === 0) {
-      return true;
-    }
-    const haystack = normalize(`${indicator.indicator_code} ${indicatorLabel(indicator.indicator_code)}`);
-    return haystack.includes(normalizedQuery);
-  });
+function matchesQuery(indicator: IndicatorSummary, normalizedQuery: string): boolean {
+  if (normalizedQuery.length === 0) {
+    return true;
+  }
+  const haystack = normalize(`${indicator.indicator_code} ${indicatorLabel(indicator.indicator_code)}`);
+  return haystack.includes(normalizedQuery);
+}
 
+function bucketByFamily(
+  matches: IndicatorSummary[],
+  family: IndicatorFamily | null,
+): Map<string, IndicatorSummary[]> {
   const byFamily = new Map<string, IndicatorSummary[]>();
   for (const indicator of matches) {
     const itemFamily = getIndicatorMeta(indicator.indicator_code)?.family;
@@ -57,7 +55,10 @@ function groupByFamily(
     bucket.push(indicator);
     byFamily.set(key, bucket);
   }
+  return byFamily;
+}
 
+function orderedGroups(byFamily: Map<string, IndicatorSummary[]>): FamilyGroup[] {
   const groups: FamilyGroup[] = [];
   for (const familyKey of INDICATOR_FAMILY_ORDER) {
     const items = byFamily.get(familyKey);
@@ -69,6 +70,17 @@ function groupByFamily(
   if (others && others.length > 0) {
     groups.push({ key: OTHER_FAMILY_LABEL, label: OTHER_FAMILY_LABEL, items: others });
   }
+  return groups;
+}
+
+function groupByFamily(
+  indicators: IndicatorSummary[],
+  query: string,
+  family: IndicatorFamily | null,
+): FamilyGroup[] {
+  const normalizedQuery = normalize(query.trim());
+  const matches = indicators.filter((indicator) => matchesQuery(indicator, normalizedQuery));
+  const groups = orderedGroups(bucketByFamily(matches, family));
   for (const group of groups) {
     group.items.sort((first, second) =>
       indicatorLabel(first.indicator_code).localeCompare(indicatorLabel(second.indicator_code), "es"),
@@ -89,7 +101,7 @@ const CARD_STYLE: CSSProperties = {
   color: "var(--ink)",
 };
 
-function CatalogCard({ indicator }: { indicator: IndicatorSummary }) {
+function CatalogCard({ indicator }: Readonly<{ indicator: IndicatorSummary }>): ReactElement {
   const isComparator = indicator.sources.length >= 2;
   const stale = freshnessForCode(indicator.indicator_code, indicator.last_date).stale;
   return (
@@ -172,7 +184,41 @@ const filterStyle = (active: boolean): CSSProperties => ({
   color: active ? "var(--paper)" : "var(--ink2)",
 });
 
-export function IndicatorCatalog() {
+function FamilyGroupSection({ group }: Readonly<{ group: FamilyGroup }>): ReactElement {
+  return (
+    <section>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 14, marginBottom: 18 }}>
+        <h2
+          style={{
+            fontFamily: "var(--font-display)",
+            fontWeight: 700,
+            fontSize: "1.375rem",
+            letterSpacing: "-0.015em",
+            margin: 0,
+          }}
+        >
+          {group.label}
+        </h2>
+        <span style={{ fontFamily: MONO, fontSize: "0.72rem", color: "var(--ink3)" }}>
+          {group.items.length} indicadores
+        </span>
+      </div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))",
+          gap: 14,
+        }}
+      >
+        {group.items.map((indicator) => (
+          <CatalogCard key={indicator.indicator_code} indicator={indicator} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export function IndicatorCatalog(): ReactElement {
   const { data, isLoading, isError, error, refetch } = useIndicators();
   const [query, setQuery] = useState("");
   const [family, setFamily] = useState<IndicatorFamily | null>(null);
@@ -182,7 +228,14 @@ export function IndicatorCatalog() {
   const shown = groups.reduce((sum, group) => sum + group.items.length, 0);
 
   if (isError) {
-    return <QueryError error={error} onRetry={() => refetch()} />;
+    return (
+      <QueryError
+        error={error}
+        onRetry={() => {
+          void refetch();
+        }}
+      />
+    );
   }
 
   if (isLoading) {
@@ -215,7 +268,9 @@ export function IndicatorCatalog() {
         <input
           type="search"
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          onChange={(event) => {
+            setQuery(event.target.value);
+          }}
           placeholder="Buscar indicador…"
           aria-label="Buscar indicador"
           style={{
@@ -231,14 +286,22 @@ export function IndicatorCatalog() {
           }}
         />
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          <button type="button" onClick={() => setFamily(null)} style={filterStyle(family === null)}>
+          <button
+            type="button"
+            onClick={() => {
+              setFamily(null);
+            }}
+            style={filterStyle(family === null)}
+          >
             {ALL_FILTER}
           </button>
           {INDICATOR_FAMILY_ORDER.map((familyKey) => (
             <button
               key={familyKey}
               type="button"
-              onClick={() => setFamily(familyKey)}
+              onClick={() => {
+                setFamily(familyKey);
+              }}
               style={filterStyle(family === familyKey)}
             >
               {INDICATOR_FAMILY_LABELS[familyKey]}
@@ -259,35 +322,7 @@ export function IndicatorCatalog() {
 
       <div style={{ display: "flex", flexDirection: "column", gap: 44 }}>
         {groups.map((group) => (
-          <section key={group.key}>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 14, marginBottom: 18 }}>
-              <h2
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontWeight: 700,
-                  fontSize: "1.375rem",
-                  letterSpacing: "-0.015em",
-                  margin: 0,
-                }}
-              >
-                {group.label}
-              </h2>
-              <span style={{ fontFamily: MONO, fontSize: "0.72rem", color: "var(--ink3)" }}>
-                {group.items.length} indicadores
-              </span>
-            </div>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))",
-                gap: 14,
-              }}
-            >
-              {group.items.map((indicator) => (
-                <CatalogCard key={indicator.indicator_code} indicator={indicator} />
-              ))}
-            </div>
-          </section>
+          <FamilyGroupSection key={group.key} group={group} />
         ))}
       </div>
     </div>

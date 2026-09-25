@@ -4,11 +4,18 @@ import { QueryError } from "@/components/QueryError";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useHolidays } from "@/hooks/useLabrecha";
 import { daysUntil, formatLongDate, freeRunAround, holidayLabel, todayISO } from "@/lib/holidays";
+import { compareIsoDates } from "@/lib/isoDates";
 import type { Holiday } from "@/lib/labrechaApi";
-import { type CSSProperties, useEffect, useState } from "react";
+import { type CSSProperties, useEffect, useState, type ReactElement } from "react";
+import { hasText } from "@/lib/utils";
 
 const MONO = "var(--font-jb-mono)";
 const LONG_WEEKEND_MIN_DAYS = 3;
+const PAST_HOLIDAY_OPACITY = 0.5;
+const MS_PER_SECOND = 1000;
+const MS_PER_MINUTE = 60_000;
+const MS_PER_HOUR = 3_600_000;
+const MS_PER_DAY = 86_400_000;
 
 function weekdayName(isoDate: string): string {
   return new Date(`${isoDate}T00:00:00`).toLocaleDateString("es-AR", { weekday: "long" });
@@ -21,26 +28,30 @@ function dayMonth(isoDate: string): string {
   });
 }
 
-function useCountdown(targetISO: string | undefined) {
+function useCountdown(targetISO: string | undefined): { days: number; hms: string } | undefined {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(timer);
+    const timer = setInterval(() => {
+      setNow(Date.now());
+    }, MS_PER_SECOND);
+    return () => {
+      clearInterval(timer);
+    };
   }, []);
-  if (!targetISO) {
+  if (!hasText(targetISO)) {
     return undefined;
   }
   const target = new Date(`${targetISO}T00:00:00`).getTime();
   const diff = Math.max(0, target - now);
-  const days = Math.floor(diff / 86_400_000);
-  const hours = Math.floor((diff % 86_400_000) / 3_600_000);
-  const minutes = Math.floor((diff % 3_600_000) / 60_000);
-  const seconds = Math.floor((diff % 60_000) / 1000);
-  const pad = (value: number) => String(value).padStart(2, "0");
+  const days = Math.floor(diff / MS_PER_DAY);
+  const hours = Math.floor((diff % MS_PER_DAY) / MS_PER_HOUR);
+  const minutes = Math.floor((diff % MS_PER_HOUR) / MS_PER_MINUTE);
+  const seconds = Math.floor((diff % MS_PER_MINUTE) / MS_PER_SECOND);
+  const pad = (value: number): string => String(value).padStart(2, "0");
   return { days, hms: `${pad(hours)}:${pad(minutes)}:${pad(seconds)}` };
 }
 
-function TypeBadge({ holiday }: { holiday: Holiday }) {
+function TypeBadge({ holiday }: Readonly<{ holiday: Holiday }>): ReactElement {
   const fixed = holiday.is_fixed === true;
   const color = fixed ? "var(--event)" : "var(--gap)";
   return (
@@ -60,7 +71,10 @@ function TypeBadge({ holiday }: { holiday: Holiday }) {
   );
 }
 
-function CountdownHero({ holiday, targetISO }: { holiday: Holiday; targetISO: string }) {
+function CountdownHero({
+  holiday,
+  targetISO,
+}: Readonly<{ holiday: Holiday; targetISO: string }>): ReactElement {
   const countdown = useCountdown(targetISO);
   return (
     <div
@@ -154,22 +168,174 @@ const yearPillStyle = (active: boolean): CSSProperties => ({
   color: active ? "var(--paper)" : "var(--ink2)",
 });
 
-export function HolidaysCalendar() {
+function HolidayRow({
+  holiday,
+  isLast,
+  holidayDates,
+}: Readonly<{ holiday: Holiday; isLast: boolean; holidayDates: Set<string> }>): ReactElement {
+  const isPast = daysUntil(holiday.date) < 0;
+  const freeRun = freeRunAround(holiday.date, holidayDates);
+  return (
+    <div
+      className="lb-holiday-row"
+      style={{
+        alignItems: "center",
+        gap: 20,
+        padding: "18px 4px",
+        borderBottom: isLast ? "none" : "1px solid var(--line)",
+        opacity: isPast ? PAST_HOLIDAY_OPACITY : 1,
+      }}
+    >
+      <div
+        style={{
+          fontFamily: MONO,
+          fontWeight: 600,
+          fontSize: "0.9375rem",
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
+        {dayMonth(holiday.date)}
+        <br />
+        <span
+          style={{
+            fontSize: "0.7rem",
+            color: "var(--ink3)",
+            fontWeight: 400,
+            textTransform: "capitalize",
+          }}
+        >
+          {weekdayName(holiday.date)}
+        </span>
+      </div>
+      <div
+        style={{
+          fontFamily: "var(--font-serif)",
+          fontSize: "1.1875rem",
+          color: "var(--ink)",
+        }}
+      >
+        {holidayLabel(holiday)}
+      </div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          flexWrap: "wrap",
+          justifyContent: "flex-end",
+        }}
+      >
+        {freeRun.length >= LONG_WEEKEND_MIN_DAYS && (
+          <span
+            style={{
+              fontFamily: MONO,
+              fontSize: "0.68rem",
+              color: "var(--ink2)",
+              background: "var(--surface)",
+              border: "1px solid var(--line)",
+              borderRadius: "var(--radius-pill)",
+              padding: "4px 10px",
+            }}
+          >
+            Finde de {freeRun.length} días
+          </span>
+        )}
+        <TypeBadge holiday={holiday} />
+      </div>
+    </div>
+  );
+}
+
+function HolidayYearView({
+  holidays,
+  year,
+  isCurrentYear,
+}: Readonly<{ holidays: Holiday[]; year: number; isCurrentYear: boolean }>): ReactElement {
+  const today = todayISO();
+  const holidayDates = new Set(holidays.map((holiday) => holiday.date));
+  const nextHoliday = holidays.find((holiday) => holiday.date >= today);
+  return (
+    <>
+      {isCurrentYear && nextHoliday && <CountdownHero holiday={nextHoliday} targetISO={nextHoliday.date} />}
+
+      <div
+        style={{
+          fontFamily: MONO,
+          fontSize: "0.68rem",
+          letterSpacing: "0.12em",
+          textTransform: "uppercase",
+          color: "var(--ink3)",
+          marginBottom: 16,
+        }}
+      >
+        {isCurrentYear ? "Los feriados del año" : `Feriados ${year}`}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {holidays.map((holiday, index) => (
+          <HolidayRow
+            key={`${holiday.date}-${holiday.name}`}
+            holiday={holiday}
+            isLast={index === holidays.length - 1}
+            holidayDates={holidayDates}
+          />
+        ))}
+      </div>
+
+      <div style={{ marginTop: 24, fontFamily: MONO, fontSize: "0.7rem", color: "var(--ink3)" }}>
+        Fuente: calendario oficial de feriados nacionales · Nager.Date.
+      </div>
+    </>
+  );
+}
+
+function HolidaysBody({
+  isLoading,
+  holidays,
+  year,
+  isCurrentYear,
+}: Readonly<{
+  isLoading: boolean;
+  holidays: Holiday[];
+  year: number;
+  isCurrentYear: boolean;
+}>): ReactElement {
+  if (isLoading) {
+    return (
+      <>
+        <Skeleton className="h-[150px] rounded-[14px]" />
+        <div style={{ height: 24 }} />
+        <Skeleton className="h-[360px] rounded-[10px]" />
+      </>
+    );
+  }
+  if (holidays.length === 0) {
+    return (
+      <p style={{ fontFamily: "var(--font-serif)", color: "var(--ink2)" }}>
+        No hay feriados cargados para {year}.
+      </p>
+    );
+  }
+  return <HolidayYearView holidays={holidays} year={year} isCurrentYear={isCurrentYear} />;
+}
+
+export function HolidaysCalendar(): ReactElement {
   const currentYear = new Date().getUTCFullYear();
   const years = [currentYear - 1, currentYear, currentYear + 1];
   const [year, setYear] = useState(currentYear);
   const { data, isLoading, isError, error, refetch } = useHolidays({ year });
 
   if (isError) {
-    return <QueryError error={error} onRetry={() => refetch()} />;
+    return (
+      <QueryError
+        error={error}
+        onRetry={() => {
+          void refetch();
+        }}
+      />
+    );
   }
 
-  const holidays = [...(data ?? [])].sort((first, second) =>
-    first.date < second.date ? -1 : first.date > second.date ? 1 : 0,
-  );
-  const today = todayISO();
-  const holidayDates = new Set(holidays.map((holiday) => holiday.date));
-  const nextHoliday = holidays.find((holiday) => holiday.date >= today);
+  const holidays = [...(data ?? [])].sort((first, second) => compareIsoDates(first.date, second.date));
 
   return (
     <div>
@@ -178,7 +344,9 @@ export function HolidaysCalendar() {
           <button
             key={option}
             type="button"
-            onClick={() => setYear(option)}
+            onClick={() => {
+              setYear(option);
+            }}
             style={yearPillStyle(option === year)}
           >
             {option}
@@ -186,116 +354,12 @@ export function HolidaysCalendar() {
         ))}
       </div>
 
-      {isLoading ? (
-        <>
-          <Skeleton className="h-[150px] rounded-[14px]" />
-          <div style={{ height: 24 }} />
-          <Skeleton className="h-[360px] rounded-[10px]" />
-        </>
-      ) : holidays.length === 0 ? (
-        <p style={{ fontFamily: "var(--font-serif)", color: "var(--ink2)" }}>
-          No hay feriados cargados para {year}.
-        </p>
-      ) : (
-        <>
-          {year === currentYear && nextHoliday && (
-            <CountdownHero holiday={nextHoliday} targetISO={nextHoliday.date} />
-          )}
-
-          <div
-            style={{
-              fontFamily: MONO,
-              fontSize: "0.68rem",
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: "var(--ink3)",
-              marginBottom: 16,
-            }}
-          >
-            {year === currentYear ? "Los feriados del año" : `Feriados ${year}`}
-          </div>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            {holidays.map((holiday, index) => {
-              const isPast = daysUntil(holiday.date) < 0;
-              const freeRun = freeRunAround(holiday.date, holidayDates);
-              return (
-                <div
-                  key={`${holiday.date}-${holiday.name}`}
-                  className="lb-holiday-row"
-                  style={{
-                    alignItems: "center",
-                    gap: 20,
-                    padding: "18px 4px",
-                    borderBottom: index === holidays.length - 1 ? "none" : "1px solid var(--line)",
-                    opacity: isPast ? 0.5 : 1,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontFamily: MONO,
-                      fontWeight: 600,
-                      fontSize: "0.9375rem",
-                      fontVariantNumeric: "tabular-nums",
-                    }}
-                  >
-                    {dayMonth(holiday.date)}
-                    <br />
-                    <span
-                      style={{
-                        fontSize: "0.7rem",
-                        color: "var(--ink3)",
-                        fontWeight: 400,
-                        textTransform: "capitalize",
-                      }}
-                    >
-                      {weekdayName(holiday.date)}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: "var(--font-serif)",
-                      fontSize: "1.1875rem",
-                      color: "var(--ink)",
-                    }}
-                  >
-                    {holidayLabel(holiday)}
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      flexWrap: "wrap",
-                      justifyContent: "flex-end",
-                    }}
-                  >
-                    {freeRun.length >= LONG_WEEKEND_MIN_DAYS && (
-                      <span
-                        style={{
-                          fontFamily: MONO,
-                          fontSize: "0.68rem",
-                          color: "var(--ink2)",
-                          background: "var(--surface)",
-                          border: "1px solid var(--line)",
-                          borderRadius: "var(--radius-pill)",
-                          padding: "4px 10px",
-                        }}
-                      >
-                        Finde de {freeRun.length} días
-                      </span>
-                    )}
-                    <TypeBadge holiday={holiday} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <div style={{ marginTop: 24, fontFamily: MONO, fontSize: "0.7rem", color: "var(--ink3)" }}>
-            Fuente: calendario oficial de feriados nacionales · Nager.Date.
-          </div>
-        </>
-      )}
+      <HolidaysBody
+        isLoading={isLoading}
+        holidays={holidays}
+        year={year}
+        isCurrentYear={year === currentYear}
+      />
     </div>
   );
 }

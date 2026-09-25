@@ -1,4 +1,5 @@
 "use client";
+import type { ReactElement } from "react";
 
 import { ActionLink, SectionHead } from "@/components/home/homeShared";
 import { POST_CATEGORY_LABELS, formatPostDate } from "@/components/posts/postCategories";
@@ -8,8 +9,9 @@ import { usePosts } from "@/hooks/useLabrecha";
 import type { Post } from "@/lib/labrechaApi";
 import { HOME_POSTS_PARAMS } from "@/lib/queryParams";
 import Link from "next/link";
+import { hasText } from "@/lib/utils";
 
-function CategoryBadge({ post }: { post: Post }) {
+function CategoryBadge({ post }: Readonly<{ post: Post }>): ReactElement {
   return (
     <span
       style={{
@@ -30,7 +32,7 @@ function CategoryBadge({ post }: { post: Post }) {
   );
 }
 
-function LeadIdea({ post }: { post: Post }) {
+function LeadIdea({ post }: Readonly<{ post: Post }>): ReactElement {
   const impacts = post.impacts ?? [];
   return (
     <article>
@@ -57,7 +59,7 @@ function LeadIdea({ post }: { post: Post }) {
       >
         {post.title}
       </Link>
-      {post.summary ? (
+      {hasText(post.summary) ? (
         <p
           style={{
             fontFamily: "var(--font-serif)",
@@ -106,7 +108,9 @@ function LeadIdea({ post }: { post: Post }) {
   );
 }
 
-function IdeaListItem({ post, last }: { post: Post; last: boolean }) {
+const IDEA_LIST_ITEM_SPACING = 20;
+
+function IdeaListItem({ post, last }: Readonly<{ post: Post; last: boolean }>): ReactElement {
   return (
     <Link
       href={`/ideas/${post.slug}`}
@@ -114,7 +118,7 @@ function IdeaListItem({ post, last }: { post: Post; last: boolean }) {
         display: "block",
         padding: "0 0 20px",
         borderBottom: last ? "none" : "1px solid var(--line)",
-        marginBottom: last ? 0 : 20,
+        marginBottom: last ? 0 : IDEA_LIST_ITEM_SPACING,
         textDecoration: "none",
       }}
     >
@@ -141,10 +145,33 @@ function IdeaListItem({ post, last }: { post: Post; last: boolean }) {
   );
 }
 
-export function IdeasHome() {
+function IdeasContent({ isLoading, posts }: Readonly<{ isLoading: boolean; posts: Post[] }>): ReactElement {
+  if (isLoading) {
+    return <Skeleton className="h-[280px] rounded-[8px]" />;
+  }
+  const leadPost = posts[0];
+  if (leadPost === undefined) {
+    return (
+      <p style={{ fontFamily: "var(--font-serif)", color: "var(--ink2)", margin: 0 }}>
+        Todavía no hay ideas publicadas.
+      </p>
+    );
+  }
+  return (
+    <div className="lb-ideas-grid">
+      <LeadIdea post={leadPost} />
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {posts.slice(1).map((post, index, list) => (
+          <IdeaListItem key={post.id} post={post} last={index === list.length - 1} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function IdeasHome(): ReactElement {
   const { data, isLoading } = usePosts(HOME_POSTS_PARAMS);
   const posts = data ?? [];
-  const leadPost = posts[0];
 
   return (
     <section className="lb-container" style={{ paddingTop: 40, paddingBottom: 24 }}>
@@ -153,22 +180,7 @@ export function IdeasHome() {
         title="Ideas para la Argentina"
         action={<ActionLink href="/ideas">Ver todas las propuestas →</ActionLink>}
       />
-      {isLoading ? (
-        <Skeleton className="h-[280px] rounded-[8px]" />
-      ) : posts.length === 0 ? (
-        <p style={{ fontFamily: "var(--font-serif)", color: "var(--ink2)", margin: 0 }}>
-          Todavía no hay ideas publicadas.
-        </p>
-      ) : (
-        <div className="lb-ideas-grid">
-          {leadPost ? <LeadIdea post={leadPost} /> : null}
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            {posts.slice(1).map((post, index, list) => (
-              <IdeaListItem key={post.id} post={post} last={index === list.length - 1} />
-            ))}
-          </div>
-        </div>
-      )}
+      <IdeasContent isLoading={isLoading} posts={posts} />
     </section>
   );
 }

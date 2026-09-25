@@ -5,7 +5,7 @@ import { useAppStore } from "@/store/useStore";
 import { Coffee, Menu, Search, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { type CSSProperties, useEffect, useState } from "react";
+import { type CSSProperties, useState, useSyncExternalStore, type ReactElement } from "react";
 
 interface NavItem {
   label: string;
@@ -37,7 +37,7 @@ function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function BrandMark({ fontSize = 21 }: { fontSize?: number }) {
+export function BrandMark({ fontSize = 21 }: Readonly<{ fontSize?: number }>): ReactElement {
   return (
     <span
       style={{
@@ -73,18 +73,28 @@ export function BrandMark({ fontSize = 21 }: { fontSize?: number }) {
   );
 }
 
-function CommandTrigger() {
-  const setCommandOpen = useAppStore((state) => state.setCommandOpen);
-  const [isMac, setIsMac] = useState(false);
+function subscribeToNothing(): () => void {
+  return () => undefined;
+}
 
-  useEffect(() => {
-    setIsMac(APPLE_PLATFORM.test(navigator.platform));
-  }, []);
+function useIsApplePlatform(): boolean {
+  return useSyncExternalStore(
+    subscribeToNothing,
+    () => APPLE_PLATFORM.test(navigator.userAgent),
+    () => false,
+  );
+}
+
+function CommandTrigger(): ReactElement {
+  const setCommandOpen = useAppStore((state) => state.setCommandOpen);
+  const isMac = useIsApplePlatform();
 
   return (
     <button
       type="button"
-      onClick={() => setCommandOpen(true)}
+      onClick={() => {
+        setCommandOpen(true);
+      }}
       aria-label="Buscar"
       style={{
         display: "inline-flex",
@@ -116,7 +126,117 @@ const NAV_LINK_BASE: CSSProperties = {
   textDecoration: "none",
 };
 
-export function SiteHeader() {
+function DesktopNav({ pathname }: Readonly<{ pathname: string }>): ReactElement {
+  return (
+    <nav className="hidden lg:flex" style={{ alignItems: "center", gap: 2 }}>
+      {NAV_ITEMS.map((item) => {
+        const active = isActive(pathname, item.href);
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            style={{
+              ...NAV_LINK_BASE,
+              color: active ? "var(--ink)" : "var(--ink2)",
+              background: active ? "var(--surface)" : "transparent",
+            }}
+          >
+            {item.label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+function HeaderCafecitoLink(): ReactElement {
+  return (
+    <a
+      href={CAFECITO_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="hidden sm:inline-flex"
+      style={{
+        alignItems: "center",
+        gap: 6,
+        padding: "6px 12px",
+        borderRadius: "var(--radius-pill)",
+        border: "1px solid var(--line)",
+        background: "var(--surface)",
+        color: "var(--gap)",
+        fontFamily: "var(--font-jb-mono)",
+        fontSize: "0.75rem",
+        fontWeight: 600,
+        textDecoration: "none",
+      }}
+    >
+      <Coffee size={14} aria-hidden />
+      <span className="hidden md:inline">Café</span>
+    </a>
+  );
+}
+
+function MobileNav({
+  pathname,
+  onNavigate,
+}: Readonly<{ pathname: string; onNavigate: () => void }>): ReactElement {
+  return (
+    <nav
+      className="flex lg:hidden"
+      style={{
+        borderTop: "1px solid var(--line)",
+        background: "var(--paper)",
+        padding: "8px 16px 16px",
+        flexDirection: "column",
+        gap: 2,
+      }}
+    >
+      {NAV_ITEMS.map((item) => {
+        const active = isActive(pathname, item.href);
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={onNavigate}
+            style={{
+              padding: "10px 12px",
+              borderRadius: "var(--radius-md)",
+              fontFamily: "var(--font-jb-mono)",
+              fontSize: "0.8125rem",
+              textDecoration: "none",
+              color: active ? "var(--ink)" : "var(--ink2)",
+              background: active ? "var(--surface)" : "transparent",
+            }}
+          >
+            {item.label}
+          </Link>
+        );
+      })}
+      <a
+        href={CAFECITO_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          marginTop: 6,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+          padding: "10px 12px",
+          borderRadius: "var(--radius-md)",
+          fontFamily: "var(--font-jb-mono)",
+          fontSize: "0.8125rem",
+          color: "var(--gap)",
+          textDecoration: "none",
+        }}
+      >
+        <Coffee size={14} aria-hidden />
+        Invitame un café
+      </a>
+    </nav>
+  );
+}
+
+export function SiteHeader(): ReactElement {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const today = new Date().toLocaleDateString("es-AR", {
@@ -153,24 +273,7 @@ export function SiteHeader() {
           <BrandMark />
         </Link>
 
-        <nav className="hidden lg:flex" style={{ alignItems: "center", gap: 2 }}>
-          {NAV_ITEMS.map((item) => {
-            const active = isActive(pathname, item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                style={{
-                  ...NAV_LINK_BASE,
-                  color: active ? "var(--ink)" : "var(--ink2)",
-                  background: active ? "var(--surface)" : "transparent",
-                }}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+        <DesktopNav pathname={pathname} />
 
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <span
@@ -186,34 +289,15 @@ export function SiteHeader() {
           <div className="hidden sm:block">
             <CommandTrigger />
           </div>
-          <a
-            href={CAFECITO_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden sm:inline-flex"
-            style={{
-              alignItems: "center",
-              gap: 6,
-              padding: "6px 12px",
-              borderRadius: "var(--radius-pill)",
-              border: "1px solid var(--line)",
-              background: "var(--surface)",
-              color: "var(--gap)",
-              fontFamily: "var(--font-jb-mono)",
-              fontSize: "0.75rem",
-              fontWeight: 600,
-              textDecoration: "none",
-            }}
-          >
-            <Coffee size={14} aria-hidden />
-            <span className="hidden md:inline">Café</span>
-          </a>
+          <HeaderCafecitoLink />
           <ThemeToggle />
           <button
             type="button"
             className="inline-flex lg:hidden"
             aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
-            onClick={() => setMobileOpen((open) => !open)}
+            onClick={() => {
+              setMobileOpen((open) => !open);
+            }}
             style={{
               alignItems: "center",
               justifyContent: "center",
@@ -232,58 +316,12 @@ export function SiteHeader() {
       </div>
 
       {mobileOpen && (
-        <nav
-          className="flex lg:hidden"
-          style={{
-            borderTop: "1px solid var(--line)",
-            background: "var(--paper)",
-            padding: "8px 16px 16px",
-            flexDirection: "column",
-            gap: 2,
+        <MobileNav
+          pathname={pathname}
+          onNavigate={() => {
+            setMobileOpen(false);
           }}
-        >
-          {NAV_ITEMS.map((item) => {
-            const active = isActive(pathname, item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                style={{
-                  padding: "10px 12px",
-                  borderRadius: "var(--radius-md)",
-                  fontFamily: "var(--font-jb-mono)",
-                  fontSize: "0.8125rem",
-                  textDecoration: "none",
-                  color: active ? "var(--ink)" : "var(--ink2)",
-                  background: active ? "var(--surface)" : "transparent",
-                }}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-          <a
-            href={CAFECITO_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              marginTop: 6,
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "10px 12px",
-              borderRadius: "var(--radius-md)",
-              fontFamily: "var(--font-jb-mono)",
-              fontSize: "0.8125rem",
-              color: "var(--gap)",
-              textDecoration: "none",
-            }}
-          >
-            <Coffee size={14} aria-hidden />
-            Invitame un café
-          </a>
-        </nav>
+        />
       )}
     </header>
   );

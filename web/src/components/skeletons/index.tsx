@@ -1,7 +1,8 @@
+import type { ReactElement } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function DolarCardSkeleton() {
+export function DolarCardSkeleton(): ReactElement {
   return (
     <Card className="bg-card">
       <CardContent className="p-4">

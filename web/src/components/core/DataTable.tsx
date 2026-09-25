@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, ReactNode, ReactElement } from "react";
 
 export interface DataTableColumn {
   key: string;
@@ -19,7 +19,7 @@ interface DataTableProps {
   style?: CSSProperties;
 }
 
-export function DataTable({ columns, rows, footer, style }: DataTableProps) {
+export function DataTable({ columns, rows, footer, style }: Readonly<DataTableProps>): ReactElement {
   return (
     <div style={{ overflowX: "auto", ...style }}>
       <table
@@ -36,7 +36,7 @@ export function DataTable({ columns, rows, footer, style }: DataTableProps) {
               <th
                 key={column.key}
                 style={{
-                  textAlign: column.align || "left",
+                  textAlign: column.align ?? "left",
                   padding: "10px 12px",
                   borderBottom: "1px solid var(--line)",
                   color: "var(--ink3)",
@@ -64,7 +64,7 @@ export function DataTable({ columns, rows, footer, style }: DataTableProps) {
                   <td
                     key={column.key}
                     style={{
-                      textAlign: column.align || "left",
+                      textAlign: column.align ?? "left",
                       padding: "10px 12px",
                       color: "var(--ink)",
                       fontVariantNumeric: column.numeric ? "tabular-nums" : undefined,
@@ -79,7 +79,7 @@ export function DataTable({ columns, rows, footer, style }: DataTableProps) {
           ))}
         </tbody>
       </table>
-      {footer && <div style={{ padding: "10px 12px" }}>{footer}</div>}
+      {Boolean(footer) && <div style={{ padding: "10px 12px" }}>{footer}</div>}
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { MethodologyCatalog } from "@/components/methodology/MethodologyCatalog"
 import { methodologyQueries } from "@/lib/pageQueries";
 import { PrefetchedQueries } from "@/lib/prefetch";
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import type { ReactNode, ReactElement } from "react";
 
 export const metadata: Metadata = {
   title: "Metodología y fuentes - La Brecha",
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 const MONO = "var(--font-jb-mono)";
 
-function Rule({ title, children }: { title: string; children: ReactNode }) {
+function Rule({ title, children }: Readonly<{ title: string; children: ReactNode }>): ReactElement {
   return (
     <div style={{ borderTop: "1px solid var(--line)", paddingTop: 18 }}>
       <h3
@@ -42,49 +42,92 @@ function Rule({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-export default function MethodologyPage() {
+function MethodologyHeader(): ReactElement {
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto", padding: "48px 24px 72px" }}>
-      <header style={{ borderBottom: "2px solid var(--ink)", paddingBottom: 22, marginBottom: 32 }}>
-        <div
-          style={{
-            fontFamily: MONO,
-            fontSize: "0.72rem",
-            letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            color: "var(--ink3)",
-            marginBottom: 10,
-          }}
-        >
-          /metodologia
-        </div>
-        <h1
+    <header style={{ borderBottom: "2px solid var(--ink)", paddingBottom: 22, marginBottom: 32 }}>
+      <div
+        style={{
+          fontFamily: MONO,
+          fontSize: "0.72rem",
+          letterSpacing: "0.18em",
+          textTransform: "uppercase",
+          color: "var(--ink3)",
+          marginBottom: 10,
+        }}
+      >
+        /metodologia
+      </div>
+      <h1
+        style={{
+          fontFamily: "var(--font-display)",
+          fontWeight: 800,
+          fontSize: "clamp(2rem, 5vw, 2.875rem)",
+          letterSpacing: "-0.025em",
+          margin: "0 0 14px",
+          color: "var(--ink)",
+          textWrap: "balance",
+        }}
+      >
+        Cómo se arma cada número
+      </h1>
+      <p
+        style={{
+          fontFamily: "var(--font-serif)",
+          fontSize: "clamp(1rem, 2.2vw, 1.1875rem)",
+          lineHeight: 1.55,
+          color: "var(--ink2)",
+          margin: 0,
+          maxWidth: 640,
+        }}
+      >
+        Un observatorio sirve si se puede auditar. Acá está de dónde sale cada serie, cada cuánto se
+        actualiza, cómo se calculan las brechas y qué límites tienen los datos.
+      </p>
+    </header>
+  );
+}
+
+function IndicatorCatalogSection(): ReactElement {
+  return (
+    <section>
+      <header style={{ marginBottom: 8 }}>
+        <h2
           style={{
             fontFamily: "var(--font-display)",
             fontWeight: 800,
-            fontSize: "clamp(2rem, 5vw, 2.875rem)",
-            letterSpacing: "-0.025em",
-            margin: "0 0 14px",
+            fontSize: "clamp(1.5rem, 3.5vw, 2rem)",
+            letterSpacing: "-0.02em",
+            margin: "0 0 10px",
             color: "var(--ink)",
-            textWrap: "balance",
           }}
         >
-          Cómo se arma cada número
-        </h1>
+          Indicador por indicador
+        </h2>
         <p
           style={{
             fontFamily: "var(--font-serif)",
-            fontSize: "clamp(1rem, 2.2vw, 1.1875rem)",
+            fontSize: "1rem",
             lineHeight: 1.55,
             color: "var(--ink2)",
-            margin: 0,
-            maxWidth: 640,
+            margin: "0 0 28px",
+            maxWidth: 620,
           }}
         >
-          Un observatorio sirve si se puede auditar. Acá está de dónde sale cada serie, cada cuánto se
-          actualiza, cómo se calculan las brechas y qué límites tienen los datos.
+          Cobertura real de cada serie, tomada de la base en este momento. El ◆ marca los indicadores que
+          tienen más de una fuente y por lo tanto una brecha para comparar.
         </p>
       </header>
+      <PrefetchedQueries queries={methodologyQueries()}>
+        <MethodologyCatalog />
+      </PrefetchedQueries>
+    </section>
+  );
+}
+
+export default function MethodologyPage(): ReactElement {
+  return (
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: "48px 24px 72px" }}>
+      <MethodologyHeader />
 
       <section style={{ display: "flex", flexDirection: "column", gap: 20, marginBottom: 52 }}>
         <Rule title="Ningún dato se muestra sin fuente y fecha">
@@ -136,8 +179,8 @@ export default function MethodologyPage() {
           Algunas series no las publica nadie: las derivamos de otras dos que sí son oficiales y las marcamos
           con la fuente <b>La Brecha (calculado)</b>. El salario mínimo y la jubilación mínima a precios
           constantes se deflactan por el IPC nivel general contra un <b>mes base fijo</b>, elegido en el
-          código y publicado en cada gráfico ("pesos de …"): con base móvil, cada corrida reescribía toda la
-          serie y un CSV descargado el mes pasado dejaba de coincidir con el de hoy. El dólar de
+          código y publicado en cada gráfico (&quot;pesos de …&quot;): con base móvil, cada corrida reescribía
+          toda la serie y un CSV descargado el mes pasado dejaba de coincidir con el de hoy. El dólar de
           convertibilidad es la base monetaria dividida por las reservas, ambas del BCRA, tomando el último
           dato de reservas anterior o igual a la fecha de la base monetaria —las dos series se publican con
           cadencias distintas— y su metadata guarda qué día de reservas se usó.
@@ -156,38 +199,7 @@ export default function MethodologyPage() {
         </Rule>
       </section>
 
-      <section>
-        <header style={{ marginBottom: 8 }}>
-          <h2
-            style={{
-              fontFamily: "var(--font-display)",
-              fontWeight: 800,
-              fontSize: "clamp(1.5rem, 3.5vw, 2rem)",
-              letterSpacing: "-0.02em",
-              margin: "0 0 10px",
-              color: "var(--ink)",
-            }}
-          >
-            Indicador por indicador
-          </h2>
-          <p
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontSize: "1rem",
-              lineHeight: 1.55,
-              color: "var(--ink2)",
-              margin: "0 0 28px",
-              maxWidth: 620,
-            }}
-          >
-            Cobertura real de cada serie, tomada de la base en este momento. El ◆ marca los indicadores que
-            tienen más de una fuente y por lo tanto una brecha para comparar.
-          </p>
-        </header>
-        <PrefetchedQueries queries={methodologyQueries()}>
-          <MethodologyCatalog />
-        </PrefetchedQueries>
-      </section>
+      <IndicatorCatalogSection />
     </div>
   );
 }

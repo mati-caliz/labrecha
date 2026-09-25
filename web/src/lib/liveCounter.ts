@@ -1,4 +1,10 @@
 const SECONDS_PER_DAY = 24 * 60 * 60;
+const MS_PER_SECOND = 1000;
+const LEAP_CYCLE_YEARS = 4;
+const CENTURY_YEARS = 100;
+const GREGORIAN_CYCLE_YEARS = 400;
+const DAYS_IN_LEAP_YEAR = 366;
+const DAYS_IN_COMMON_YEAR = 365;
 
 export function projectedValue(
   baseValue: number,
@@ -6,7 +12,7 @@ export function projectedValue(
   sinceMs: number,
   nowMs: number,
 ): number {
-  const elapsedSeconds = Math.max(0, (nowMs - sinceMs) / 1000);
+  const elapsedSeconds = Math.max(0, (nowMs - sinceMs) / MS_PER_SECOND);
   return baseValue + ratePerSecond * elapsedSeconds;
 }
 
@@ -25,8 +31,9 @@ export function monthlyRateToPerSecond(monthlyValue: number, daysInThisMonth: nu
 
 export function daysInYear(reference: Date = new Date()): number {
   const year = reference.getFullYear();
-  const isLeap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
-  return isLeap ? 366 : 365;
+  const isLeap =
+    (year % LEAP_CYCLE_YEARS === 0 && year % CENTURY_YEARS !== 0) || year % GREGORIAN_CYCLE_YEARS === 0;
+  return isLeap ? DAYS_IN_LEAP_YEAR : DAYS_IN_COMMON_YEAR;
 }
 
 export function annualValueToPerSecond(annualValue: number, reference: Date = new Date()): number {

@@ -34,13 +34,19 @@ MIN_DUMP_BYTES=10240
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
 target="${BACKUP_DIR}/${FILE_PREFIX}-${timestamp}.dump"
 
+log() {
+  local now
+  now="$(date -u +%FT%TZ)"
+  echo "[${now}] backup-db: $1"
+}
+
 notify_failure() {
   local reason="$1"
   local message="La Brecha — backup de la base FALLÓ: ${reason}"
 
-  echo "[$(date -u +%FT%TZ)] backup-db: ${message}" >&2
+  log "${message}" >&2
 
-  if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
+  if [[ -n "${TELEGRAM_BOT_TOKEN:-}" ]] && [[ -n "${TELEGRAM_CHAT_ID:-}" ]]; then
     curl -s -o /dev/null \
       --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
       --data-urlencode "text=${message}" \
@@ -52,7 +58,7 @@ notify_failure() {
 
 mkdir -p "${BACKUP_DIR}"
 
-echo "[$(date -u +%FT%TZ)] backup-db: volcando a ${target}"
+log "volcando a ${target}"
 
 if ! docker compose -f "${COMPOSE_FILE}" exec -T postgres \
   sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > "${target}"; then
@@ -61,7 +67,7 @@ if ! docker compose -f "${COMPOSE_FILE}" exec -T postgres \
 fi
 
 size="$(wc -c < "${target}" | tr -d ' ')"
-if [ "${size}" -lt "${MIN_DUMP_BYTES}" ]; then
+if [[ "${size}" -lt "${MIN_DUMP_BYTES}" ]]; then
   rm -f "${target}"
   notify_failure "el volcado pesa ${size} bytes, menos que el mínimo de ${MIN_DUMP_BYTES}"
 fi
@@ -72,21 +78,22 @@ if ! docker compose -f "${COMPOSE_FILE}" exec -T postgres \
   notify_failure "el volcado quedó ilegible para pg_restore (un dump truncado se escribe sin error)"
 fi
 
-echo "[$(date -u +%FT%TZ)] backup-db: ok, ${size} bytes"
+log "ok, ${size} bytes"
 
 remaining="$(find "${BACKUP_DIR}" -maxdepth 1 -type f -name "${FILE_PREFIX}-*.dump" | wc -l | tr -d ' ')"
 
 while IFS= read -r stale; do
-  [ -n "${stale}" ] || continue
-  if [ "${remaining}" -le "${MIN_KEEP}" ]; then
+  [[ -n "${stale}" ]] || continue
+  if [[ "${remaining}" -le "${MIN_KEEP}" ]]; then
     break
   fi
   rm -f "${stale}"
   remaining=$((remaining - 1))
-  echo "[$(date -u +%FT%TZ)] backup-db: borrada copia vencida $(basename "${stale}")"
+  stale_name="$(basename "${stale}")"
+  log "borrada copia vencida ${stale_name}"
 done < <(
   find "${BACKUP_DIR}" -maxdepth 1 -type f -name "${FILE_PREFIX}-*.dump" \
-    -mtime "+${RETENTION_DAYS}" -printf '%T@ %p\n' | sort -n | cut -d' ' -f2-
+    -mtime "+${RETENTION_DAYS}" -printf '%T@ %p\n' | sort -n | cut -d' ' -f2- || true
 )
 
-echo "[$(date -u +%FT%TZ)] backup-db: ${remaining} copias en ${BACKUP_DIR}"
+log "${remaining} copias en ${BACKUP_DIR}"

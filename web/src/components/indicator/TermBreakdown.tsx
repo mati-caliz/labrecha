@@ -1,4 +1,5 @@
 "use client";
+import type { ReactElement } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIndicatorTerms } from "@/hooks/useLabrecha";
@@ -7,6 +8,7 @@ import type { IndicatorTermStat, TermMethod } from "@/lib/labrechaApi";
 
 const MONO = "var(--font-jb-mono)";
 const MIN_POINTS = 2;
+const FULL_BAR_PERCENT = 100;
 
 const METHOD_NOTE: Record<TermMethod, string> = {
   COMPOUNDED:
@@ -22,11 +24,15 @@ function changeColor(change: number, goodWhen: "up" | "down" | "neutral"): strin
   return good ? "var(--pos)" : "var(--neg)";
 }
 
-function TermRow({ term, code, widest }: { term: IndicatorTermStat; code: string; widest: number }) {
+function TermRow({
+  term,
+  code,
+  widest,
+}: Readonly<{ term: IndicatorTermStat; code: string; widest: number }>): ReactElement {
   const indicator = getIndicatorDisplay(code);
   const change = Number.parseFloat(term.change_pct);
   const annualized = term.annualized_pct === null ? null : Number.parseFloat(term.annualized_pct);
-  const barWidth = widest === 0 ? 0 : (Math.abs(change) / widest) * 100;
+  const barWidth = widest === 0 ? 0 : (Math.abs(change) / widest) * FULL_BAR_PERCENT;
   const color = changeColor(change, indicator.goodWhen);
 
   return (
@@ -96,7 +102,10 @@ function TermRow({ term, code, widest }: { term: IndicatorTermStat; code: string
   );
 }
 
-export function TermBreakdown({ code, source }: { code: string; source?: string | undefined }) {
+export function TermBreakdown({
+  code,
+  source,
+}: Readonly<{ code: string; source?: string | undefined }>): ReactElement | null {
   const { data, isLoading } = useIndicatorTerms(code, source === undefined ? undefined : { source });
 
   if (isLoading) {

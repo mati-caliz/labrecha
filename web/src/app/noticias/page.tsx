@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import { NewsFeed } from "@/components/news/NewsFeed";
 import { newsQueries } from "@/lib/pageQueries";
 import { PrefetchedQueries } from "@/lib/prefetch";
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
     "Últimos titulares de economía de Argentina, con su fuente y fecha, enlazados a la nota original.",
 };
 
-export default function NewsPage() {
+export default function NewsPage(): ReactElement {
   return (
     <div style={{ maxWidth: 1120, margin: "0 auto", padding: "48px 24px 72px" }}>
       <header

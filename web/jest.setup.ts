@@ -16,7 +16,7 @@ jest.mock("next/navigation", () => ({
 
 // Mock next/link
 jest.mock("next/link", () => {
-  return ({ children, href }: { children: React.ReactNode; href: string }) => {
+  return function MockLink({ children, href }: { children: React.ReactNode; href: string }) {
     return React.createElement("a", { href }, children);
   };
 });
@@ -32,7 +32,7 @@ global.ResizeObserver = jest.fn().mockImplementation(() => ({
 if (typeof window !== "undefined") {
   Object.defineProperty(window, "matchMedia", {
     writable: true,
-    value: jest.fn().mockImplementation((query) => ({
+    value: jest.fn().mockImplementation((query: string) => ({
       matches: false,
       media: query,
       onchange: null,
@@ -53,18 +53,3 @@ if (typeof window !== "undefined") {
     },
   });
 }
-
-// Suppress console errors in tests (optional)
-const originalError = console.error;
-beforeAll(() => {
-  console.error = (...args: unknown[]) => {
-    if (typeof args[0] === "string" && args[0].includes("Warning: ReactDOM.render is no longer supported")) {
-      return;
-    }
-    originalError.call(console, ...args);
-  };
-});
-
-afterAll(() => {
-  console.error = originalError;
-});

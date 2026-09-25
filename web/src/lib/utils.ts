@@ -1,7 +1,10 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-export function cn(...inputs: ClassValue[]) {
+const MILLION = 1_000_000;
+const THOUSAND = 1_000;
+
+export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
@@ -61,11 +64,11 @@ export function formatPrice(price: number, currency: string): string {
 }
 
 export function formatCurrency(value: number | null | undefined): string {
-  const n = Number(value);
-  if (!Number.isFinite(n)) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
     return new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(0);
   }
-  return new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(n);
+  return new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(numericValue);
 }
 
 export function formatPercent(value: number | string, decimals = 2): string {
@@ -78,8 +81,8 @@ export function formatVariation(value: number, decimals = 2): string {
 }
 
 export function formatCurrencyNoDecimals(value: number | null | undefined): string {
-  const n = Number(value);
-  if (!Number.isFinite(n)) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
     return new Intl.NumberFormat("es-AR", {
       style: "currency",
       currency: "ARS",
@@ -90,7 +93,7 @@ export function formatCurrencyNoDecimals(value: number | null | undefined): stri
     style: "currency",
     currency: "ARS",
     maximumFractionDigits: 0,
-  }).format(n);
+  }).format(numericValue);
 }
 
 export function formatDateShort(dateStr: string): string {
@@ -122,22 +125,22 @@ export function formatDateDayShort(dateStr: string): string {
 }
 
 export function formatDateSlash(dateStr: string | undefined): string | null {
-  if (!dateStr) {
+  if (!hasText(dateStr)) {
     return null;
   }
-  const [y, m, d] = dateStr.split("-");
-  return d && m && y ? `${d}/${m}/${y}` : dateStr;
+  const [year, month, day] = dateStr.split("-");
+  return hasText(day) && hasText(month) && hasText(year) ? `${day}/${month}/${year}` : dateStr;
 }
 
 export function formatLimit(limit: number | undefined): string | null {
-  if (limit === undefined || limit === null || limit <= 0) {
+  if (limit === undefined || limit <= 0) {
     return null;
   }
-  if (limit >= 1_000_000) {
-    return `$${(limit / 1_000_000).toFixed(0)} M`;
+  if (limit >= MILLION) {
+    return `$${(limit / MILLION).toFixed(0)} M`;
   }
-  if (limit >= 1_000) {
-    return `$${(limit / 1_000).toFixed(0)} K`;
+  if (limit >= THOUSAND) {
+    return `$${(limit / THOUSAND).toFixed(0)} K`;
   }
   return `$${limit}`;
 }
@@ -162,12 +165,12 @@ interface ReferenceArea {
   label: string;
 }
 
-function axisValueAt(chartData: ChartDataWithDate[], index: number, useIndex: boolean): string | number {
-  if (useIndex) {
-    return index;
-  }
+function axisDateAt(chartData: ChartDataWithDate[], index: number): string {
   const point = chartData[index];
-  return point?.originalDate || point?.date || "";
+  if (hasText(point?.originalDate)) {
+    return point.originalDate;
+  }
+  return hasText(point?.date) ? point.date : "";
 }
 
 function firstIndexOnOrAfter(chartData: ChartDataWithDate[], boundary: Date): number {
@@ -189,19 +192,28 @@ export function generateReferenceAreas(
   governments: Government[],
   useIndex = false,
 ): ReferenceArea[] {
-  if (!chartData || chartData.length === 0) {
+  if (chartData.length === 0) {
     return [];
   }
 
-  const firstDataDate = new Date(chartData[0]?.originalDate || "");
-  const lastDataDate = new Date(chartData[chartData.length - 1]?.originalDate || "");
+  const firstOriginalDate = chartData[0]?.originalDate;
+  const lastOriginalDate = chartData[chartData.length - 1]?.originalDate;
+  const firstDataDate = new Date(hasText(firstOriginalDate) ? firstOriginalDate : "");
+  const lastDataDate = new Date(hasText(lastOriginalDate) ? lastOriginalDate : "");
+  const axisValueAt = useIndex
+    ? (index: number): string | number => index
+    : (index: number): string | number => axisDateAt(chartData, index);
 
   return governments
     .filter((gov) => new Date(gov.startDate) <= lastDataDate && new Date(gov.endDate) >= firstDataDate)
     .map((gov) => ({
-      x1: axisValueAt(chartData, firstIndexOnOrAfter(chartData, new Date(gov.startDate)), useIndex),
-      x2: axisValueAt(chartData, lastIndexOnOrBefore(chartData, new Date(gov.endDate)), useIndex),
+      x1: axisValueAt(firstIndexOnOrAfter(chartData, new Date(gov.startDate))),
+      x2: axisValueAt(lastIndexOnOrBefore(chartData, new Date(gov.endDate))),
       fill: gov.color,
       label: gov.label,
     }));
+}
+
+export function hasText(value: string | null | undefined): value is string {
+  return value !== null && value !== undefined && value !== "";
 }

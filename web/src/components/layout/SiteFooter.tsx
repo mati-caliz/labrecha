@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import { BrandMark } from "@/components/layout/SiteHeader";
 import { SITE_HOST } from "@/lib/site";
 import Link from "next/link";
@@ -17,7 +18,7 @@ const SECTION_LINKS = [
 
 const SOURCES = "INDEC · BCRA · datos.gob.ar · Congreso de la Nación · consultoras (REM) · UTDT";
 
-export function SiteFooter() {
+export function SiteFooter(): ReactElement {
   const columnTitle = {
     fontFamily: "var(--font-jb-mono)",
     fontSize: "0.7rem",

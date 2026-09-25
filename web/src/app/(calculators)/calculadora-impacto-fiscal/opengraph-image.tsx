@@ -5,7 +5,7 @@ export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 export const alt = "Cuánto de lo que gastás es impuesto";
 
-export default function Image() {
+export default function Image(): ImageResponse {
   return new ImageResponse(
     <OgFrame>
       <OgHeadline

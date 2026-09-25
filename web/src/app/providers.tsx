@@ -4,9 +4,9 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { createQueryClient } from "@/lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
-import { useState } from "react";
+import { useState, type ReactElement } from "react";
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({ children }: Readonly<{ children: React.ReactNode }>): ReactElement {
   const [queryClient] = useState(createQueryClient);
 
   return (

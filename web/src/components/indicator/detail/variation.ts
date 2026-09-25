@@ -1,5 +1,6 @@
 import type { IndicatorDisplay } from "@/lib/indicators";
 import { formatNumberAR } from "@/lib/indicators";
+import { ISO_DATE_LENGTH } from "@/lib/isoDates";
 import type { ParsedPoint } from "@/lib/series";
 
 export interface VariationDisplay {
@@ -8,38 +9,54 @@ export interface VariationDisplay {
   background: string;
 }
 
-function computeVariation(
-  latest: number,
-  base: number | undefined,
-  mode: "pct" | "delta" | "none",
-  suffix: string | undefined,
-  goodWhen: "up" | "down" | "neutral",
-): VariationDisplay | undefined {
-  if (base === undefined || mode === "none") {
-    return undefined;
-  }
-  let delta: number;
-  let label: string;
-  if (mode === "pct") {
+const PERCENT_SCALE = 100;
+const NEUTRAL_VARIATION: Omit<VariationDisplay, "text"> = { color: "var(--ink2)", background: "transparent" };
+const GOOD_VARIATION: Omit<VariationDisplay, "text"> = { color: "var(--pos)", background: "var(--pos-bg)" };
+const BAD_VARIATION: Omit<VariationDisplay, "text"> = { color: "var(--neg)", background: "var(--neg-bg)" };
+
+interface VariationDelta {
+  delta: number;
+  label: string;
+}
+
+function computeDelta(latest: number, base: number, indicator: IndicatorDisplay): VariationDelta | undefined {
+  if (indicator.variation === "pct") {
     if (base === 0) {
       return undefined;
     }
-    delta = ((latest - base) / base) * 100;
-    label = `${formatNumberAR(Math.abs(delta), 1)}%`;
-  } else {
-    delta = latest - base;
-    label = `${formatNumberAR(Math.abs(delta), 1)}${suffix ?? " pp"}`;
+    const delta = ((latest - base) / base) * PERCENT_SCALE;
+    return { delta, label: `${formatNumberAR(Math.abs(delta), 1)}%` };
   }
+  const delta = latest - base;
+  return { delta, label: `${formatNumberAR(Math.abs(delta), 1)}${indicator.variationSuffix ?? " pp"}` };
+}
+
+function isGoodChange(rising: boolean, goodWhen: IndicatorDisplay["goodWhen"]): boolean {
+  if (goodWhen === "neutral") {
+    return true;
+  }
+  return goodWhen === "up" ? rising : !rising;
+}
+
+function computeVariation(
+  latest: number,
+  base: number | undefined,
+  indicator: IndicatorDisplay,
+): VariationDisplay | undefined {
+  if (base === undefined || indicator.variation === "none") {
+    return undefined;
+  }
+  const variation = computeDelta(latest, base, indicator);
+  if (variation === undefined) {
+    return undefined;
+  }
+  const { delta, label } = variation;
   if (delta === 0) {
-    return { text: `= ${label}`, color: "var(--ink2)", background: "transparent" };
+    return { text: `= ${label}`, ...NEUTRAL_VARIATION };
   }
   const rising = delta > 0;
-  const good = goodWhen === "neutral" ? true : goodWhen === "up" ? rising : !rising;
-  return {
-    text: `${rising ? "▲" : "▼"} ${label}`,
-    color: good ? "var(--pos)" : "var(--neg)",
-    background: good ? "var(--pos-bg)" : "var(--neg-bg)",
-  };
+  const tone = isGoodChange(rising, indicator.goodWhen) ? GOOD_VARIATION : BAD_VARIATION;
+  return { text: `${rising ? "▲" : "▼"} ${label}`, ...tone };
 }
 
 function valueBefore(points: ParsedPoint[], targetDate: string): number | undefined {
@@ -57,7 +74,7 @@ function valueBefore(points: ParsedPoint[], targetDate: string): number | undefi
 function shiftDate(isoDate: string, months: number): string {
   const date = new Date(`${isoDate}T00:00:00`);
   date.setMonth(date.getMonth() - months);
-  return date.toISOString().slice(0, 10);
+  return date.toISOString().slice(0, ISO_DATE_LENGTH);
 }
 
 export function variationVsPreviousPoint(
@@ -69,13 +86,7 @@ export function variationVsPreviousPoint(
   if (!lastPoint || !previousPoint) {
     return undefined;
   }
-  return computeVariation(
-    lastPoint.value,
-    previousPoint.value,
-    indicator.variation,
-    indicator.variationSuffix,
-    indicator.goodWhen,
-  );
+  return computeVariation(lastPoint.value, previousPoint.value, indicator);
 }
 
 export function variationVsMonthsAgo(
@@ -90,9 +101,7 @@ export function variationVsMonthsAgo(
   return computeVariation(
     lastPoint.value,
     valueBefore(points, shiftDate(lastPoint.date, monthsAgo)),
-    indicator.variation,
-    indicator.variationSuffix,
-    indicator.goodWhen,
+    indicator,
   );
 }
 
@@ -103,6 +112,7 @@ export function gapPercent(
   if (first === undefined || second === undefined || first === null || second === null) {
     return undefined;
   }
-  const base = Math.max(Math.abs(first), Math.abs(second)) || 1;
-  return (Math.abs(first - second) / base) * 100;
+  const largest = Math.max(Math.abs(first), Math.abs(second));
+  const base = largest === 0 || Number.isNaN(largest) ? 1 : largest;
+  return (Math.abs(first - second) / base) * PERCENT_SCALE;
 }

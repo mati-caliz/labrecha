@@ -1,6 +1,10 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, ReactNode, ReactElement } from "react";
 
-export function SectionHead({ index, title, action }: { index: string; title: string; action?: ReactNode }) {
+export function SectionHead({
+  index,
+  title,
+  action,
+}: Readonly<{ index: string; title: string; action?: ReactNode }>): ReactElement {
   return (
     <div
       style={{
@@ -45,7 +49,10 @@ export function SectionHead({ index, title, action }: { index: string; title: st
   );
 }
 
-export function Eyebrow({ children, color = "var(--gap)" }: { children: ReactNode; color?: string }) {
+export function Eyebrow({
+  children,
+  color = "var(--gap)",
+}: Readonly<{ children: ReactNode; color?: string }>): ReactElement {
   return (
     <div
       style={{
@@ -61,7 +68,7 @@ export function Eyebrow({ children, color = "var(--gap)" }: { children: ReactNod
   );
 }
 
-export function SourceChip({ source, date }: { source: string; date: string }) {
+export function SourceChip({ source, date }: Readonly<{ source: string; date: string }>): ReactElement {
   return (
     <span
       style={{
@@ -83,7 +90,10 @@ export function SourceChip({ source, date }: { source: string; date: string }) {
   );
 }
 
-export function ActionLink({ href, children }: { href: string; children: ReactNode }) {
+export function ActionLink({
+  href,
+  children,
+}: Readonly<{ href: string; children: ReactNode }>): ReactElement {
   return (
     <a
       href={href}
@@ -102,7 +112,12 @@ export function ActionLink({ href, children }: { href: string; children: ReactNo
   );
 }
 
-export function MiniSparkline({ data, style }: { data: number[]; style?: CSSProperties }) {
+const SPARKLINE_VERTICAL_PADDING = 2;
+
+export function MiniSparkline({
+  data,
+  style,
+}: Readonly<{ data: number[]; style?: CSSProperties }>): ReactElement | null {
   if (data.length < 2) {
     return null;
   }
@@ -110,12 +125,16 @@ export function MiniSparkline({ data, style }: { data: number[]; style?: CSSProp
   const height = 34;
   const min = Math.min(...data);
   const max = Math.max(...data);
-  const span = max - min || 1;
+  const range = max - min;
+  const span = range === 0 || Number.isNaN(range) ? 1 : range;
   const points = data
     .map((value, index) => {
-      const x = (index / (data.length - 1)) * width;
-      const y = height - 2 - ((value - min) / span) * (height - 4);
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
+      const pointX = (index / (data.length - 1)) * width;
+      const pointY =
+        height -
+        SPARKLINE_VERTICAL_PADDING -
+        ((value - min) / span) * (height - 2 * SPARKLINE_VERTICAL_PADDING);
+      return `${pointX.toFixed(1)},${pointY.toFixed(1)}`;
     })
     .join(" ");
   return (

@@ -8,8 +8,10 @@ export function normalizeResult(result: string | null): NormalizedResult {
   return { label: won ? "afirmativa" : "negativa", won };
 }
 
+const SERIES_PALETTE_SIZE = 6;
+
 export function blocColor(index: number): string {
-  if (index < 6) {
+  if (index < SERIES_PALETTE_SIZE) {
     return `var(--serie-${index + 1})`;
   }
   return "var(--ink3)";
@@ -28,16 +30,14 @@ export function tallyByBloc(details: { bloc: string | null; vote: string | null 
   const byBloc = new Map<string, BlocVoteTally>();
   for (const detail of details) {
     const bloc = detail.bloc ?? "Sin bloque";
-    const tally =
-      byBloc.get(bloc) ??
-      ({
-        bloc,
-        afirmativos: 0,
-        negativos: 0,
-        abstenciones: 0,
-        ausentes: 0,
-        total: 0,
-      } as BlocVoteTally);
+    const tally = byBloc.get(bloc) ?? {
+      bloc,
+      afirmativos: 0,
+      negativos: 0,
+      abstenciones: 0,
+      ausentes: 0,
+      total: 0,
+    };
     const vote = (detail.vote ?? "").toUpperCase();
     if (vote.startsWith("AFIRMAT")) {
       tally.afirmativos += 1;
@@ -51,5 +51,5 @@ export function tallyByBloc(details: { bloc: string | null; vote: string | null 
     tally.total += 1;
     byBloc.set(bloc, tally);
   }
-  return Array.from(byBloc.values()).sort((a, b) => b.total - a.total);
+  return Array.from(byBloc.values()).sort((first, second) => second.total - first.total);
 }

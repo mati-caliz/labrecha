@@ -1,9 +1,14 @@
 "use client";
+import type { ReactElement } from "react";
 
 import { Eyebrow } from "@/components/home/homeShared";
 import { useIndicators, usePoliticalEvents, usePosts } from "@/hooks/useLabrecha";
 
-function StatBlock({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+function StatBlock({
+  label,
+  value,
+  accent,
+}: Readonly<{ label: string; value: string; accent?: boolean }>): ReactElement {
   return (
     <div>
       <div
@@ -34,12 +39,12 @@ function StatBlock({ label, value, accent }: { label: string; value: string; acc
   );
 }
 
-export function HomeHero() {
+export function HomeHero(): ReactElement {
   const indicators = useIndicators();
   const events = usePoliticalEvents();
   const posts = usePosts();
 
-  const format = (value: number | undefined) => (value === undefined ? "—" : String(value));
+  const format = (value: number | undefined): string => (value === undefined ? "—" : String(value));
 
   return (
     <section style={{ borderBottom: "1px solid var(--line)", background: "var(--surface)" }}>

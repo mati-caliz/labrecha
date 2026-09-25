@@ -10,11 +10,18 @@ import {
   formatNumberAR,
   getIndicatorDisplay,
   sourceLabel,
+  type GoodWhen,
+  type IndicatorDisplay,
 } from "@/lib/indicators";
-import type { PoliticalEvent } from "@/lib/labrechaApi";
+import type { IndicatorPoint, PoliticalEvent } from "@/lib/labrechaApi";
 import { HERO_CODE, HERO_POINTS, HERO_SOURCE, TILE_CODES } from "@/lib/queryParams";
 import Link from "next/link";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactElement } from "react";
+import { hasText } from "@/lib/utils";
+
+const PERCENT_FACTOR = 100;
+const HERO_X_LABEL_COUNT = 4;
+const FLAT_VARIATION_COLOR = "var(--ink2)";
 
 interface Variation {
   text: string;
@@ -22,35 +29,51 @@ interface Variation {
   background: string;
 }
 
-function computeVariation(
-  latest: number,
-  previous: number | undefined,
-  mode: "pct" | "delta" | "none",
-  suffix: string | undefined,
-  goodWhen: "up" | "down" | "neutral",
-): Variation | undefined {
-  if (previous === undefined || mode === "none") {
-    return undefined;
-  }
-  let delta: number;
-  let label: string;
-  if (mode === "pct") {
+type VariationRule = Pick<IndicatorDisplay, "variation" | "variationSuffix" | "goodWhen">;
+
+interface VariationDelta {
+  delta: number;
+  label: string;
+}
+
+function computeDelta(latest: number, previous: number, rule: VariationRule): VariationDelta | undefined {
+  if (rule.variation === "pct") {
     if (previous === 0) {
       return undefined;
     }
-    delta = ((latest - previous) / previous) * 100;
-    label = `${formatNumberAR(Math.abs(delta), 1)}%`;
-  } else {
-    delta = latest - previous;
-    label = `${formatNumberAR(Math.abs(delta), 1)}${suffix ?? " pp"}`;
+    const delta = ((latest - previous) / previous) * PERCENT_FACTOR;
+    return { delta, label: `${formatNumberAR(Math.abs(delta), 1)}%` };
   }
-  if (delta === 0) {
-    return { text: `= ${label}`, color: "var(--ink2)", background: "transparent" };
+  const delta = latest - previous;
+  return { delta, label: `${formatNumberAR(Math.abs(delta), 1)}${rule.variationSuffix ?? " pp"}` };
+}
+
+function isGoodChange(rising: boolean, goodWhen: GoodWhen): boolean {
+  if (goodWhen === "neutral") {
+    return true;
   }
-  const rising = delta > 0;
-  const good = goodWhen === "neutral" ? true : goodWhen === "up" ? rising : !rising;
+  return goodWhen === "up" ? rising : !rising;
+}
+
+function computeVariation(
+  latest: number,
+  previous: number | undefined,
+  rule: VariationRule,
+): Variation | undefined {
+  if (previous === undefined || rule.variation === "none") {
+    return undefined;
+  }
+  const change = computeDelta(latest, previous, rule);
+  if (change === undefined) {
+    return undefined;
+  }
+  if (change.delta === 0) {
+    return { text: `= ${change.label}`, color: FLAT_VARIATION_COLOR, background: "transparent" };
+  }
+  const rising = change.delta > 0;
+  const good = isGoodChange(rising, rule.goodWhen);
   return {
-    text: `${rising ? "▲" : "▼"} ${label}`,
+    text: `${rising ? "▲" : "▼"} ${change.label}`,
     color: good ? "var(--pos)" : "var(--neg)",
     background: good ? "var(--pos-bg)" : "var(--neg-bg)",
   };
@@ -63,7 +86,7 @@ const TILE_STYLE: CSSProperties = {
   padding: "16px 16px 14px",
 };
 
-function StatTile({ code }: { code: string }) {
+function StatTile({ code }: Readonly<{ code: string }>): ReactElement | null {
   const indicator = INDICATOR_BY_CODE[code] ?? getIndicatorDisplay(code);
   const { data, isLoading } = useIndicatorSeries(indicator.code, {
     source: indicator.preferredSource,
@@ -76,23 +99,27 @@ function StatTile({ code }: { code: string }) {
   }
 
   const points = data?.points ?? [];
-  if (points.length === 0) {
-    return null;
-  }
   const latest = points[0];
-  if (!latest) {
+  if (latest === undefined) {
     return null;
   }
+  return <StatTileBody indicator={indicator} latest={latest} points={points} />;
+}
+
+function StatTileBody({
+  indicator,
+  latest,
+  points,
+}: Readonly<{
+  indicator: IndicatorDisplay;
+  latest: IndicatorPoint;
+  points: IndicatorPoint[];
+}>): ReactElement {
   const latestValue = Number.parseFloat(latest.value);
-  const previous = points[1] ? Number.parseFloat(points[1].value) : undefined;
+  const previousPoint = points[1];
+  const previous = previousPoint === undefined ? undefined : Number.parseFloat(previousPoint.value);
   const ascending = [...points].reverse().map((point) => Number.parseFloat(point.value));
-  const variation = computeVariation(
-    latestValue,
-    previous,
-    indicator.variation,
-    indicator.variationSuffix,
-    indicator.goodWhen,
-  );
+  const variation = computeVariation(latestValue, previous, indicator);
 
   return (
     <Link
@@ -121,7 +148,7 @@ function StatTile({ code }: { code: string }) {
         }}
       >
         {indicator.format(latestValue)}
-        {indicator.unit ? (
+        {hasText(indicator.unit) ? (
           <span style={{ fontSize: "0.8rem", color: "var(--ink3)", marginLeft: 4 }}>{indicator.unit}</span>
         ) : null}
       </div>
@@ -172,7 +199,88 @@ function buildChartEvents(dates: string[], events: PoliticalEvent[]): ChartEvent
   return chartEvents;
 }
 
-function HeroIndicator() {
+function buildHeroXLabels(dates: string[]): string[] {
+  const step = Math.max(1, Math.floor(dates.length / HERO_X_LABEL_COUNT));
+  return dates.map((date, index) =>
+    index % step === 0 || index === dates.length - 1
+      ? new Date(`${date}T00:00:00`).toLocaleDateString("es-AR", {
+          month: "short",
+          year: "2-digit",
+        })
+      : "",
+  );
+}
+
+interface HeroHeaderProps {
+  indicator: IndicatorDisplay;
+  latest: IndicatorPoint;
+  latestValue: number;
+  variation: Variation | undefined;
+}
+
+function HeroHeader({ indicator, latest, latestValue, variation }: Readonly<HeroHeaderProps>): ReactElement {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "space-between",
+        gap: 20,
+        marginBottom: 20,
+        flexWrap: "wrap",
+      }}
+    >
+      <div>
+        <div
+          style={{
+            fontFamily: "var(--font-jb-mono)",
+            fontSize: "0.7rem",
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            color: "var(--ink3)",
+            marginBottom: 10,
+          }}
+        >
+          {indicator.label} · IPC nacional
+        </div>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 16, flexWrap: "wrap" }}>
+          <span
+            style={{
+              fontFamily: "var(--font-jb-mono)",
+              fontWeight: 700,
+              fontSize: "clamp(2.75rem, 7vw, 3.75rem)",
+              lineHeight: 0.82,
+              letterSpacing: "-0.03em",
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            {indicator.format(latestValue)}
+            <span style={{ fontSize: "0.5em", color: "var(--ink3)" }}>%</span>
+          </span>
+          {variation ? (
+            <span
+              style={{
+                fontFamily: "var(--font-jb-mono)",
+                fontSize: "0.82rem",
+                fontWeight: 600,
+                color: variation.color,
+                background: variation.background,
+                padding: "4px 9px",
+                borderRadius: 5,
+                marginBottom: 8,
+              }}
+            >
+              {variation.text}
+            </span>
+          ) : null}
+        </div>
+      </div>
+      <SourceChip source={sourceLabel(latest.source)} date={formatDateAR(latest.date)} />
+    </div>
+  );
+}
+
+function HeroIndicator(): ReactElement | null {
   const indicator = getIndicatorDisplay(HERO_CODE);
   const { data, isLoading } = useIndicatorSeries(HERO_CODE, {
     source: HERO_SOURCE,
@@ -197,92 +305,22 @@ function HeroIndicator() {
   if (!latest || latestValue === undefined || previousValue === undefined) {
     return null;
   }
-  const variation = computeVariation(
-    latestValue,
-    previousValue,
-    indicator.variation,
-    indicator.variationSuffix,
-    indicator.goodWhen,
-  );
+  const variation = computeVariation(latestValue, previousValue, indicator);
 
   const chartEvents = buildChartEvents(datesAsc, eventsQuery.data ?? []);
 
-  const step = Math.max(1, Math.floor(datesAsc.length / 4));
-  const xLabels = datesAsc.map((date, index) =>
-    index % step === 0 || index === datesAsc.length - 1
-      ? new Date(`${date}T00:00:00`).toLocaleDateString("es-AR", {
-          month: "short",
-          year: "2-digit",
-        })
-      : "",
-  );
+  const xLabels = buildHeroXLabels(datesAsc);
 
   return (
     <article style={{ ...TILE_STYLE, padding: "28px 30px 26px" }}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          gap: 20,
-          marginBottom: 20,
-          flexWrap: "wrap",
-        }}
-      >
-        <div>
-          <div
-            style={{
-              fontFamily: "var(--font-jb-mono)",
-              fontSize: "0.7rem",
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              color: "var(--ink3)",
-              marginBottom: 10,
-            }}
-          >
-            {indicator.label} · IPC nacional
-          </div>
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 16, flexWrap: "wrap" }}>
-            <span
-              style={{
-                fontFamily: "var(--font-jb-mono)",
-                fontWeight: 700,
-                fontSize: "clamp(2.75rem, 7vw, 3.75rem)",
-                lineHeight: 0.82,
-                letterSpacing: "-0.03em",
-                fontVariantNumeric: "tabular-nums",
-              }}
-            >
-              {indicator.format(latestValue)}
-              <span style={{ fontSize: "0.5em", color: "var(--ink3)" }}>%</span>
-            </span>
-            {variation ? (
-              <span
-                style={{
-                  fontFamily: "var(--font-jb-mono)",
-                  fontSize: "0.82rem",
-                  fontWeight: 600,
-                  color: variation.color,
-                  background: variation.background,
-                  padding: "4px 9px",
-                  borderRadius: 5,
-                  marginBottom: 8,
-                }}
-              >
-                {variation.text}
-              </span>
-            ) : null}
-          </div>
-        </div>
-        <SourceChip source={sourceLabel(latest.source)} date={formatDateAR(latest.date)} />
-      </div>
+      <HeroHeader indicator={indicator} latest={latest} latestValue={latestValue} variation={variation} />
 
       <AnnotatedSeriesChart
         series={[
           {
             name: "IPC mensual",
             color: "var(--chart)",
-            data: values.map((v, i) => ({ t: formatDateAR(datesAsc[i] ?? ""), v })),
+            data: values.map((value, index) => ({ t: formatDateAR(datesAsc[index] ?? ""), v: value })),
           },
         ]}
         events={chartEvents}
@@ -307,7 +345,7 @@ function HeroIndicator() {
   );
 }
 
-export function CountryStatus() {
+export function CountryStatus(): ReactElement {
   return (
     <section className="lb-container" style={{ paddingTop: 64, paddingBottom: 24 }}>
       <SectionHead

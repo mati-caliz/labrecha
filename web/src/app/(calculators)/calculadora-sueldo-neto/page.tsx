@@ -5,9 +5,9 @@ import { Button, Card, DataTable } from "@/components/core";
 import { isTaxScaleOutdated } from "@/lib/freshness";
 import { formatDateAR, formatMoneyAR, formatNumberAR } from "@/lib/indicators";
 import { calculatorsApi } from "@/lib/labrechaApi";
-import type { IncomeTaxRequest, IncomeTaxScaleInfo } from "@/lib/labrechaApi";
+import type { IncomeTaxRequest, IncomeTaxResponse, IncomeTaxScaleInfo } from "@/lib/labrechaApi";
 import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, type ReactElement } from "react";
 
 const fieldStyle = { display: "flex", flexDirection: "column" as const, gap: 4 };
 const inputStyle = {
@@ -28,6 +28,8 @@ const checkboxRow = {
   color: "var(--ink)",
 };
 
+const DEFAULT_GROSS_SALARY = 2000000;
+
 const OUTDATED_SCALE_WARNING =
   "Esta escala tiene más de 6 meses: ARCA la actualiza cada semestre, así que puede haber una " +
   "versión posterior. Verificá contra ARCA antes de usar el número.";
@@ -41,7 +43,7 @@ const DEDUCTION_LABELS: { key: string; label: string }[] = [
   { key: "total", label: "Total descuentos" },
 ];
 
-function ScaleAttribution({ scale }: { scale: IncomeTaxScaleInfo }) {
+function ScaleAttribution({ scale }: Readonly<{ scale: IncomeTaxScaleInfo }>): ReactElement {
   const outdated = isTaxScaleOutdated(scale.effective_from);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -61,8 +63,126 @@ function ScaleAttribution({ scale }: { scale: IncomeTaxScaleInfo }) {
   );
 }
 
-export default function IncomeTaxPage() {
-  const [grossSalary, setGrossSalary] = useState(2000000);
+function optionalAmount(amount: number): number | undefined {
+  if (amount === 0 || Number.isNaN(amount)) {
+    return undefined;
+  }
+  return amount;
+}
+
+function hasDeduction(amount: string | undefined): boolean {
+  return amount !== undefined && amount !== "";
+}
+
+interface DependentsAndRentFieldsProps {
+  numberOfChildren: number;
+  housingRent: number;
+  onChildrenChange: (numberOfChildren: number) => void;
+  onHousingRentChange: (housingRent: number) => void;
+}
+
+function DependentsAndRentFields({
+  numberOfChildren,
+  housingRent,
+  onChildrenChange,
+  onHousingRentChange,
+}: Readonly<DependentsAndRentFieldsProps>): ReactElement {
+  return (
+    <div style={{ display: "flex", gap: 12 }}>
+      <label style={{ ...fieldStyle, flex: 1 }}>
+        <span style={labelStyle}>Hijos a cargo</span>
+        <input
+          type="number"
+          min={0}
+          value={numberOfChildren}
+          onChange={(event) => {
+            onChildrenChange(Number(event.target.value));
+          }}
+          style={inputStyle}
+        />
+      </label>
+      <label style={{ ...fieldStyle, flex: 1 }}>
+        <span style={labelStyle}>Alquiler mensual (ARS)</span>
+        <input
+          type="number"
+          min={0}
+          value={housingRent}
+          onChange={(event) => {
+            onHousingRentChange(Number(event.target.value));
+          }}
+          style={inputStyle}
+        />
+      </label>
+    </div>
+  );
+}
+
+function IncomeTaxResultCard({ result }: Readonly<{ result: IncomeTaxResponse }>): ReactElement {
+  return (
+    <Card title="Tu sueldo de bolsillo" footer={<ScaleAttribution scale={result.scale} />}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div>
+          <div style={{ fontSize: "0.75rem", color: "var(--ink3)" }}>Neto mensual</div>
+          <div className="num" style={{ fontSize: "var(--fs-num-xl)", fontWeight: 600, lineHeight: 1.1 }}>
+            {formatMoneyAR(Number.parseFloat(result.net_monthly_salary))}
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+          <div>
+            <div style={{ fontSize: "0.75rem", color: "var(--ink3)" }}>Ganancias mensual</div>
+            <div className="num" style={{ fontWeight: 600, color: "var(--neg)" }}>
+              {formatMoneyAR(Number.parseFloat(result.monthly_tax))}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: "0.75rem", color: "var(--ink3)" }}>Alícuota efectiva</div>
+            <div className="num" style={{ fontWeight: 600 }}>
+              {formatNumberAR(Number.parseFloat(result.effective_rate), 1)}%
+            </div>
+          </div>
+        </div>
+        <DataTable
+          columns={[
+            { key: "concepto", label: "Descuento" },
+            { key: "monto", label: "Mensual", align: "right", numeric: true },
+          ]}
+          rows={DEDUCTION_LABELS.filter((item) => hasDeduction(result.deduction_breakdown[item.key])).map(
+            (item) => ({
+              id: item.key,
+              cells: [
+                item.label,
+                formatMoneyAR(Number.parseFloat(result.deduction_breakdown[item.key] ?? "0")),
+              ],
+            }),
+          )}
+        />
+      </div>
+    </Card>
+  );
+}
+
+function IncomeTaxEmptyCard({ isError }: Readonly<{ isError: boolean }>): ReactElement {
+  return (
+    <Card>
+      <p
+        style={{
+          color: "var(--ink3)",
+          fontSize: "0.875rem",
+          margin: 0,
+          textAlign: "center",
+          padding: "40px 0",
+        }}
+      >
+        {isError
+          ? "No se pudo calcular. Revisá los valores ingresados."
+          : "Completá tu situación y presioná Calcular."}
+      </p>
+    </Card>
+  );
+}
+
+export default function IncomeTaxPage(): ReactElement {
+  const [grossSalary, setGrossSalary] = useState(DEFAULT_GROSS_SALARY);
   const [hasSpouse, setHasSpouse] = useState(false);
   const [children, setChildren] = useState(0);
   const [housingRent, setHousingRent] = useState(0);
@@ -72,13 +192,13 @@ export default function IncomeTaxPage() {
     mutationFn: (body: IncomeTaxRequest) => calculatorsApi.incomeTax(body),
   });
 
-  const onSubmit = (event: React.FormEvent) => {
+  const onSubmit = (event: React.FormEvent): void => {
     event.preventDefault();
     mutation.mutate({
       gross_monthly_salary: grossSalary,
       has_spouse: hasSpouse,
       number_of_children: children,
-      housing_rent: housingRent || undefined,
+      housing_rent: optionalAmount(housingRent),
       retired,
     });
   };
@@ -117,37 +237,25 @@ export default function IncomeTaxPage() {
                 type="number"
                 min={0}
                 value={grossSalary}
-                onChange={(event) => setGrossSalary(Number(event.target.value))}
+                onChange={(event) => {
+                  setGrossSalary(Number(event.target.value));
+                }}
                 style={inputStyle}
               />
             </label>
-            <div style={{ display: "flex", gap: 12 }}>
-              <label style={{ ...fieldStyle, flex: 1 }}>
-                <span style={labelStyle}>Hijos a cargo</span>
-                <input
-                  type="number"
-                  min={0}
-                  value={children}
-                  onChange={(event) => setChildren(Number(event.target.value))}
-                  style={inputStyle}
-                />
-              </label>
-              <label style={{ ...fieldStyle, flex: 1 }}>
-                <span style={labelStyle}>Alquiler mensual (ARS)</span>
-                <input
-                  type="number"
-                  min={0}
-                  value={housingRent}
-                  onChange={(event) => setHousingRent(Number(event.target.value))}
-                  style={inputStyle}
-                />
-              </label>
-            </div>
+            <DependentsAndRentFields
+              numberOfChildren={children}
+              housingRent={housingRent}
+              onChildrenChange={setChildren}
+              onHousingRentChange={setHousingRent}
+            />
             <label style={checkboxRow}>
               <input
                 type="checkbox"
                 checked={hasSpouse}
-                onChange={(event) => setHasSpouse(event.target.checked)}
+                onChange={(event) => {
+                  setHasSpouse(event.target.checked);
+                }}
               />
               Cónyuge a cargo
             </label>
@@ -155,7 +263,9 @@ export default function IncomeTaxPage() {
               <input
                 type="checkbox"
                 checked={retired}
-                onChange={(event) => setRetired(event.target.checked)}
+                onChange={(event) => {
+                  setRetired(event.target.checked);
+                }}
               />
               Soy jubilado / pensionado
             </label>
@@ -165,64 +275,7 @@ export default function IncomeTaxPage() {
           </form>
         </Card>
 
-        {result ? (
-          <Card title="Tu sueldo de bolsillo" footer={<ScaleAttribution scale={result.scale} />}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div>
-                <div style={{ fontSize: "0.75rem", color: "var(--ink3)" }}>Neto mensual</div>
-                <div
-                  className="num"
-                  style={{ fontSize: "var(--fs-num-xl)", fontWeight: 600, lineHeight: 1.1 }}
-                >
-                  {formatMoneyAR(Number.parseFloat(result.net_monthly_salary))}
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
-                <div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--ink3)" }}>Ganancias mensual</div>
-                  <div className="num" style={{ fontWeight: 600, color: "var(--neg)" }}>
-                    {formatMoneyAR(Number.parseFloat(result.monthly_tax))}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--ink3)" }}>Alícuota efectiva</div>
-                  <div className="num" style={{ fontWeight: 600 }}>
-                    {formatNumberAR(Number.parseFloat(result.effective_rate), 1)}%
-                  </div>
-                </div>
-              </div>
-              <DataTable
-                columns={[
-                  { key: "concepto", label: "Descuento" },
-                  { key: "monto", label: "Mensual", align: "right", numeric: true },
-                ]}
-                rows={DEDUCTION_LABELS.filter((item) => result.deduction_breakdown[item.key]).map((item) => ({
-                  id: item.key,
-                  cells: [
-                    item.label,
-                    formatMoneyAR(Number.parseFloat(result.deduction_breakdown[item.key] ?? "0")),
-                  ],
-                }))}
-              />
-            </div>
-          </Card>
-        ) : (
-          <Card>
-            <p
-              style={{
-                color: "var(--ink3)",
-                fontSize: "0.875rem",
-                margin: 0,
-                textAlign: "center",
-                padding: "40px 0",
-              }}
-            >
-              {mutation.isError
-                ? "No se pudo calcular. Revisá los valores ingresados."
-                : "Completá tu situación y presioná Calcular."}
-            </p>
-          </Card>
-        )}
+        {result ? <IncomeTaxResultCard result={result} /> : <IncomeTaxEmptyCard isError={mutation.isError} />}
       </div>
     </div>
   );

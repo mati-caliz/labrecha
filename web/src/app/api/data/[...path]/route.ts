@@ -8,7 +8,7 @@ const CLIENT_IP_HEADERS = ["x-real-ip", "x-forwarded-for"];
 const WRITABLE_PATHS = ["errors"];
 const POSTABLE_PATHS = new Set([...WRITABLE_PATHS, ...CALCULATOR_PATH_LIST]);
 
-function clientHeaders(request: NextRequest, accept: string): HeadersInit {
+function clientHeaders(request: NextRequest, accept: string): Record<string, string> {
   const headers: Record<string, string> = { Accept: accept };
   for (const name of CLIENT_IP_HEADERS) {
     const value = request.headers.get(name);
@@ -19,7 +19,10 @@ function clientHeaders(request: NextRequest, accept: string): HeadersInit {
   return headers;
 }
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ path: string[] }> },
+): Promise<Response> {
   const { path } = await params;
   const pathStr = path.join("/");
   const searchParams = request.nextUrl.searchParams.toString();
@@ -51,12 +54,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     });
   }
 
-  const data = await res.json();
+  const data: unknown = await res.json();
 
   return Response.json(data, { headers: { "Cache-Control": cacheControl } });
 }
 
-export async function POST(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ path: string[] }> },
+): Promise<Response> {
   const { path } = await params;
   const pathStr = path.join("/");
   if (!POSTABLE_PATHS.has(pathStr)) {
@@ -75,6 +81,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     body,
   });
 
-  const data = await res.json().catch(() => ({ error: "Invalid response" }));
+  const data: unknown = await res.json().catch(() => ({ error: "Invalid response" }));
   return Response.json(data, { status: res.status });
 }

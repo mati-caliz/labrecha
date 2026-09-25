@@ -1,6 +1,6 @@
 import { SITE_URL } from "@/lib/site";
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import type { ReactNode, ReactElement } from "react";
 
 export const metadata: Metadata = {
   title: "API pública - La Brecha",
@@ -84,7 +84,7 @@ const FEEDS = [
   { path: "/boletin.xml", description: "RSS del Boletín Oficial resumido." },
 ];
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Section({ title, children }: Readonly<{ title: string; children: ReactNode }>): ReactElement {
   return (
     <section style={{ marginTop: 48 }}>
       <h2
@@ -106,7 +106,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-function Code({ children }: { children: string }) {
+function Code({ children }: Readonly<{ children: string }>): ReactElement {
   return (
     <pre
       style={{
@@ -126,85 +126,95 @@ function Code({ children }: { children: string }) {
   );
 }
 
-export default function PublicApiPage() {
+function PublicApiHeader(): ReactElement {
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto", padding: "48px 24px 72px" }}>
-      <header style={{ borderBottom: "2px solid var(--ink)", paddingBottom: 22 }}>
-        <div
+    <header style={{ borderBottom: "2px solid var(--ink)", paddingBottom: 22 }}>
+      <div
+        style={{
+          fontFamily: MONO,
+          fontSize: "0.72rem",
+          letterSpacing: "0.18em",
+          textTransform: "uppercase",
+          color: "var(--ink3)",
+          marginBottom: 10,
+        }}
+      >
+        /api-publica
+      </div>
+      <h1
+        style={{
+          fontFamily: "var(--font-display)",
+          fontWeight: 800,
+          fontSize: "clamp(2rem, 5vw, 2.875rem)",
+          letterSpacing: "-0.025em",
+          margin: "0 0 14px",
+          color: "var(--ink)",
+          textWrap: "balance",
+        }}
+      >
+        Usá nuestros datos
+      </h1>
+      <p
+        style={{
+          fontFamily: "var(--font-serif)",
+          fontSize: "clamp(1rem, 2.2vw, 1.1875rem)",
+          lineHeight: 1.55,
+          color: "var(--ink2)",
+          margin: 0,
+          maxWidth: 640,
+        }}
+      >
+        Todo lo que ves en el sitio sale de una API de lectura, sin claves ni registro. Es la misma que
+        consume esta página. Si vas a usarla, citá a La Brecha y a la fuente original de cada serie.
+      </p>
+    </header>
+  );
+}
+
+function EndpointItem({ endpoint }: Readonly<{ endpoint: Endpoint }>): ReactElement {
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+        <span
           style={{
             fontFamily: MONO,
-            fontSize: "0.72rem",
-            letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            color: "var(--ink3)",
-            marginBottom: 10,
+            fontSize: "0.65rem",
+            fontWeight: 700,
+            color: "var(--pos)",
+            border: "1px solid var(--line2)",
+            borderRadius: 4,
+            padding: "2px 6px",
           }}
         >
-          /api-publica
-        </div>
-        <h1
-          style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: 800,
-            fontSize: "clamp(2rem, 5vw, 2.875rem)",
-            letterSpacing: "-0.025em",
-            margin: "0 0 14px",
-            color: "var(--ink)",
-            textWrap: "balance",
-          }}
-        >
-          Usá nuestros datos
-        </h1>
-        <p
-          style={{
-            fontFamily: "var(--font-serif)",
-            fontSize: "clamp(1rem, 2.2vw, 1.1875rem)",
-            lineHeight: 1.55,
-            color: "var(--ink2)",
-            margin: 0,
-            maxWidth: 640,
-          }}
-        >
-          Todo lo que ves en el sitio sale de una API de lectura, sin claves ni registro. Es la misma que
-          consume esta página. Si vas a usarla, citá a La Brecha y a la fuente original de cada serie.
-        </p>
-      </header>
+          {endpoint.method}
+        </span>
+        <code style={{ fontFamily: MONO, fontSize: "0.875rem", color: "var(--ink)" }}>{endpoint.path}</code>
+      </div>
+      <p
+        style={{
+          fontFamily: "var(--font-serif)",
+          fontSize: "0.9375rem",
+          lineHeight: 1.5,
+          color: "var(--ink2)",
+          margin: "8px 0 0",
+        }}
+      >
+        {endpoint.description}
+      </p>
+      <Code>{endpoint.example}</Code>
+    </div>
+  );
+}
+
+export default function PublicApiPage(): ReactElement {
+  return (
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: "48px 24px 72px" }}>
+      <PublicApiHeader />
 
       <Section title="Endpoints">
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           {ENDPOINTS.map((endpoint) => (
-            <div key={endpoint.path}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-                <span
-                  style={{
-                    fontFamily: MONO,
-                    fontSize: "0.65rem",
-                    fontWeight: 700,
-                    color: "var(--pos)",
-                    border: "1px solid var(--line2)",
-                    borderRadius: 4,
-                    padding: "2px 6px",
-                  }}
-                >
-                  {endpoint.method}
-                </span>
-                <code style={{ fontFamily: MONO, fontSize: "0.875rem", color: "var(--ink)" }}>
-                  {endpoint.path}
-                </code>
-              </div>
-              <p
-                style={{
-                  fontFamily: "var(--font-serif)",
-                  fontSize: "0.9375rem",
-                  lineHeight: 1.5,
-                  color: "var(--ink2)",
-                  margin: "8px 0 0",
-                }}
-              >
-                {endpoint.description}
-              </p>
-              <Code>{endpoint.example}</Code>
-            </div>
+            <EndpointItem key={endpoint.path} endpoint={endpoint} />
           ))}
         </div>
       </Section>

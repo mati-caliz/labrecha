@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-export function GET() {
+export function GET(): NextResponse<{ status: string; timestamp: string }> {
   return NextResponse.json(
     {
       status: "ok",

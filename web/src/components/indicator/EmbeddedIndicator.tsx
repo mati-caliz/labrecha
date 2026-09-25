@@ -1,15 +1,21 @@
 "use client";
+import type { ReactElement } from "react";
 
 import { AnnotatedSeriesChart } from "@/components/core";
 import { formatDateAR, getIndicatorDisplay, sourceLabel } from "@/lib/indicators";
 import type { IndicatorPoint } from "@/lib/labrechaApi";
 import { SITE_URL } from "@/lib/site";
+import { hasText } from "@/lib/utils";
 
 const MONO = "var(--font-jb-mono)";
 const CHART_HEIGHT = 180;
 const MAX_X_LABELS = 5;
+const DAY_MONTH_LENGTH = 5;
 
-export function EmbeddedIndicator({ code, points }: { code: string; points: IndicatorPoint[] }) {
+export function EmbeddedIndicator({
+  code,
+  points,
+}: Readonly<{ code: string; points: IndicatorPoint[] }>): ReactElement {
   const indicator = getIndicatorDisplay(code);
   const values = points
     .map((point) => ({ date: point.date, source: point.source, v: Number.parseFloat(point.value) }))
@@ -18,7 +24,7 @@ export function EmbeddedIndicator({ code, points }: { code: string; points: Indi
 
   const step = Math.max(1, Math.ceil(values.length / MAX_X_LABELS));
   const xLabels = values.map((point, index) =>
-    index % step === 0 ? formatDateAR(point.date).slice(0, 5) : "",
+    index % step === 0 ? formatDateAR(point.date).slice(0, DAY_MONTH_LENGTH) : "",
   );
 
   return (
@@ -53,7 +59,7 @@ export function EmbeddedIndicator({ code, points }: { code: string; points: Indi
             }}
           >
             {indicator.format(latest.v)}
-            {indicator.unit ? ` ${indicator.unit}` : ""}
+            {hasText(indicator.unit) ? ` ${indicator.unit}` : ""}
           </span>
         )}
       </div>

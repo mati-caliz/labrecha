@@ -1,4 +1,5 @@
 "use client";
+import type { ReactElement } from "react";
 
 import { QueryError } from "@/components/QueryError";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,11 +20,12 @@ import {
 } from "@/lib/indicators";
 import type { IndicatorSummary } from "@/lib/labrechaApi";
 import Link from "next/link";
+import { hasText } from "@/lib/utils";
 
 const MONO = "var(--font-jb-mono)";
 const SKELETON_KEYS = ["m1", "m2", "m3", "m4"];
 
-function IndicatorRow({ indicator }: { indicator: IndicatorSummary }) {
+function IndicatorRow({ indicator }: Readonly<{ indicator: IndicatorSummary }>): ReactElement {
   const display = getIndicatorDisplay(indicator.indicator_code);
   const cadence = cadenceForCode(indicator.indicator_code);
   const freshness = freshnessForCode(indicator.indicator_code, indicator.last_date);
@@ -81,7 +83,7 @@ function IndicatorRow({ indicator }: { indicator: IndicatorSummary }) {
             ? `⚠ sin actualizar hace ${freshness.days} días`
             : `al día (hace ${freshness.days} días)`}
         </span>
-        {display.unit ? <span>en {display.unit}</span> : null}
+        {hasText(display.unit) ? <span>en {display.unit}</span> : null}
       </div>
 
       <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 6 }}>
@@ -106,11 +108,18 @@ function IndicatorRow({ indicator }: { indicator: IndicatorSummary }) {
   );
 }
 
-export function MethodologyCatalog() {
+export function MethodologyCatalog(): ReactElement {
   const { data, isLoading, isError, error, refetch } = useIndicators();
 
   if (isError) {
-    return <QueryError error={error} onRetry={() => refetch()} />;
+    return (
+      <QueryError
+        error={error}
+        onRetry={() => {
+          void refetch();
+        }}
+      />
+    );
   }
 
   if (isLoading) {

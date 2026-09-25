@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import { ErrorEvents } from "@/components/status/ErrorEvents";
 import { FreshnessBoard } from "@/components/status/FreshnessBoard";
 import { ScrapeStatus } from "@/components/status/ScrapeStatus";
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
     "Salud del scraper de La Brecha: última corrida de cada conector, filas ingeridas y errores. La transparencia del pipeline es parte del observatorio.",
 };
 
-export default function StatusPage() {
+export default function StatusPage(): ReactElement {
   return (
     <div
       style={{

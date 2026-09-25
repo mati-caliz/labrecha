@@ -1,4 +1,5 @@
 "use client";
+import type { ReactElement } from "react";
 
 import { QueryError } from "@/components/QueryError";
 import { POST_CATEGORY_LABELS, formatPostDate } from "@/components/posts/postCategories";
@@ -10,11 +11,12 @@ import { RELATED_POSTS_PARAMS } from "@/lib/queryParams";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { hasText } from "@/lib/utils";
 
 const MONO = "var(--font-jb-mono)";
 const NARROW = 720;
 
-function ImpactTile({ impact }: { impact: PostImpact }) {
+function ImpactTile({ impact }: Readonly<{ impact: PostImpact }>): ReactElement {
   const meta = POST_IMPACT_META[impact.kind];
   const Icon = meta.icon;
   return (
@@ -46,7 +48,7 @@ function ImpactTile({ impact }: { impact: PostImpact }) {
   );
 }
 
-function RelatedItem({ post }: { post: Post }) {
+function RelatedItem({ post }: Readonly<{ post: Post }>): ReactElement {
   return (
     <Link href={`/ideas/${post.slug}`} style={{ textDecoration: "none" }}>
       <div
@@ -77,14 +79,191 @@ function RelatedItem({ post }: { post: Post }) {
   );
 }
 
-export function PostDetail({ slug }: { slug: string }) {
+function PostHeader({ post }: Readonly<{ post: Post }>): ReactElement {
+  return (
+    <div style={{ maxWidth: NARROW, margin: "0 auto", padding: "52px 24px 0" }}>
+      <div style={{ fontFamily: MONO, fontSize: "0.72rem", color: "var(--ink3)", marginBottom: 22 }}>
+        <Link href="/ideas" style={{ color: "var(--ink3)", textDecoration: "none" }}>
+          Ideas
+        </Link>{" "}
+        / <span style={{ color: "var(--ink2)" }}>{POST_CATEGORY_LABELS[post.category]}</span>
+      </div>
+
+      <div style={{ marginBottom: 22 }}>
+        <span
+          style={{
+            fontFamily: MONO,
+            fontSize: "0.68rem",
+            fontWeight: 600,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            color: "var(--event)",
+            border: "1px solid var(--event-ln)",
+            background: "var(--event-bg)",
+            padding: "3px 11px",
+            borderRadius: "var(--radius-pill)",
+          }}
+        >
+          {POST_CATEGORY_LABELS[post.category]}
+        </span>
+      </div>
+
+      <h1
+        style={{
+          fontFamily: "var(--font-display)",
+          fontWeight: 800,
+          fontSize: "clamp(2rem, 5.5vw, 3.25rem)",
+          lineHeight: 1.02,
+          letterSpacing: "-0.03em",
+          margin: "0 0 22px",
+          color: "var(--ink)",
+          textWrap: "balance",
+        }}
+      >
+        {post.title}
+      </h1>
+
+      {hasText(post.summary) ? (
+        <p
+          style={{
+            fontFamily: "var(--font-serif)",
+            fontSize: "clamp(1.125rem, 3vw, 1.4375rem)",
+            lineHeight: 1.45,
+            color: "var(--ink2)",
+            margin: "0 0 28px",
+            textWrap: "pretty",
+          }}
+        >
+          {post.summary}
+        </p>
+      ) : null}
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 16,
+          flexWrap: "wrap",
+          padding: "16px 0",
+          borderTop: "1px solid var(--line)",
+          borderBottom: "1px solid var(--line)",
+          fontFamily: MONO,
+          fontSize: "0.75rem",
+          color: "var(--ink3)",
+        }}
+      >
+        <span style={{ color: "var(--ink2)" }}>Por la redacción de La Brecha</span>
+        <span>·</span>
+        <span>{formatPostDate(post.created_at)}</span>
+        <span>·</span>
+        <span>{readingTimeMinutes(post.content)} min de lectura</span>
+      </div>
+    </div>
+  );
+}
+
+function PostImpacts({ impacts }: Readonly<{ impacts: PostImpact[] }>): ReactElement {
+  return (
+    <div style={{ maxWidth: NARROW, margin: "0 auto", padding: "28px 24px 0" }}>
+      <div
+        style={{
+          fontFamily: MONO,
+          fontSize: "0.68rem",
+          letterSpacing: "0.14em",
+          textTransform: "uppercase",
+          color: "var(--ink3)",
+          marginBottom: 14,
+        }}
+      >
+        Impacto estimado
+      </div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+          gap: 12,
+        }}
+      >
+        {impacts.map((impact) => (
+          <ImpactTile key={`${impact.kind}-${impact.value}`} impact={impact} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PostFooter({ post, related }: Readonly<{ post: Post; related: Post[] }>): ReactElement {
+  return (
+    <div style={{ maxWidth: NARROW, margin: "0 auto", padding: "0 24px 60px" }}>
+      <div
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--line)",
+          borderRadius: 10,
+          padding: "20px 24px",
+          fontFamily: MONO,
+          fontSize: "0.75rem",
+          color: "var(--ink2)",
+          lineHeight: 1.7,
+        }}
+      >
+        <span
+          style={{
+            color: "var(--ink3)",
+            textTransform: "uppercase",
+            letterSpacing: "0.1em",
+            fontSize: "0.66rem",
+          }}
+        >
+          Atribución
+        </span>
+        <br />
+        Publicado por La Brecha el {formatPostDate(post.created_at)}. Todo dato citado en el texto lleva su
+        fuente.
+      </div>
+
+      {related.length > 0 && (
+        <div style={{ marginTop: 40, borderTop: "2px solid var(--ink)", paddingTop: 22 }}>
+          <h3
+            style={{
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              fontSize: "1.25rem",
+              margin: "0 0 18px",
+            }}
+          >
+            Seguir leyendo
+          </h3>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              gap: 20,
+            }}
+          >
+            {related.map((item) => (
+              <RelatedItem key={item.id} post={item} />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function PostDetail({ slug }: Readonly<{ slug: string }>): ReactElement {
   const { data: post, isLoading, isError, error, refetch } = usePost(slug);
   const { data: allPosts } = usePosts(RELATED_POSTS_PARAMS);
 
   if (isError) {
     return (
       <div style={{ maxWidth: NARROW, margin: "0 auto", padding: "52px 24px" }}>
-        <QueryError error={error} onRetry={() => refetch()} />
+        <QueryError
+          error={error}
+          onRetry={() => {
+            void refetch();
+          }}
+        />
       </div>
     );
   }
@@ -112,112 +291,9 @@ export function PostDetail({ slug }: { slug: string }) {
 
   return (
     <article style={{ fontFamily: "var(--font-serif)" }}>
-      <div style={{ maxWidth: NARROW, margin: "0 auto", padding: "52px 24px 0" }}>
-        <div style={{ fontFamily: MONO, fontSize: "0.72rem", color: "var(--ink3)", marginBottom: 22 }}>
-          <Link href="/ideas" style={{ color: "var(--ink3)", textDecoration: "none" }}>
-            Ideas
-          </Link>{" "}
-          / <span style={{ color: "var(--ink2)" }}>{POST_CATEGORY_LABELS[post.category]}</span>
-        </div>
+      <PostHeader post={post} />
 
-        <div style={{ marginBottom: 22 }}>
-          <span
-            style={{
-              fontFamily: MONO,
-              fontSize: "0.68rem",
-              fontWeight: 600,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              color: "var(--event)",
-              border: "1px solid var(--event-ln)",
-              background: "var(--event-bg)",
-              padding: "3px 11px",
-              borderRadius: "var(--radius-pill)",
-            }}
-          >
-            {POST_CATEGORY_LABELS[post.category]}
-          </span>
-        </div>
-
-        <h1
-          style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: 800,
-            fontSize: "clamp(2rem, 5.5vw, 3.25rem)",
-            lineHeight: 1.02,
-            letterSpacing: "-0.03em",
-            margin: "0 0 22px",
-            color: "var(--ink)",
-            textWrap: "balance",
-          }}
-        >
-          {post.title}
-        </h1>
-
-        {post.summary ? (
-          <p
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontSize: "clamp(1.125rem, 3vw, 1.4375rem)",
-              lineHeight: 1.45,
-              color: "var(--ink2)",
-              margin: "0 0 28px",
-              textWrap: "pretty",
-            }}
-          >
-            {post.summary}
-          </p>
-        ) : null}
-
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 16,
-            flexWrap: "wrap",
-            padding: "16px 0",
-            borderTop: "1px solid var(--line)",
-            borderBottom: "1px solid var(--line)",
-            fontFamily: MONO,
-            fontSize: "0.75rem",
-            color: "var(--ink3)",
-          }}
-        >
-          <span style={{ color: "var(--ink2)" }}>Por la redacción de La Brecha</span>
-          <span>·</span>
-          <span>{formatPostDate(post.created_at)}</span>
-          <span>·</span>
-          <span>{readingTimeMinutes(post.content)} min de lectura</span>
-        </div>
-      </div>
-
-      {impacts.length > 0 && (
-        <div style={{ maxWidth: NARROW, margin: "0 auto", padding: "28px 24px 0" }}>
-          <div
-            style={{
-              fontFamily: MONO,
-              fontSize: "0.68rem",
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              color: "var(--ink3)",
-              marginBottom: 14,
-            }}
-          >
-            Impacto estimado
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-              gap: 12,
-            }}
-          >
-            {impacts.map((impact) => (
-              <ImpactTile key={`${impact.kind}-${impact.value}`} impact={impact} />
-            ))}
-          </div>
-        </div>
-      )}
+      {impacts.length > 0 && <PostImpacts impacts={impacts} />}
 
       <div
         className="post-markdown"
@@ -234,60 +310,7 @@ export function PostDetail({ slug }: { slug: string }) {
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
       </div>
 
-      <div style={{ maxWidth: NARROW, margin: "0 auto", padding: "0 24px 60px" }}>
-        <div
-          style={{
-            background: "var(--surface)",
-            border: "1px solid var(--line)",
-            borderRadius: 10,
-            padding: "20px 24px",
-            fontFamily: MONO,
-            fontSize: "0.75rem",
-            color: "var(--ink2)",
-            lineHeight: 1.7,
-          }}
-        >
-          <span
-            style={{
-              color: "var(--ink3)",
-              textTransform: "uppercase",
-              letterSpacing: "0.1em",
-              fontSize: "0.66rem",
-            }}
-          >
-            Atribución
-          </span>
-          <br />
-          Publicado por La Brecha el {formatPostDate(post.created_at)}. Todo dato citado en el texto lleva su
-          fuente.
-        </div>
-
-        {related.length > 0 && (
-          <div style={{ marginTop: 40, borderTop: "2px solid var(--ink)", paddingTop: 22 }}>
-            <h3
-              style={{
-                fontFamily: "var(--font-display)",
-                fontWeight: 700,
-                fontSize: "1.25rem",
-                margin: "0 0 18px",
-              }}
-            >
-              Seguir leyendo
-            </h3>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                gap: 20,
-              }}
-            >
-              {related.map((item) => (
-                <RelatedItem key={item.id} post={item} />
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+      <PostFooter post={post} related={related} />
     </article>
   );
 }

@@ -4,7 +4,7 @@ import { CommandPalette } from "@/components/layout/CommandPalette";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import type { ReactNode, ReactElement } from "react";
 
 export const EMBED_PREFIX = "/embed";
 
@@ -12,7 +12,7 @@ export function isEmbeddedPath(pathname: string): boolean {
   return pathname === EMBED_PREFIX || pathname.startsWith(`${EMBED_PREFIX}/`);
 }
 
-export function SiteChrome({ children }: { children: ReactNode }) {
+export function SiteChrome({ children }: Readonly<{ children: ReactNode }>): ReactElement {
   const pathname = usePathname();
 
   if (isEmbeddedPath(pathname)) {

@@ -1,13 +1,17 @@
+import { assumeJsonShape } from "@/lib/assumeJsonShape";
 import { getRevalidateTime } from "@/lib/cacheRules";
+import { hasText } from "@/lib/utils";
 
 const LEADING_SLASH = /^\//;
 
 export function getBackendUrl(): string {
-  return (
-    process.env.LABRECHA_API_INTERNAL_URL ||
-    process.env.NEXT_PUBLIC_LABRECHA_API_URL ||
-    "http://localhost:8000"
-  );
+  const internalUrl = process.env.LABRECHA_API_INTERNAL_URL;
+  if (hasText(internalUrl)) {
+    return internalUrl;
+  }
+
+  const publicUrl = process.env.NEXT_PUBLIC_LABRECHA_API_URL;
+  return hasText(publicUrl) ? publicUrl : "http://localhost:8000";
 }
 
 export function buildQueryString(params?: object): string {
@@ -34,7 +38,8 @@ export async function serverGet<T>(path: string, revalidate?: number): Promise<T
   if (!res.ok) {
     throw new Error(`Backend responded ${res.status} for ${path}`);
   }
-  return res.json() as Promise<T>;
+  const payload: unknown = await res.json();
+  return assumeJsonShape<T>(payload);
 }
 
 export async function serverPost<T>(path: string, body: unknown): Promise<T> {
@@ -48,5 +53,6 @@ export async function serverPost<T>(path: string, body: unknown): Promise<T> {
   if (!res.ok) {
     throw new Error(`Backend responded ${res.status} for ${path}`);
   }
-  return res.json() as Promise<T>;
+  const payload: unknown = await res.json();
+  return assumeJsonShape<T>(payload);
 }

@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import { IndicatorCatalog } from "@/components/indicator/IndicatorCatalog";
 import { indicatorCatalogQueries } from "@/lib/pageQueries";
 import { PrefetchedQueries } from "@/lib/prefetch";
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
     "Catálogo completo de indicadores político-económicos de Argentina: precios, dólar, monetario, fiscal, empleo y social, con su fuente y fecha.",
 };
 
-export default function IndicatorsPage() {
+export default function IndicatorsPage(): ReactElement {
   return (
     <div style={{ maxWidth: "var(--container-max)", margin: "0 auto", padding: "44px 24px 72px" }}>
       <header style={{ borderBottom: "2px solid var(--ink)", paddingBottom: 22, marginBottom: 26 }}>

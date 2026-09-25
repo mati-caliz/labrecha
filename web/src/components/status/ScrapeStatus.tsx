@@ -1,11 +1,16 @@
 "use client";
+import type { ReactElement } from "react";
 
 import { QueryError } from "@/components/QueryError";
 import { Card } from "@/components/core";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useScrapeRuns } from "@/hooks/useLabrecha";
+import { compareIsoDates } from "@/lib/isoDates";
 import type { ScrapeRun } from "@/lib/labrechaApi";
 import { SCRAPE_RUNS_PARAMS } from "@/lib/queryParams";
+import { hasText } from "@/lib/utils";
+
+import { formatDurationBetween, formatElapsedSince } from "./relativeTime";
 
 const SKELETON_KEYS = ["e1", "e2", "e3", "e4", "e5", "e6"];
 
@@ -45,43 +50,31 @@ function statusLabel(run: ScrapeRun): string {
 }
 
 function relativeTime(iso: string | null): string {
-  if (!iso) {
+  if (!hasText(iso)) {
     return "—";
   }
-  const diffMs = Date.now() - new Date(iso).getTime();
-  if (Number.isNaN(diffMs)) {
-    return "—";
-  }
-  const minutes = Math.floor(diffMs / 60_000);
-  if (minutes < 1) {
-    return "recién";
-  }
-  if (minutes < 60) {
-    return `hace ${minutes} min`;
-  }
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) {
-    return `hace ${hours} h`;
-  }
-  const days = Math.floor(hours / 24);
-  return `hace ${days} día${days === 1 ? "" : "s"}`;
+  return formatElapsedSince(iso);
 }
 
 function durationLabel(run: ScrapeRun): string {
-  if (!run.started_at || !run.finished_at) {
+  if (!hasText(run.started_at) || !hasText(run.finished_at)) {
     return "—";
   }
-  const seconds = (new Date(run.finished_at).getTime() - new Date(run.started_at).getTime()) / 1000;
-  if (Number.isNaN(seconds) || seconds < 0) {
-    return "—";
-  }
-  if (seconds < 60) {
-    return `${seconds.toFixed(1)} s`;
-  }
-  return `${Math.round(seconds / 60)} min`;
+  return formatDurationBetween(run.started_at, run.finished_at);
 }
 
-function StatusRow({ run }: { run: ScrapeRun }) {
+function compareRunsFailingFirstThenNewest(first: ScrapeRun, second: ScrapeRun): number {
+  const firstOk = isSuccess(first) ? 1 : 0;
+  const secondOk = isSuccess(second) ? 1 : 0;
+  if (firstOk !== secondOk) {
+    return firstOk - secondOk;
+  }
+  const firstTime = first.finished_at ?? first.started_at ?? "";
+  const secondTime = second.finished_at ?? second.started_at ?? "";
+  return compareIsoDates(secondTime, firstTime);
+}
+
+function StatusRow({ run }: Readonly<{ run: ScrapeRun }>): ReactElement {
   const ok = isSuccess(run);
   return (
     <div
@@ -126,7 +119,7 @@ function StatusRow({ run }: { run: ScrapeRun }) {
           {statusLabel(run)} · {(run.rows_upserted ?? 0).toLocaleString("es-AR")} filas · {durationLabel(run)}
         </div>
         {isEmpty(run) && <div style={{ fontSize: "0.6875rem", color: "var(--gap)" }}>{EMPTY_HINT}</div>}
-        {run.error && !isEmpty(run) && (
+        {hasText(run.error) && !isEmpty(run) && (
           <div
             style={{
               fontFamily: "var(--font-jb-mono)",
@@ -144,11 +137,18 @@ function StatusRow({ run }: { run: ScrapeRun }) {
   );
 }
 
-export function ScrapeStatus() {
+export function ScrapeStatus(): ReactElement {
   const { data, isLoading, isError, error, refetch } = useScrapeRuns(SCRAPE_RUNS_PARAMS);
 
   if (isError) {
-    return <QueryError error={error} onRetry={() => refetch()} />;
+    return (
+      <QueryError
+        error={error}
+        onRetry={() => {
+          void refetch();
+        }}
+      />
+    );
   }
 
   if (isLoading) {
@@ -170,16 +170,7 @@ export function ScrapeStatus() {
     );
   }
 
-  runs.sort((first, second) => {
-    const firstOk = isSuccess(first) ? 1 : 0;
-    const secondOk = isSuccess(second) ? 1 : 0;
-    if (firstOk !== secondOk) {
-      return firstOk - secondOk;
-    }
-    const firstTime = first.finished_at ?? first.started_at ?? "";
-    const secondTime = second.finished_at ?? second.started_at ?? "";
-    return secondTime < firstTime ? -1 : secondTime > firstTime ? 1 : 0;
-  });
+  runs.sort(compareRunsFailingFirstThenNewest);
 
   const total = runs.length;
   const failing = runs.filter((run) => !isSuccess(run)).length;

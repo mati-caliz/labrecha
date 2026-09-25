@@ -4,7 +4,7 @@ set -e
 
 echo "🚀 Iniciando deploy de La Brecha..."
 
-if [ ! -f .env ]; then
+if [[ ! -f .env ]]; then
     echo "❌ Error: Archivo .env no encontrado"
     echo "Copia .env.production.example a .env y configura las variables"
     exit 1
@@ -27,19 +27,19 @@ else
 fi
 
 echo "📦 Construyendo imágenes..."
-$DOCKER_COMPOSE -f docker-compose.prod.yml build --no-cache
+${DOCKER_COMPOSE} -f docker-compose.prod.yml build --no-cache
 
 echo "🛑 Deteniendo contenedores anteriores..."
-$DOCKER_COMPOSE -f docker-compose.prod.yml down
+${DOCKER_COMPOSE} -f docker-compose.prod.yml down
 
 echo "🚀 Levantando servicios..."
-$DOCKER_COMPOSE -f docker-compose.prod.yml up -d
+${DOCKER_COMPOSE} -f docker-compose.prod.yml up -d
 
 echo "⏳ Esperando que los servicios estén listos..."
 sleep 10
 
 echo "✅ Verificando estado de los servicios..."
-$DOCKER_COMPOSE -f docker-compose.prod.yml ps
+${DOCKER_COMPOSE} -f docker-compose.prod.yml ps
 
 echo ""
 echo "✅ Deploy completado!"
@@ -47,4 +47,4 @@ echo ""
 echo "📊 Servicios: postgres + api-py + web (ver 'docker compose -f docker-compose.prod.yml ps')"
 echo ""
 echo "📝 Ver logs:"
-echo "  $DOCKER_COMPOSE -f docker-compose.prod.yml logs -f"
+echo "  ${DOCKER_COMPOSE} -f docker-compose.prod.yml logs -f"

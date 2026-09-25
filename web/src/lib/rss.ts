@@ -1,3 +1,5 @@
+import { ISO_DATE_LENGTH } from "@/lib/isoDates";
+
 export function escapeXml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -8,7 +10,7 @@ export function escapeXml(value: string): string {
 }
 
 export function toRfc822(date: string): string {
-  const parsed = new Date(date.length <= 10 ? `${date}T12:00:00Z` : date);
+  const parsed = new Date(date.length <= ISO_DATE_LENGTH ? `${date}T12:00:00Z` : date);
   if (Number.isNaN(parsed.getTime())) {
     return new Date().toUTCString();
   }

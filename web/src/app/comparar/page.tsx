@@ -2,7 +2,7 @@ import { JsonLd } from "@/components/JsonLd";
 import { IndicatorComparator } from "@/components/indicator/IndicatorComparator";
 import { breadcrumbStructuredData } from "@/lib/structuredData";
 import type { Metadata } from "next";
-import { Suspense } from "react";
+import { Suspense, type ReactElement } from "react";
 
 export const metadata: Metadata = {
   title: "Comparar indicadores - La Brecha",
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/comparar" },
 };
 
-export default function ComparePage() {
+export default function ComparePage(): ReactElement {
   return (
     <div
       style={{

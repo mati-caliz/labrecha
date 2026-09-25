@@ -2,6 +2,7 @@
 
 import { useIndicators } from "@/hooks/useLabrecha";
 import { indicatorLabel, sourceLabel } from "@/lib/indicators";
+import type { IndicatorSummary } from "@/lib/labrechaApi";
 import { useAppStore } from "@/store/useStore";
 import {
   Activity,
@@ -15,7 +16,16 @@ import {
   Search,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type ReactNode,
+  type RefObject,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactElement,
+} from "react";
+import { hasText } from "@/lib/utils";
 
 interface Command {
   id: string;
@@ -127,37 +137,25 @@ function normalize(text: string): string {
   return text.toLowerCase().normalize("NFD").replace(DIACRITICS, "");
 }
 
-export function CommandPalette() {
-  const router = useRouter();
-  const { commandOpen, setCommandOpen } = useAppStore();
-  const { data: indicators } = useIndicators();
-  const [query, setQuery] = useState("");
-  const [activeIndex, setActiveIndex] = useState(0);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
+const FOCUS_DELAY_MS = 0;
 
+function useCommandShortcut(commandOpen: boolean, setCommandOpen: (open: boolean) => void): void {
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = (event: KeyboardEvent): void => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         setCommandOpen(!commandOpen);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, [commandOpen, setCommandOpen]);
+}
 
-  useEffect(() => {
-    if (commandOpen) {
-      setQuery("");
-      setActiveIndex(0);
-      const timeoutId = setTimeout(() => inputRef.current?.focus(), 0);
-      return () => clearTimeout(timeoutId);
-    }
-    return undefined;
-  }, [commandOpen]);
-
-  const commands = useMemo<Command[]>(() => {
+function useCommands(indicators: IndicatorSummary[] | undefined): Command[] {
+  return useMemo<Command[]>(() => {
     const indicatorCommands: Command[] = (indicators ?? []).map((indicator) => ({
       id: `indicator:${indicator.indicator_code}`,
       title: indicatorLabel(indicator.indicator_code),
@@ -168,27 +166,159 @@ export function CommandPalette() {
     }));
     return [...STATIC_COMMANDS, ...indicatorCommands];
   }, [indicators]);
+}
 
-  const results = useMemo(() => {
-    const normalizedQuery = normalize(query.trim());
-    if (normalizedQuery.length === 0) {
-      return commands;
-    }
-    return commands.filter((command) =>
-      normalize(`${command.title} ${command.keywords}`).includes(normalizedQuery),
-    );
-  }, [commands, query]);
+function filterCommands(commands: Command[], query: string): Command[] {
+  const normalizedQuery = normalize(query.trim());
+  if (normalizedQuery.length === 0) {
+    return commands;
+  }
+  return commands.filter((command) =>
+    normalize(`${command.title} ${command.keywords}`).includes(normalizedQuery),
+  );
+}
+
+interface CommandSearchInputProps {
+  inputRef: RefObject<HTMLInputElement>;
+  query: string;
+  onQueryChange: (query: string) => void;
+}
+
+function CommandSearchInput({
+  inputRef,
+  query,
+  onQueryChange,
+}: Readonly<CommandSearchInputProps>): ReactElement {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        padding: "12px 16px",
+        borderBottom: "1px solid var(--line)",
+      }}
+    >
+      <Search className="h-4 w-4" style={{ color: "var(--ink3)" }} />
+      <input
+        ref={inputRef}
+        value={query}
+        onChange={(event) => {
+          onQueryChange(event.target.value);
+        }}
+        placeholder="Buscar indicador, calculadora, sección…"
+        aria-label="Buscar"
+        style={{
+          flex: 1,
+          border: "none",
+          outline: "none",
+          background: "transparent",
+          color: "var(--ink)",
+          fontSize: "0.9375rem",
+        }}
+      />
+    </div>
+  );
+}
+
+interface CommandResultItemProps {
+  command: Command;
+  active: boolean;
+  onSelect: () => void;
+  onHover: () => void;
+}
+
+function CommandResultItem({
+  command,
+  active,
+  onSelect,
+  onHover,
+}: Readonly<CommandResultItemProps>): ReactElement {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      onMouseEnter={onHover}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        width: "100%",
+        padding: "9px 12px",
+        borderRadius: "var(--radius-md)",
+        border: "none",
+        cursor: "pointer",
+        textAlign: "left",
+        background: active ? "var(--gap-bg)" : "transparent",
+        color: active ? "var(--gap)" : "var(--ink)",
+      }}
+    >
+      <span style={{ color: active ? "var(--gap)" : "var(--ink3)", flexShrink: 0 }}>{command.icon}</span>
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ display: "block", fontSize: "0.875rem", fontWeight: 600 }}>{command.title}</span>
+        {hasText(command.subtitle) && (
+          <span
+            style={{
+              display: "block",
+              fontSize: "0.75rem",
+              color: "var(--ink3)",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {command.subtitle}
+          </span>
+        )}
+      </span>
+    </button>
+  );
+}
+
+export function CommandPalette(): ReactElement | null {
+  const { commandOpen, setCommandOpen } = useAppStore();
+  const { data: indicators } = useIndicators();
+  const commands = useCommands(indicators);
+  useCommandShortcut(commandOpen, setCommandOpen);
 
   if (!commandOpen) {
     return null;
   }
+  return (
+    <CommandPaletteDialog
+      commands={commands}
+      onClose={() => {
+        setCommandOpen(false);
+      }}
+    />
+  );
+}
 
-  const go = (command: Command) => {
-    setCommandOpen(false);
+function CommandPaletteDialog({
+  commands,
+  onClose,
+}: Readonly<{ commands: Command[]; onClose: () => void }>): ReactElement {
+  const router = useRouter();
+  const [query, setQuery] = useState("");
+  const [activeIndex, setActiveIndex] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => inputRef.current?.focus(), FOCUS_DELAY_MS);
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, []);
+
+  const results = useMemo(() => filterCommands(commands, query), [commands, query]);
+
+  const go = (command: Command): void => {
+    onClose();
     router.push(command.href);
   };
 
-  const onKeyDown = (event: React.KeyboardEvent) => {
+  const onKeyDown = (event: React.KeyboardEvent): void => {
     if (event.key === "ArrowDown") {
       event.preventDefault();
       setActiveIndex((index) => Math.min(index + 1, results.length - 1));
@@ -203,7 +333,7 @@ export function CommandPalette() {
       }
     } else if (event.key === "Escape") {
       event.preventDefault();
-      setCommandOpen(false);
+      onClose();
     }
   };
 
@@ -223,7 +353,7 @@ export function CommandPalette() {
       <button
         type="button"
         aria-label="Cerrar buscador"
-        onClick={() => setCommandOpen(false)}
+        onClick={onClose}
         style={{
           position: "absolute",
           inset: 0,
@@ -251,35 +381,14 @@ export function CommandPalette() {
           overflow: "hidden",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "12px 16px",
-            borderBottom: "1px solid var(--line)",
+        <CommandSearchInput
+          inputRef={inputRef}
+          query={query}
+          onQueryChange={(nextQuery) => {
+            setQuery(nextQuery);
+            setActiveIndex(0);
           }}
-        >
-          <Search className="h-4 w-4" style={{ color: "var(--ink3)" }} />
-          <input
-            ref={inputRef}
-            value={query}
-            onChange={(event) => {
-              setQuery(event.target.value);
-              setActiveIndex(0);
-            }}
-            placeholder="Buscar indicador, calculadora, sección…"
-            aria-label="Buscar"
-            style={{
-              flex: 1,
-              border: "none",
-              outline: "none",
-              background: "transparent",
-              color: "var(--ink)",
-              fontSize: "0.9375rem",
-            }}
-          />
-        </div>
+        />
 
         <div ref={listRef} style={{ maxHeight: "56vh", overflowY: "auto", padding: 6 }}>
           {results.length === 0 && (
@@ -287,53 +396,19 @@ export function CommandPalette() {
               Sin resultados para “{query}”.
             </p>
           )}
-          {results.map((command, index) => {
-            const active = index === activeIndex;
-            return (
-              <button
-                key={command.id}
-                type="button"
-                onClick={() => go(command)}
-                onMouseEnter={() => setActiveIndex(index)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  width: "100%",
-                  padding: "9px 12px",
-                  borderRadius: "var(--radius-md)",
-                  border: "none",
-                  cursor: "pointer",
-                  textAlign: "left",
-                  background: active ? "var(--gap-bg)" : "transparent",
-                  color: active ? "var(--gap)" : "var(--ink)",
-                }}
-              >
-                <span style={{ color: active ? "var(--gap)" : "var(--ink3)", flexShrink: 0 }}>
-                  {command.icon}
-                </span>
-                <span style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ display: "block", fontSize: "0.875rem", fontWeight: 600 }}>
-                    {command.title}
-                  </span>
-                  {command.subtitle && (
-                    <span
-                      style={{
-                        display: "block",
-                        fontSize: "0.75rem",
-                        color: "var(--ink3)",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {command.subtitle}
-                    </span>
-                  )}
-                </span>
-              </button>
-            );
-          })}
+          {results.map((command, index) => (
+            <CommandResultItem
+              key={command.id}
+              command={command}
+              active={index === activeIndex}
+              onSelect={() => {
+                go(command);
+              }}
+              onHover={() => {
+                setActiveIndex(index);
+              }}
+            />
+          ))}
         </div>
       </dialog>
     </div>

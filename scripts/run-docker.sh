@@ -29,7 +29,7 @@ echo -e "${YELLOW}[?]${NC} ¿Reconstruir sin cache? (s/N): "
 read -r rebuild
 echo ""
 
-if [[ $rebuild =~ ^[Ss]$ ]]; then
+if [[ ${rebuild} =~ ^[Ss]$ ]]; then
     echo -e "${YELLOW}[INFO]${NC} Deteniendo y reconstruyendo sin cache..."
     docker compose down
     docker compose build --no-cache

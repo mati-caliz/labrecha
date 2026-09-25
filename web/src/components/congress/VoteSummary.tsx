@@ -1,4 +1,5 @@
 "use client";
+import type { ReactElement } from "react";
 
 const MONO = "var(--font-jb-mono)";
 
@@ -17,7 +18,7 @@ const TOPIC_LABELS: Record<string, string> = {
   otro: "Otro",
 };
 
-export function TopicChip({ topic }: { topic: string }) {
+export function TopicChip({ topic }: Readonly<{ topic: string }>): ReactElement {
   return (
     <span
       style={{
@@ -43,7 +44,7 @@ interface VoteSummaryProps {
   showAttribution?: boolean;
 }
 
-export function VoteSummary({ summary, showAttribution = false }: VoteSummaryProps) {
+export function VoteSummary({ summary, showAttribution = false }: Readonly<VoteSummaryProps>): ReactElement {
   return (
     <div style={{ borderLeft: "2px solid var(--line2)", paddingLeft: 14, margin: "0 0 22px" }}>
       <div

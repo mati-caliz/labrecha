@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, JetBrains_Mono, Newsreader } from "next/font/google";
 import "./globals.css";
@@ -78,7 +79,7 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>): ReactElement {
   return (
     <html
       lang="es"

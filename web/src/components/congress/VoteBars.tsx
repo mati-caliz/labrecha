@@ -1,6 +1,9 @@
+import type { ReactElement } from "react";
 import type { BlocVoteTally } from "@/lib/congress";
+import type { CongressVote } from "@/lib/labrechaApi";
 
 const MONO = "var(--font-jb-mono)";
+const PERCENT = 100;
 
 export const VOTE_COLORS = {
   afirmativos: "var(--pos)",
@@ -9,11 +12,20 @@ export const VOTE_COLORS = {
   ausentes: "var(--line2)",
 } as const;
 
-interface Tally {
+export interface Tally {
   afirmativos: number;
   negativos: number;
   abstenciones: number;
   ausentes: number;
+}
+
+export function tallyOf(vote: CongressVote): Tally {
+  return {
+    afirmativos: vote.affirmative_votes ?? 0,
+    negativos: vote.negative_votes ?? 0,
+    abstenciones: vote.abstentions ?? 0,
+    ausentes: vote.absents ?? 0,
+  };
 }
 
 function segments(tally: Tally): { key: keyof Tally; value: number; color: string }[] {
@@ -25,8 +37,9 @@ function segments(tally: Tally): { key: keyof Tally; value: number; color: strin
   ];
 }
 
-export function TallyBar({ tally, height = 16 }: { tally: Tally; height?: number }) {
-  const total = tally.afirmativos + tally.negativos + tally.abstenciones + tally.ausentes || 1;
+export function TallyBar({ tally, height = 16 }: Readonly<{ tally: Tally; height?: number }>): ReactElement {
+  const castTotal = tally.afirmativos + tally.negativos + tally.abstenciones + tally.ausentes;
+  const total = castTotal === 0 ? 1 : castTotal;
   return (
     <div
       style={{
@@ -41,7 +54,7 @@ export function TallyBar({ tally, height = 16 }: { tally: Tally; height?: number
         segment.value > 0 ? (
           <div
             key={segment.key}
-            style={{ width: `${(segment.value / total) * 100}%`, background: segment.color }}
+            style={{ width: `${(segment.value / total) * PERCENT}%`, background: segment.color }}
           />
         ) : null,
       )}
@@ -49,7 +62,7 @@ export function TallyBar({ tally, height = 16 }: { tally: Tally; height?: number
   );
 }
 
-export function TallyCounts({ tally }: { tally: Tally }) {
+export function TallyCounts({ tally }: Readonly<{ tally: Tally }>): ReactElement {
   const items: { label: string; value: number; color: string }[] = [
     { label: "Afirmativos", value: tally.afirmativos, color: VOTE_COLORS.afirmativos },
     { label: "Negativos", value: tally.negativos, color: VOTE_COLORS.negativos },
@@ -75,7 +88,7 @@ export function TallyCounts({ tally }: { tally: Tally }) {
   );
 }
 
-export function BlocRow({ tally }: { tally: BlocVoteTally }) {
+export function BlocRow({ tally }: Readonly<{ tally: BlocVoteTally }>): ReactElement {
   return (
     <div>
       <div
@@ -96,7 +109,7 @@ export function BlocRow({ tally }: { tally: BlocVoteTally }) {
   );
 }
 
-export function VoteLegend() {
+export function VoteLegend(): ReactElement {
   const items: { label: string; color: string }[] = [
     { label: "Afirmativo", color: VOTE_COLORS.afirmativos },
     { label: "Negativo", color: VOTE_COLORS.negativos },

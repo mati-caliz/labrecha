@@ -1,5 +1,5 @@
+import type { ReactElement } from "react";
 import { EmbeddedIndicator } from "@/components/indicator/EmbeddedIndicator";
-import type { IndicatorSeries } from "@/lib/labrechaApi";
 import { indicatorSeriesQuery } from "@/lib/queries";
 import type { Metadata } from "next";
 
@@ -13,11 +13,13 @@ interface EmbedPageProps {
   params: Promise<{ code: string }>;
 }
 
-export default async function EmbedIndicatorPage({ params }: EmbedPageProps) {
+export default async function EmbedIndicatorPage({
+  params,
+}: Readonly<EmbedPageProps>): Promise<ReactElement> {
   const { code } = await params;
   const series = await indicatorSeriesQuery(code, { limit: EMBED_POINTS, order: "asc" })
     .queryFn()
-    .catch(() => ({ indicator_code: code, points: [] }) as IndicatorSeries);
+    .catch(() => ({ indicator_code: code, points: [] }));
 
-  return <EmbeddedIndicator code={code} points={series.points ?? []} />;
+  return <EmbeddedIndicator code={code} points={series.points} />;
 }

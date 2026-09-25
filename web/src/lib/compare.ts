@@ -11,8 +11,10 @@ export interface IndexedSeries {
   changePct: number;
 }
 
+const MONTH_KEY_LENGTH = "YYYY-MM".length;
+
 function monthKey(isoDate: string): string {
-  return isoDate.slice(0, 7);
+  return isoDate.slice(0, MONTH_KEY_LENGTH);
 }
 
 function lastValueByMonth(points: IndicatorPoint[]): Map<string, number> {
@@ -29,7 +31,9 @@ function lastValueByMonth(points: IndicatorPoint[]): Map<string, number> {
 export function commonMonths(first: IndicatorPoint[], second: IndicatorPoint[]): string[] {
   const left = lastValueByMonth(first);
   const right = lastValueByMonth(second);
-  return [...left.keys()].filter((month) => right.has(month)).sort();
+  return [...left.keys()]
+    .filter((month) => right.has(month))
+    .sort((earlier, later) => earlier.localeCompare(later));
 }
 
 export function indexToBase(points: IndicatorPoint[], months: string[]): IndexedSeries | null {

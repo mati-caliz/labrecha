@@ -55,7 +55,7 @@ const cacheStrategies = {
         cache.put(request, response.clone());
       }
       return response;
-    } catch (error) {
+    } catch {
       return new Response("Offline", { status: 503 });
     }
   },
@@ -68,7 +68,7 @@ const cacheStrategies = {
         cache.put(request, response.clone());
       }
       return response;
-    } catch (error) {
+    } catch {
       const cached = await caches.match(request);
       if (cached) {
         return cached;

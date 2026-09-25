@@ -7,7 +7,7 @@ import { VotesBoard } from "@/components/congress/VotesBoard";
 import { congressQueries } from "@/lib/pageQueries";
 import { PrefetchedQueries } from "@/lib/prefetch";
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import type { ReactNode, ReactElement } from "react";
 
 export const metadata: Metadata = {
   title: "Congreso - La Brecha",
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     "Votaciones nominales de Diputados y del Senado y composición del Congreso de Argentina, con su fuente.",
 };
 
-function SectionHeading({ children }: { children: ReactNode }) {
+function SectionHeading({ children }: Readonly<{ children: ReactNode }>): ReactElement {
   return (
     <h2
       style={{
@@ -31,7 +31,7 @@ function SectionHeading({ children }: { children: ReactNode }) {
   );
 }
 
-export default async function CongressPage() {
+export default async function CongressPage(): Promise<ReactElement> {
   return (
     <PrefetchedQueries queries={await congressQueries()}>
       <div style={{ maxWidth: 1120, margin: "0 auto", padding: "48px 24px 72px" }}>

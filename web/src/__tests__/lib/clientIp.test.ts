@@ -4,7 +4,7 @@
 import { UNKNOWN_CLIENT, clientIp } from "@/lib/clientIp";
 import { NextRequest } from "next/server";
 
-const REAL_CLIENT = "181.45.6.7";
+const REAL_CLIENT = "203.0.113.7";
 
 function requestWith(headers: Record<string, string>): NextRequest {
   return new NextRequest("https://labrecha.ar/api/posts", { headers });

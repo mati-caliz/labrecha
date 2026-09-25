@@ -1,8 +1,11 @@
 "use client";
+import type { ReactElement } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCongressVote, useIndicatorVariation } from "@/hooks/useLabrecha";
 import { formatDateAR, formatNumberAR, getIndicatorDisplay } from "@/lib/indicators";
+import type { IndicatorDisplay } from "@/lib/indicatorCatalog";
+import type { CongressVote, IndicatorVariation } from "@/lib/labrechaApi";
 import type { VoteOutcome } from "@/lib/voteOutcomes";
 import { VOTE_OUTCOMES } from "@/lib/voteOutcomes";
 import Link from "next/link";
@@ -26,7 +29,86 @@ function changeColor(change: number, goodWhen: "up" | "down" | "neutral"): strin
   return good ? "var(--pos)" : "var(--neg)";
 }
 
-function OutcomeCard({ outcome }: { outcome: VoteOutcome }) {
+function VoteHeadline({
+  vote,
+  voteDate,
+  voteRecordId,
+}: Readonly<{ vote: CongressVote; voteDate: string; voteRecordId: string }>): ReactElement {
+  const summary = (vote.summary ?? "").trim();
+  const officialTitle = (vote.title ?? "").trim();
+  const headline = summary.length > 0 ? summary : officialTitle || voteRecordId;
+  return (
+    <div style={{ flex: "1 1 280px" }}>
+      <div style={{ fontFamily: MONO, fontSize: "0.62rem", color: "var(--ink3)" }}>
+        Votación del {formatDateAR(voteDate)} · {vote.result ?? "sin resultado"} ·{" "}
+        {vote.affirmative_votes ?? 0} a favor / {vote.negative_votes ?? 0} en contra
+      </div>
+      <h3
+        style={{
+          fontFamily: "var(--font-display)",
+          fontWeight: 700,
+          fontSize: "1.0625rem",
+          letterSpacing: "-0.015em",
+          margin: "6px 0 0",
+          color: "var(--ink)",
+        }}
+      >
+        {headline}
+      </h3>
+      {summary.length > 0 ? (
+        <div style={{ fontFamily: MONO, fontSize: "0.6rem", color: "var(--ink3)", marginTop: 6 }}>
+          Resumen generado por IA · título oficial: {officialTitle || "—"}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+interface IndicatorChangeProps {
+  indicator: IndicatorDisplay;
+  variation: IndicatorVariation | undefined;
+  isLoading: boolean;
+}
+
+function IndicatorChangeValue({
+  indicator,
+  variation,
+  isLoading,
+}: Readonly<IndicatorChangeProps>): ReactElement {
+  if (isLoading) {
+    return <Skeleton className="mt-2 h-[34px] w-[110px] rounded-[6px]" />;
+  }
+  if (variation === undefined) {
+    return (
+      <div style={{ fontFamily: MONO, fontSize: "0.8rem", color: "var(--ink3)", marginTop: 6 }}>
+        sin serie suficiente
+      </div>
+    );
+  }
+  const change = Number.parseFloat(variation.change_pct);
+  return (
+    <>
+      <div
+        className="num"
+        style={{
+          fontFamily: MONO,
+          fontWeight: 700,
+          fontSize: "1.75rem",
+          lineHeight: 1.1,
+          color: changeColor(change, indicator.goodWhen),
+        }}
+      >
+        {formatChange(change)}
+      </div>
+      <div style={{ fontFamily: MONO, fontSize: "0.6rem", color: "var(--ink3)" }}>
+        {indicator.format(Number.parseFloat(variation.first_value))} →{" "}
+        {indicator.format(Number.parseFloat(variation.last_value))} · al {formatDateAR(variation.last_date)}
+      </div>
+    </>
+  );
+}
+
+function OutcomeCard({ outcome }: Readonly<{ outcome: VoteOutcome }>): ReactElement | null {
   const indicator = getIndicatorDisplay(outcome.indicatorCode);
   const vote = useCongressVote(outcome.voteRecordId);
   const voteDate = vote.data?.date ?? "";
@@ -43,10 +125,6 @@ function OutcomeCard({ outcome }: { outcome: VoteOutcome }) {
     return null;
   }
 
-  const change = variation.data === undefined ? undefined : Number.parseFloat(variation.data.change_pct);
-  const summary = (vote.data.summary ?? "").trim();
-  const officialTitle = (vote.data.title ?? "").trim();
-
   return (
     <article
       style={{
@@ -60,61 +138,17 @@ function OutcomeCard({ outcome }: { outcome: VoteOutcome }) {
       }}
     >
       <div style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "flex-start" }}>
-        <div style={{ flex: "1 1 280px" }}>
-          <div style={{ fontFamily: MONO, fontSize: "0.62rem", color: "var(--ink3)" }}>
-            Votación del {formatDateAR(voteDate)} · {vote.data.result ?? "sin resultado"} ·{" "}
-            {vote.data.affirmative_votes ?? 0} a favor / {vote.data.negative_votes ?? 0} en contra
-          </div>
-          <h3
-            style={{
-              fontFamily: "var(--font-display)",
-              fontWeight: 700,
-              fontSize: "1.0625rem",
-              letterSpacing: "-0.015em",
-              margin: "6px 0 0",
-              color: "var(--ink)",
-            }}
-          >
-            {summary.length > 0 ? summary : officialTitle || outcome.voteRecordId}
-          </h3>
-          {summary.length > 0 ? (
-            <div style={{ fontFamily: MONO, fontSize: "0.6rem", color: "var(--ink3)", marginTop: 6 }}>
-              Resumen generado por IA · título oficial: {officialTitle || "—"}
-            </div>
-          ) : null}
-        </div>
+        <VoteHeadline vote={vote.data} voteDate={voteDate} voteRecordId={outcome.voteRecordId} />
 
         <div style={{ textAlign: "right", minWidth: 150 }}>
           <div style={{ fontFamily: MONO, fontSize: "0.62rem", color: "var(--ink3)" }}>
             {indicator.label} desde entonces
           </div>
-          {variation.isLoading ? (
-            <Skeleton className="mt-2 h-[34px] w-[110px] rounded-[6px]" />
-          ) : change === undefined || variation.data === undefined ? (
-            <div style={{ fontFamily: MONO, fontSize: "0.8rem", color: "var(--ink3)", marginTop: 6 }}>
-              sin serie suficiente
-            </div>
-          ) : (
-            <>
-              <div
-                className="num"
-                style={{
-                  fontFamily: MONO,
-                  fontWeight: 700,
-                  fontSize: "1.75rem",
-                  lineHeight: 1.1,
-                  color: changeColor(change, indicator.goodWhen),
-                }}
-              >
-                {formatChange(change)}
-              </div>
-              <div style={{ fontFamily: MONO, fontSize: "0.6rem", color: "var(--ink3)" }}>
-                {indicator.format(Number.parseFloat(variation.data.first_value))} →{" "}
-                {indicator.format(Number.parseFloat(variation.data.last_value))} · al{" "}
-                {formatDateAR(variation.data.last_date)}
-              </div>
-            </>
-          )}
+          <IndicatorChangeValue
+            indicator={indicator}
+            variation={variation.data}
+            isLoading={variation.isLoading}
+          />
         </div>
       </div>
 
@@ -145,7 +179,7 @@ function OutcomeCard({ outcome }: { outcome: VoteOutcome }) {
   );
 }
 
-export function VotedVsHappened() {
+export function VotedVsHappened(): ReactElement | null {
   if (VOTE_OUTCOMES.length === 0) {
     return null;
   }

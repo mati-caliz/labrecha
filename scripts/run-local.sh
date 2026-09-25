@@ -5,6 +5,7 @@
 # Uso: ./scripts/run-local.sh
 
 set -e
+set -o pipefail
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -32,7 +33,7 @@ sleep 3
 
 echo -e "${GREEN}[2/4]${NC} Preparando la API (FastAPI)..."
 cd "${API_DIR}" || exit 1
-if [ ! -d ".venv" ]; then
+if [[ ! -d ".venv" ]]; then
     echo -e "${YELLOW}[INFO]${NC} Creando venv e instalando dependencias (primera vez)..."
     python3 -m venv .venv
     ./.venv/bin/pip install -q -e .
@@ -40,10 +41,10 @@ fi
 
 echo -e "${GREEN}[3/4]${NC} Preparando el frontend..."
 cd "${WEB_DIR}" || exit 1
-if [ ! -f ".env.local" ] && [ -f ".env.example" ]; then
+if [[ ! -f ".env.local" ]] && [[ -f ".env.example" ]]; then
     cp ".env.example" ".env.local"
 fi
-if [ ! -d "node_modules" ]; then
+if [[ ! -d "node_modules" ]]; then
     echo -e "${YELLOW}[INFO]${NC} Instalando dependencias del frontend..."
     pnpm install
 fi
@@ -60,8 +61,11 @@ echo ""
 cleanup() {
     echo ""
     echo -e "${YELLOW}[INFO]${NC} Deteniendo servicios..."
-    # shellcheck disable=SC2046
-    kill $(jobs -p) 2>/dev/null || true
+    local job_pids_output
+    local -a job_pids
+    job_pids_output="$(jobs -p)"
+    mapfile -t job_pids <<< "${job_pids_output}"
+    kill "${job_pids[@]}" 2>/dev/null || true
     wait 2>/dev/null || true
     echo -e "${GREEN}[✓]${NC} Servicios detenidos"
     exit 0

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, ReactElement } from "react";
 
 export const OG_SIZE = { width: 1200, height: 630 };
 export const OG_CONTENT_TYPE = "image/png";
@@ -11,7 +11,7 @@ export const OG_COLORS = {
   brecha: "#c77b1e",
 };
 
-export function OgBrand() {
+export function OgBrand(): ReactElement {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
       <div style={{ display: "flex", fontSize: 30, fontWeight: 700, color: OG_COLORS.ink }}>La</div>
@@ -24,7 +24,7 @@ export function OgBrand() {
   );
 }
 
-export function OgFrame({ children }: { children: ReactNode }) {
+export function OgFrame({ children }: Readonly<{ children: ReactNode }>): ReactElement {
   return (
     <div
       style={{
@@ -48,11 +48,11 @@ export function OgHeadline({
   eyebrow,
   title,
   footnote,
-}: {
+}: Readonly<{
   eyebrow: string;
   title: string;
   footnote: string;
-}) {
+}>): ReactElement {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div style={{ display: "flex", fontSize: 30, fontWeight: 600, color: OG_COLORS.brecha }}>{eyebrow}</div>

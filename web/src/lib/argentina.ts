@@ -46,9 +46,9 @@ export function projectCentroid(centroid: ProvinceCentroid, width: number, heigh
   const latSpan = LAT_MAX - LAT_MIN;
   const usableWidth = height * (lonSpan / latSpan);
   const offsetX = (width - usableWidth) / 2;
-  const x = offsetX + (((centroid.lon - LON_MIN) * MEAN_LAT_COS) / lonSpan) * usableWidth;
-  const y = ((LAT_MAX - centroid.lat) / latSpan) * height;
-  return { x, y };
+  const projectedX = offsetX + (((centroid.lon - LON_MIN) * MEAN_LAT_COS) / lonSpan) * usableWidth;
+  const projectedY = ((LAT_MAX - centroid.lat) / latSpan) * height;
+  return { x: projectedX, y: projectedY };
 }
 
 const MAINLAND_OUTLINE: ProvinceCentroid[] = [

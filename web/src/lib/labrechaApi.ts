@@ -1,10 +1,33 @@
 import { CALCULATOR_PATHS } from "@/lib/calculatorPaths";
+import type {
+  CompoundInterestRequest,
+  CompoundInterestResponse,
+  IncomeTaxRequest,
+  IncomeTaxResponse,
+  InflationAdjustmentRequest,
+  InflationAdjustmentResponse,
+  TaxImpactRequest,
+  TaxImpactResponse,
+} from "@/lib/calculatorTypes";
 import type { Chamber } from "@/lib/chambers";
+import type {
+  BlocAttendance,
+  BlocSummary,
+  CongressVote,
+  CongressVoteDetail,
+  SanctionedLaw,
+  Senator,
+} from "@/lib/congressTypes";
 import type { ErrorReport } from "@/lib/errorReporter";
 import { buildQueryString, serverGet, serverPost } from "@/lib/serverApi";
 import axios from "axios";
+import { hasText } from "@/lib/utils";
 
-const LABRECHA_API_URL = process.env.NEXT_PUBLIC_LABRECHA_API_URL || "/api/data";
+export type * from "@/lib/calculatorTypes";
+export type * from "@/lib/congressTypes";
+
+const configuredApiUrl = process.env.NEXT_PUBLIC_LABRECHA_API_URL;
+const LABRECHA_API_URL = hasText(configuredApiUrl) ? configuredApiUrl : "/api/data";
 
 export const labrechaApi = axios.create({
   baseURL: LABRECHA_API_URL,
@@ -129,68 +152,6 @@ export interface PoliticalEvent {
   description: string | null;
 }
 
-export interface CongressVote {
-  vote_record_id: string;
-  chamber: Chamber;
-  period_number: number | null;
-  session_type: string | null;
-  date: string | null;
-  title: string | null;
-  vote_type: string | null;
-  result: string | null;
-  president_name: string | null;
-  affirmative_votes: number | null;
-  negative_votes: number | null;
-  abstentions: number | null;
-  absents: number | null;
-  summary: string | null;
-  topic: string | null;
-}
-
-export interface CongressVoteDetail {
-  vote_record_id: string;
-  legislator_name: string | null;
-  bloc: string | null;
-  district: string | null;
-  vote: string | null;
-}
-
-export interface SanctionedLaw {
-  law_number: string;
-  project_id: string | null;
-  sanctioning_chamber: string | null;
-  initial_file: string | null;
-  first_half_sanction: string | null;
-  second_half_sanction: string | null;
-  final_sanction: string | null;
-  title: string | null;
-  summary: string | null;
-}
-
-export interface BlocAttendance {
-  chamber: Chamber;
-  bloc: string;
-  total_votes: number;
-  present_votes: number;
-  attendance_pct: string;
-}
-
-export interface Senator {
-  senator_id: string;
-  last_name: string | null;
-  first_name: string | null;
-  bloc: string | null;
-  province: string | null;
-  party: string | null;
-  mandate_start: string | null;
-  mandate_end: string | null;
-}
-
-export interface BlocSummary {
-  bloc: string | null;
-  count: number;
-}
-
 export interface Holiday {
   date: string;
   name: string;
@@ -301,111 +262,9 @@ export interface IndicatorSeriesParams {
   order?: SortOrder | undefined;
 }
 
-export interface CompoundInterestRequest {
-  initial_capital: number;
-  annual_rate: number;
-  years: number;
-  compounding_frequency: "MONTHLY" | "QUARTERLY" | "YEARLY";
-  periodic_contribution?: number | undefined;
-}
-
-export interface CompoundInterestPeriod {
-  period: number;
-  principal: string;
-  interest: string;
-  total: string;
-}
-
-export interface CompoundInterestResponse {
-  final_amount: string;
-  total_contributions: string;
-  total_interest: string;
-  periods: CompoundInterestPeriod[];
-}
-
-export interface InflationAdjustmentRequest {
-  amount: number;
-  from_date: string;
-  to_date: string;
-}
-
-export interface InflationAdjustmentResponse {
-  original_amount: string;
-  adjusted_amount: string;
-  from_date: string;
-  to_date: string;
-  cumulative_inflation: string;
-  months_elapsed: number;
-}
-
-export interface IncomeTaxRequest {
-  gross_monthly_salary: number;
-  retired?: boolean;
-  health_insurance?: number | null;
-  retirement?: number | null;
-  union_dues?: number | null;
-  union_dues_percent?: number | null;
-  has_spouse?: boolean;
-  number_of_children?: number;
-  children_with_disabilities_count?: number;
-  housing_rent?: number | null | undefined;
-  domestic_service?: number | null;
-  education_expenses?: number | null;
-  life_insurance?: number | null;
-}
-
-export interface IncomeTaxScaleInfo {
-  effective_from: string;
-  period_label: string;
-  source: string;
-  source_url: string;
-}
-
-export interface IncomeTaxResponse {
-  scale: IncomeTaxScaleInfo;
-  gross_monthly_salary: string;
-  gross_annual_salary: string;
-  monthly_legal_deductions: string;
-  total_deductions: string;
-  taxable_income: string;
-  annual_tax: string;
-  monthly_tax: string;
-  effective_rate: string;
-  net_monthly_salary: string;
-  calculation_details: Record<string, string>;
-  deduction_breakdown: Record<string, string>;
-  tax_brackets: Record<string, string | number>[];
-}
-
-export interface TaxImpactRequest {
-  gross_monthly_salary: number;
-  monthly_expenses: number;
-  retired?: boolean;
-  iibb_rate?: number;
-}
-
-export interface TaxImpactItem {
-  concept: string;
-  category: string;
-  annual_amount: string;
-  monthly_amount: string;
-  share_of_income: string;
-}
-
-export interface TaxImpactResponse {
-  gross_annual_income: string;
-  annual_expenses: string;
-  total_annual: string;
-  total_monthly: string;
-  total_pressure: string;
-  days_for_the_state: number;
-  tax_freedom_date: string;
-  items: TaxImpactItem[];
-}
-
 async function get<T>(path: string, params?: object): Promise<T> {
   if (typeof window === "undefined") {
-    return serverGet<T>(`${path}${buildQueryString(params)}`);
+    return await serverGet<T>(`${path}${buildQueryString(params)}`);
   }
   const response = await labrechaApi.get<T>(path, { params });
   return response.data;

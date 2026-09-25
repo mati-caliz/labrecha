@@ -1,4 +1,8 @@
-export function CalculatorHeader({ title, subtitle }: { title: string; subtitle: string }) {
+import type { ReactElement } from "react";
+export function CalculatorHeader({
+  title,
+  subtitle,
+}: Readonly<{ title: string; subtitle: string }>): ReactElement {
   return (
     <header style={{ borderBottom: "2px solid var(--ink)", paddingBottom: 22, marginBottom: 26 }}>
       <div

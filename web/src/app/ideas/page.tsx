@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import { PostsFeed } from "@/components/posts/PostsFeed";
 import { postsFeedQueries } from "@/lib/pageQueries";
 import { PrefetchedQueries } from "@/lib/prefetch";
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
     "Propuestas concretas para Argentina: políticas que funcionaron en otros países, analizadas y adaptadas, con su impacto estimado.",
 };
 
-export default function IdeasPage() {
+export default function IdeasPage(): ReactElement {
   return (
     <div style={{ maxWidth: 1120, margin: "0 auto", padding: "48px 24px 24px" }}>
       <header style={{ borderBottom: "2px solid var(--ink)", paddingBottom: 24, marginBottom: 34 }}>

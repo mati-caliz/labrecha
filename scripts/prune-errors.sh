@@ -11,5 +11,6 @@ cd "$(dirname "$0")/.."
 
 COMPOSE_FILE="docker-compose.prod.yml"
 
-echo "[$(date -u +%FT%TZ)] prune-errors"
+started_at="$(date -u +%FT%TZ)"
+echo "[${started_at}] prune-errors"
 docker compose -f "${COMPOSE_FILE}" --profile scraper run --rm -T scraper prune-errors

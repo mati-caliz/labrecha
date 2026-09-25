@@ -11,11 +11,12 @@ cd "$(dirname "$0")/.."
 
 COMPOSE_FILE="docker-compose.prod.yml"
 jobs=("$@")
-if [ ${#jobs[@]} -eq 0 ]; then
+if [[ ${#jobs[@]} -eq 0 ]]; then
   jobs=("all")
 fi
 
 for job in "${jobs[@]}"; do
-  echo "[$(date -u +%FT%TZ)] scrape run ${job}"
+  started_at="$(date -u +%FT%TZ)"
+  echo "[${started_at}] scrape run ${job}"
   docker compose -f "${COMPOSE_FILE}" --profile scraper run --rm -T scraper run "${job}"
 done

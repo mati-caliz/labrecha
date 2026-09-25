@@ -85,19 +85,16 @@ Rigen las reglas globales. Lo propio de este repo:
   viejas en inglés redirigen 301 en `next.config.js`. Los endpoints de la FastAPI **sí** quedan
   en inglés.
 - Ningún número se muestra en serif ni en sans: siempre mono tabular y en formato argentino.
-- Lint del front con **Biome**, no ESLint. En Python, inyección por módulo o función y tipado con
-  pydantic.
+- En Python, inyección por módulo o función y tipado con pydantic.
 
 ## Verificación
 
-- **Front** (`cd web`): `pnpm exec tsc --noEmit`, `pnpm run lint:check`, `pnpm test` y el build.
-- **Python**: `ruff check` y `ruff format --check` sobre `api-py/labrecha_api api-py/tests
-  scraper/labrecha_scraper shared/labrecha_db` (el `ruff.toml` es estricto), `python -m compileall`
-  y `python -m pytest api-py/tests`. La suite tiene dos mitades: la lógica pura de cálculo corre
-  sin nada, y los tests de integración necesitan Postgres —los routers contra SQL real y las
-  migraciones contra los modelos—. Sin base esa mitad **se saltea sola**; con
-  `REQUIRE_TEST_DATABASE=1` el skip pasa a ser error. La base de test se crea sola y se apunta con
-  `TEST_DATABASE_URL` (default `…@localhost:5433/labrecha_test`).
+- **El gate es `scripts/verify.sh`** (`pnpm verify` en la raíz), con el estándar de
+  `dotfiles/quality`: la web completa (formato, tipos, lint, tests), ruff, mypy y pytest de
+  api-py, scraper y shared en un contenedor con uv, y ShellCheck. Los tests de integración de
+  la API corren contra un Postgres descartable que el script levanta; fuera del gate, sin base
+  esa mitad **se saltea sola** y con `REQUIRE_TEST_DATABASE=1` el skip pasa a ser error
+  (`TEST_DATABASE_URL`, default `…@localhost:5433/labrecha_test`). El build va aparte.
 - **Nada de esto lo corre nadie por vos**: desde el 2026-09-22 el deploy no se dispara por push
   (`deploy.yml` quedó en `workflow_dispatch`) y el CI sólo corre en pull requests, que acá no se
   usan. Un push a `main` que rompa lint, tipos, tests o build no se entera hasta el próximo

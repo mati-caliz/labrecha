@@ -3,7 +3,8 @@
 import { QueryError } from "@/components/QueryError";
 import { labrechaApi } from "@/lib/labrechaApi";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, type ReactElement } from "react";
+import { hasText } from "@/lib/utils";
 
 type Tab = "wallets" | "fixed-term" | "uva-mortgages";
 interface Rate {
@@ -17,7 +18,7 @@ interface Rate {
   link: string | null;
 }
 
-const TABS: Array<{ id: Tab; label: string; lead: string; best: string }> = [
+const TABS: { id: Tab; label: string; lead: string; best: string }[] = [
   {
     id: "wallets",
     label: "Billeteras",
@@ -43,6 +44,10 @@ const percent = new Intl.NumberFormat("es-AR", {
   maximumFractionDigits: 2,
 });
 
+const RATES_STALE_TIME_MS = 15 * 60 * 1000;
+const BEST_ROW_FONT_WEIGHT = 700;
+const REGULAR_ROW_FONT_WEIGHT = 500;
+
 function details(row: Rate): string | null {
   return (
     Object.entries(row.details)
@@ -51,16 +56,129 @@ function details(row: Rate): string | null {
   );
 }
 
-export function RateComparator() {
+function RateRow({
+  row,
+  isBest,
+  bestLabel,
+}: Readonly<{ row: Rate; isBest: boolean; bestLabel: string | undefined }>): ReactElement {
+  return (
+    <tr style={{ borderBottom: "1px solid var(--line2)" }}>
+      <td
+        style={{
+          padding: 14,
+          color: "var(--ink)",
+          fontWeight: isBest ? BEST_ROW_FONT_WEIGHT : REGULAR_ROW_FONT_WEIGHT,
+        }}
+      >
+        {row.name}
+        {isBest && (
+          <span
+            style={{
+              display: "block",
+              color: "var(--gap)",
+              fontSize: "0.65rem",
+              marginTop: 4,
+            }}
+          >
+            ◆ {bestLabel}
+          </span>
+        )}
+      </td>
+      <td style={{ color: "var(--ink)", fontWeight: 700 }}>{percent.format(Number(row.tna))}%</td>
+      <td style={{ color: "var(--ink2)", padding: "14px 10px" }}>
+        {row.product}
+        {hasText(details(row)) && (
+          <span
+            style={{
+              display: "block",
+              color: "var(--ink3)",
+              fontSize: "0.68rem",
+              marginTop: 4,
+            }}
+          >
+            {details(row)}
+          </span>
+        )}
+      </td>
+      <td style={{ color: "var(--ink3)", padding: "14px 10px" }}>
+        {row.updated_at ?? "último relevamiento"}
+      </td>
+    </tr>
+  );
+}
+
+function RatesTable({
+  ordered,
+  bestLabel,
+}: Readonly<{ ordered: Rate[]; bestLabel: string | undefined }>): ReactElement {
+  const best = ordered[0]?.id;
+  return (
+    <div
+      style={{
+        border: "1px solid var(--line)",
+        borderRadius: 10,
+        overflow: "auto",
+        background: "var(--surface)",
+      }}
+    >
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          minWidth: 620,
+          fontFamily: "var(--font-jb-mono)",
+          fontSize: "0.78rem",
+        }}
+      >
+        <thead>
+          <tr
+            style={{
+              textAlign: "left",
+              color: "var(--ink3)",
+              borderBottom: "1px solid var(--line)",
+            }}
+          >
+            <th style={{ padding: 14 }}>Entidad</th>
+            <th>TNA</th>
+            <th>Producto / condiciones</th>
+            <th>Actualizado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {ordered.map((row) => (
+            <RateRow key={row.id} row={row} isBest={row.id === best} bestLabel={bestLabel} />
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export function RateComparator(): ReactElement {
   const [tab, setTab] = useState<Tab>("wallets");
   const active = TABS.find((item) => item.id === tab) ?? TABS[0];
   const query = useQuery({
     queryKey: ["rates", tab],
     queryFn: async () => (await labrechaApi.get<Rate[]>(`/rates/${tab}`)).data,
-    staleTime: 15 * 60 * 1000,
+    staleTime: RATES_STALE_TIME_MS,
   });
-  const ordered = query.data ?? [];
-  const best = ordered[0]?.id;
+
+  function renderRates(): ReactElement {
+    if (query.isError) {
+      return (
+        <QueryError
+          error={query.error}
+          onRetry={() => {
+            void query.refetch();
+          }}
+        />
+      );
+    }
+    if (query.isLoading) {
+      return <p>Cargando tasas…</p>;
+    }
+    return <RatesTable ordered={query.data ?? []} bestLabel={active?.best} />;
+  }
 
   return (
     <section>
@@ -69,7 +187,9 @@ export function RateComparator() {
           <button
             key={item.id}
             type="button"
-            onClick={() => setTab(item.id)}
+            onClick={() => {
+              setTab(item.id);
+            }}
             style={{
               border: "1px solid var(--line)",
               borderRadius: "var(--radius-pill)",
@@ -95,91 +215,7 @@ export function RateComparator() {
       >
         {active?.lead} · fuente: Argentina Datos · actualización cada 15 min
       </p>
-      {query.isError ? (
-        <QueryError error={query.error} onRetry={() => query.refetch()} />
-      ) : query.isLoading ? (
-        <p>Cargando tasas…</p>
-      ) : (
-        <div
-          style={{
-            border: "1px solid var(--line)",
-            borderRadius: 10,
-            overflow: "auto",
-            background: "var(--surface)",
-          }}
-        >
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              minWidth: 620,
-              fontFamily: "var(--font-jb-mono)",
-              fontSize: "0.78rem",
-            }}
-          >
-            <thead>
-              <tr
-                style={{
-                  textAlign: "left",
-                  color: "var(--ink3)",
-                  borderBottom: "1px solid var(--line)",
-                }}
-              >
-                <th style={{ padding: 14 }}>Entidad</th>
-                <th>TNA</th>
-                <th>Producto / condiciones</th>
-                <th>Actualizado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ordered.map((row) => (
-                <tr key={row.id} style={{ borderBottom: "1px solid var(--line2)" }}>
-                  <td
-                    style={{
-                      padding: 14,
-                      color: "var(--ink)",
-                      fontWeight: row.id === best ? 700 : 500,
-                    }}
-                  >
-                    {row.name}
-                    {row.id === best && (
-                      <span
-                        style={{
-                          display: "block",
-                          color: "var(--gap)",
-                          fontSize: "0.65rem",
-                          marginTop: 4,
-                        }}
-                      >
-                        ◆ {active?.best}
-                      </span>
-                    )}
-                  </td>
-                  <td style={{ color: "var(--ink)", fontWeight: 700 }}>{percent.format(Number(row.tna))}%</td>
-                  <td style={{ color: "var(--ink2)", padding: "14px 10px" }}>
-                    {row.product}
-                    {details(row) && (
-                      <span
-                        style={{
-                          display: "block",
-                          color: "var(--ink3)",
-                          fontSize: "0.68rem",
-                          marginTop: 4,
-                        }}
-                      >
-                        {details(row)}
-                      </span>
-                    )}
-                  </td>
-                  <td style={{ color: "var(--ink3)", padding: "14px 10px" }}>
-                    {row.updated_at ?? "último relevamiento"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      {renderRates()}
       <p style={{ color: "var(--ink3)", fontSize: "0.82rem", lineHeight: 1.5, marginTop: 14 }}>
         Las tasas informan una referencia, no una oferta ni recomendación. En hipotecarios UVA la cuota y el
         capital se ajustan por UVA; revisá siempre las condiciones vigentes de cada entidad.

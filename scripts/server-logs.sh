@@ -9,9 +9,9 @@
 SERVICE=${1:-api-py}
 LINES=${2:-100}
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit 1
 
-echo "📋 Mostrando últimas $LINES líneas de logs de $SERVICE..."
+echo "📋 Mostrando últimas ${LINES} líneas de logs de ${SERVICE}..."
 echo "─────────────────────────────────────────────────────────"
 
-docker compose -f docker-compose.prod.yml logs --tail="$LINES" --follow "$SERVICE"
+docker compose -f docker-compose.prod.yml logs --tail="${LINES}" --follow "${SERVICE}"

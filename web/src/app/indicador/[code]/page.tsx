@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import { JsonLd } from "@/components/JsonLd";
 import { IndicatorDetail } from "@/components/indicator/IndicatorDetail";
 import { getIndicatorDisplay } from "@/lib/indicators";
@@ -26,7 +27,7 @@ export async function generateMetadata({ params }: IndicatorPageProps): Promise<
   };
 }
 
-export default async function IndicatorPage({ params }: IndicatorPageProps) {
+export default async function IndicatorPage({ params }: Readonly<IndicatorPageProps>): Promise<ReactElement> {
   const { code } = await params;
   const indicator = getIndicatorDisplay(code);
   const { queries, sources } = await indicatorDetailData(code);

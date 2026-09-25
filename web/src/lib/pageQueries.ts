@@ -38,6 +38,7 @@ import {
 } from "@/lib/queryParams";
 import { latestSourceDate, orderIndicatorSources, rangeDateFrom, todayISO } from "@/lib/series";
 import { VOTE_OUTCOMES } from "@/lib/voteOutcomes";
+import { hasText } from "@/lib/utils";
 
 export interface PageQuery {
   queryKey: readonly unknown[];
@@ -171,7 +172,7 @@ async function curatedOutcomeQueries(): Promise<PageQuery[]> {
     const voteQuery = congressVoteQuery(outcome.voteRecordId);
     queries.push(voteQuery);
     const vote = await voteQuery.queryFn().catch(() => undefined);
-    if (vote?.date) {
+    if (hasText(vote?.date)) {
       queries.push(indicatorVariationQuery(outcome.indicatorCode, { date_from: vote.date }));
     }
   }

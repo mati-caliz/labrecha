@@ -64,10 +64,10 @@ export function indicatorDatasetStructuredData(
   };
 
   if (firstDate !== "" && lastDate !== "") {
-    dataset.temporalCoverage = `${firstDate}/${lastDate}`;
+    dataset["temporalCoverage"] = `${firstDate}/${lastDate}`;
   }
   if (lastDate !== "") {
-    dataset.dateModified = lastDate;
+    dataset["dateModified"] = lastDate;
   }
 
   const providers = sources
@@ -80,7 +80,7 @@ export function indicatorDatasetStructuredData(
     })
     .filter((provider, index, all) => all.findIndex((one) => one.name === provider.name) === index);
   if (providers.length > 0) {
-    dataset.includedInDataCatalog = providers.map((provider) => ({
+    dataset["includedInDataCatalog"] = providers.map((provider) => ({
       "@type": "DataCatalog",
       name: provider.name,
       ...(provider.url === undefined ? {} : { url: provider.url }),

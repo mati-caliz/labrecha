@@ -1,3 +1,4 @@
+import { hasText } from "@/lib/utils";
 export function formatNumberAR(value: number, fractionDigits = 0): string {
   return value.toLocaleString("es-AR", {
     minimumFractionDigits: fractionDigits,
@@ -21,7 +22,7 @@ export function formatBillonesAR(valueInMillones: number, fractionDigits = 2): s
 
 export function formatDateAR(isoDate: string): string {
   const [year, month, day] = isoDate.split("-");
-  if (!year || !month || !day) {
+  if (!hasText(year) || !hasText(month) || !hasText(day)) {
     return isoDate;
   }
   return `${day}/${month}/${year}`;
@@ -45,7 +46,7 @@ const MONTH_NAMES_AR = [
 export function formatMonthAR(isoDate: string): string {
   const [year, month] = isoDate.split("-");
   const name = MONTH_NAMES_AR[Number(month) - 1];
-  if (!year || !name) {
+  if (!hasText(year) || !hasText(name)) {
     return isoDate;
   }
   return `${name} de ${year}`;

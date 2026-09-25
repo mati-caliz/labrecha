@@ -1,4 +1,5 @@
 "use client";
+import type { ReactElement } from "react";
 
 import { QueryError } from "@/components/QueryError";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,8 +12,11 @@ import Link from "next/link";
 const MONO = "var(--font-jb-mono)";
 const LATE_RATIO = 0.6;
 const SKELETON_KEYS = ["f1", "f2", "f3", "f4", "f5"];
+const FULL_PERCENT = 100;
 
 type Health = "ok" | "late" | "stale";
+
+const HEALTH_ORDER: Record<Health, number> = { stale: 0, late: 1, ok: 2 };
 
 const HEALTH_STYLE: Record<Health, { color: string; label: string }> = {
   ok: { color: "var(--pos)", label: "al día" },
@@ -28,17 +32,32 @@ interface Row {
   limit: number;
 }
 
+function classifyHealth(stale: boolean, days: number, limit: number): Health {
+  if (stale) {
+    return "stale";
+  }
+  return days > limit * LATE_RATIO ? "late" : "ok";
+}
+
+function compareRowsWorstFirst(first: Row, second: Row): number {
+  const healthDifference = HEALTH_ORDER[first.health] - HEALTH_ORDER[second.health];
+  if (healthDifference !== 0) {
+    return healthDifference;
+  }
+  return second.days - first.days;
+}
+
 function buildRow(indicator: IndicatorSummary): Row {
   const freshness = freshnessForCode(indicator.indicator_code, indicator.last_date);
   const limit = MAX_AGE_DAYS[freshness.cadence];
-  const health: Health = freshness.stale ? "stale" : freshness.days > limit * LATE_RATIO ? "late" : "ok";
+  const health = classifyHealth(freshness.stale, freshness.days, limit);
   return { indicator, health, days: freshness.days, cadence: freshness.cadence, limit };
 }
 
-function HealthRow({ row }: { row: Row }) {
+function HealthRow({ row }: Readonly<{ row: Row }>): ReactElement {
   const display = getIndicatorDisplay(row.indicator.indicator_code);
   const style = HEALTH_STYLE[row.health];
-  const usage = Math.min((row.days / row.limit) * 100, 100);
+  const usage = Math.min((row.days / row.limit) * FULL_PERCENT, FULL_PERCENT);
 
   return (
     <div
@@ -104,11 +123,18 @@ function HealthRow({ row }: { row: Row }) {
   );
 }
 
-export function FreshnessBoard() {
+export function FreshnessBoard(): ReactElement | null {
   const { data, isLoading, isError, error, refetch } = useIndicators();
 
   if (isError) {
-    return <QueryError error={error} onRetry={() => refetch()} />;
+    return (
+      <QueryError
+        error={error}
+        onRetry={() => {
+          void refetch();
+        }}
+      />
+    );
   }
 
   if (isLoading) {
@@ -121,10 +147,7 @@ export function FreshnessBoard() {
     );
   }
 
-  const rows = (data ?? []).map(buildRow).sort((first, second) => {
-    const order: Record<Health, number> = { stale: 0, late: 1, ok: 2 };
-    return order[first.health] - order[second.health] || second.days - first.days;
-  });
+  const rows = (data ?? []).map(buildRow).sort(compareRowsWorstFirst);
 
   if (rows.length === 0) {
     return null;

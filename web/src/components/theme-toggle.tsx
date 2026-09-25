@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore, type ReactElement } from "react";
 
 type ThemeValue = "light" | "dark" | "system";
 
@@ -19,26 +19,36 @@ const labels: Record<ThemeValue, string> = {
   system: "Sistema",
 };
 
-export function ThemeToggle() {
-  const [mounted, setMounted] = useState(false);
+const SYSTEM_THEME: ThemeValue = "system";
+
+function subscribeToNothing(): () => void {
+  return () => undefined;
+}
+
+function useIsMounted(): boolean {
+  return useSyncExternalStore(
+    subscribeToNothing,
+    () => true,
+    () => false,
+  );
+}
+
+function ThemeIcon({ isSystem, isDark }: Readonly<{ isSystem: boolean; isDark: boolean }>): ReactElement {
+  if (isSystem) {
+    return <Monitor className="h-5 w-5" />;
+  }
+  if (isDark) {
+    return <Moon className="h-5 w-5" />;
+  }
+  return <Sun className="h-5 w-5" />;
+}
+
+export function ThemeToggle(): ReactElement {
+  const mounted = useIsMounted();
   const { theme, setTheme, resolvedTheme } = useTheme();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const currentTheme = (theme ?? "system") as ThemeValue;
+  const isSystem = (theme ?? SYSTEM_THEME) === SYSTEM_THEME;
   const isDark = resolvedTheme === "dark";
-
-  const getIcon = () => {
-    if (currentTheme === "system") {
-      return Monitor;
-    }
-    if (isDark) {
-      return Moon;
-    }
-    return Sun;
-  };
 
   if (!mounted) {
     return (
@@ -48,25 +58,38 @@ export function ThemeToggle() {
     );
   }
 
-  const Icon = getIcon();
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" aria-label="Cambiar tema">
-          <Icon className="h-5 w-5" />
+          <ThemeIcon isSystem={isSystem} isDark={isDark} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="z-[100] bg-popover" sideOffset={8}>
-        <DropdownMenuItem className="cursor-pointer" onSelect={() => setTheme("light")}>
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onSelect={() => {
+            setTheme("light");
+          }}
+        >
           <Sun className="mr-2 h-4 w-4" />
           {labels.light}
         </DropdownMenuItem>
-        <DropdownMenuItem className="cursor-pointer" onSelect={() => setTheme("dark")}>
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onSelect={() => {
+            setTheme("dark");
+          }}
+        >
           <Moon className="mr-2 h-4 w-4" />
           {labels.dark}
         </DropdownMenuItem>
-        <DropdownMenuItem className="cursor-pointer" onSelect={() => setTheme("system")}>
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onSelect={() => {
+            setTheme("system");
+          }}
+        >
           <Monitor className="mr-2 h-4 w-4" />
           {labels.system}
         </DropdownMenuItem>

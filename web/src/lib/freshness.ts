@@ -1,4 +1,5 @@
 import { type Cadence, cadenceForCode } from "@/lib/indicators";
+import { ISO_DATE_LENGTH } from "@/lib/isoDates";
 
 const MS_PER_DAY = 86_400_000;
 
@@ -11,7 +12,7 @@ export const MAX_AGE_DAYS: Record<Cadence, number> = {
 };
 
 function toUtcMidnight(isoDate: string): number {
-  const [year = 0, month = 1, day = 1] = isoDate.slice(0, 10).split("-").map(Number);
+  const [year = 0, month = 1, day = 1] = isoDate.slice(0, ISO_DATE_LENGTH).split("-").map(Number);
   return Date.UTC(year, month - 1, day);
 }
 

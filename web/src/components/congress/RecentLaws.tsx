@@ -1,10 +1,12 @@
 "use client";
+import type { ReactElement } from "react";
 
 import { Badge } from "@/components/core";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCongressLaws } from "@/hooks/useLabrecha";
 import { formatDateAR } from "@/lib/indicators";
 import type { SanctionedLaw } from "@/lib/labrechaApi";
+import { hasText } from "@/lib/utils";
 
 interface TimelineStep {
   label: string;
@@ -13,14 +15,14 @@ interface TimelineStep {
 
 function buildSteps(law: SanctionedLaw): TimelineStep[] {
   const steps: TimelineStep[] = [{ label: "1ª media sanción", date: law.first_half_sanction }];
-  if (law.second_half_sanction) {
+  if (hasText(law.second_half_sanction)) {
     steps.push({ label: "2ª media sanción", date: law.second_half_sanction });
   }
   steps.push({ label: "Sanción definitiva", date: law.final_sanction });
   return steps;
 }
 
-function LawCard({ law }: { law: SanctionedLaw }) {
+function LawCard({ law }: Readonly<{ law: SanctionedLaw }>): ReactElement {
   const steps = buildSteps(law);
   return (
     <div
@@ -37,7 +39,7 @@ function LawCard({ law }: { law: SanctionedLaw }) {
     >
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
         <Badge tone="accent">Ley {law.law_number}</Badge>
-        {law.sanctioning_chamber && (
+        {hasText(law.sanctioning_chamber) && (
           <span style={{ fontSize: "0.6875rem", color: "var(--ink3)" }}>
             Sancionada en {law.sanctioning_chamber}
           </span>
@@ -78,7 +80,7 @@ function LawCard({ law }: { law: SanctionedLaw }) {
                   </span>
                 </span>
                 <span className="num" style={{ fontSize: "0.6875rem", color: "var(--ink3)", marginLeft: 15 }}>
-                  {step.date ? formatDateAR(step.date) : "—"}
+                  {hasText(step.date) ? formatDateAR(step.date) : "—"}
                 </span>
               </div>
             </div>
@@ -93,7 +95,7 @@ function LawCard({ law }: { law: SanctionedLaw }) {
   );
 }
 
-export function RecentLaws() {
+export function RecentLaws(): ReactElement {
   const { data, isLoading } = useCongressLaws({ limit: 8 });
 
   if (isLoading) {

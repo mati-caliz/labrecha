@@ -10,8 +10,14 @@ interface AppState {
 
 export const useAppStore = create<AppState>()((set) => ({
   sidebarOpen: false,
-  toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
-  setSidebarOpen: (open) => set({ sidebarOpen: open }),
+  toggleSidebar: () => {
+    set((state) => ({ sidebarOpen: !state.sidebarOpen }));
+  },
+  setSidebarOpen: (open) => {
+    set({ sidebarOpen: open });
+  },
   commandOpen: false,
-  setCommandOpen: (open) => set({ commandOpen: open }),
+  setCommandOpen: (open) => {
+    set({ commandOpen: open });
+  },
 }));

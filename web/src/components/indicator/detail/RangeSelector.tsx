@@ -1,14 +1,15 @@
 "use client";
+import type { ReactElement } from "react";
 
 import { MONO, RANGE_OPTIONS } from "@/components/indicator/detail/styles";
 
 export function RangeSelector({
   range,
   onRangeChange,
-}: {
+}: Readonly<{
   range: string;
   onRangeChange: (range: string) => void;
-}) {
+}>): ReactElement {
   return (
     <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap", alignItems: "center" }}>
       {RANGE_OPTIONS.map((option) => {
@@ -17,7 +18,9 @@ export function RangeSelector({
           <button
             key={option}
             type="button"
-            onClick={() => onRangeChange(option)}
+            onClick={() => {
+              onRangeChange(option);
+            }}
             style={{
               fontFamily: MONO,
               fontSize: "0.75rem",

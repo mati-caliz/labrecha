@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, ReactNode, ReactElement } from "react";
 
 export type BadgeTone = "neutral" | "accent" | "pos" | "neg" | "gap" | "evento";
 
@@ -29,7 +29,7 @@ const tones: Record<BadgeTone, CSSProperties> = {
   },
 };
 
-export function Badge({ tone = "neutral", children, style }: BadgeProps) {
+export function Badge({ tone = "neutral", children, style }: Readonly<BadgeProps>): ReactElement {
   return (
     <span
       style={{

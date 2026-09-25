@@ -1,4 +1,5 @@
 "use client";
+import type { ReactElement } from "react";
 
 import { CELL_PAD, MONO, NO_DATA_LABEL } from "@/components/indicator/detail/styles";
 import { gapPercent } from "@/components/indicator/detail/variation";
@@ -28,12 +29,12 @@ export function SeriesTable({
   aligned,
   rows,
   isComparator,
-}: {
+}: Readonly<{
   indicator: IndicatorDisplay;
   aligned: AlignedSeries;
   rows: TableRow[];
   isComparator: boolean;
-}) {
+}>): ReactElement {
   if (rows.length === 0) {
     return (
       <p

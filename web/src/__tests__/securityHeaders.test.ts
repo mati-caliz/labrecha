@@ -40,7 +40,7 @@ function imageHostsOf(csp: string | undefined): string[] {
 function nginxSiteImageHosts(): string[] {
   const conf = readFileSync(NGINX_CONF_PATH, "utf8");
   const siteBlock = conf
-    .split(/^\s*server\s*\{/m)
+    .split(/^[ \t]*server[ \t]*\{/m)
     .find((block) => block.includes(`server_name ${SITE_SERVER_NAME}`) && block.includes("443 ssl"));
   if (siteBlock === undefined) {
     throw new Error(
@@ -71,7 +71,7 @@ describe("the security headers of every route", () => {
     if (headers === undefined) {
       throw new Error("next.config.js dejó de declarar headers(): las cabeceras son parte del contrato");
     }
-    rules = (await headers()) as HeaderRule[];
+    rules = await headers();
   });
 
   it("lets the embeddable charts be framed by anyone", () => {

@@ -8,8 +8,8 @@ import {
 
 const NOW_MS = Date.UTC(2026, 6, 26, 12, 0, 0);
 const MS_PER_SECOND = 1000;
-const CLIENT = "181.45.6.7";
-const OTHER_CLIENT = "200.10.20.30";
+const CLIENT = "203.0.113.7";
+const OTHER_CLIENT = "198.51.100.30";
 
 function fail(times: number, nowMs = NOW_MS): void {
   for (let attempt = 0; attempt < times; attempt += 1) {

@@ -3,12 +3,17 @@ import type { IndicatorSeries } from "@/lib/labrechaApi";
 import { OG_COLORS, OG_CONTENT_TYPE, OG_SIZE, OgBrand } from "@/lib/ogImage";
 import { serverGet } from "@/lib/serverApi";
 import { ImageResponse } from "next/og";
+import { hasText } from "@/lib/utils";
 
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 export const alt = "Indicador de La Brecha";
 
 const COLORS = OG_COLORS;
+const SERIES_POINTS = 48;
+const REVALIDATE_SECONDS = 1800;
+const SPARKLINE_WIDTH = 1080;
+const SPARKLINE_HEIGHT = 200;
 
 function sparklinePath(values: number[], width: number, height: number): string {
   if (values.length < 2) {
@@ -16,29 +21,34 @@ function sparklinePath(values: number[], width: number, height: number): string 
   }
   const min = Math.min(...values);
   const max = Math.max(...values);
-  const span = max - min || 1;
+  const range = max - min;
+  const span = range === 0 ? 1 : range;
   const step = width / (values.length - 1);
   return values
     .map((value, index) => {
-      const x = index * step;
-      const y = height - ((value - min) / span) * height;
-      return `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
+      const pointX = index * step;
+      const pointY = height - ((value - min) / span) * height;
+      return `${index === 0 ? "M" : "L"} ${pointX.toFixed(1)} ${pointY.toFixed(1)}`;
     })
     .join(" ");
 }
 
-export default async function Image({ params }: { params: Promise<{ code: string }> }) {
+export default async function Image({
+  params,
+}: {
+  params: Promise<{ code: string }>;
+}): Promise<ImageResponse> {
   const { code } = await params;
   const indicator = getIndicatorDisplay(code);
 
   let points: { value: number; date: string; source: string }[] = [];
   try {
-    const sourceParam = indicator.preferredSource ? `&source=${indicator.preferredSource}` : "";
+    const sourceParam = hasText(indicator.preferredSource) ? `&source=${indicator.preferredSource}` : "";
     const series = await serverGet<IndicatorSeries>(
-      `/indicators/${code}?limit=48&order=desc${sourceParam}`,
-      1800,
+      `/indicators/${code}?limit=${SERIES_POINTS}&order=desc${sourceParam}`,
+      REVALIDATE_SECONDS,
     );
-    points = (series.points ?? [])
+    points = series.points
       .map((point) => ({
         value: Number.parseFloat(point.value),
         date: point.date,
@@ -51,7 +61,7 @@ export default async function Image({ params }: { params: Promise<{ code: string
 
   const latest = points[0];
   const ascending = [...points].reverse().map((point) => point.value);
-  const path = sparklinePath(ascending, 1080, 200);
+  const path = sparklinePath(ascending, SPARKLINE_WIDTH, SPARKLINE_HEIGHT);
 
   return new ImageResponse(
     <div
@@ -84,7 +94,7 @@ export default async function Image({ params }: { params: Promise<{ code: string
           >
             {latest ? indicator.format(latest.value) : "—"}
           </div>
-          {indicator.unit && (
+          {hasText(indicator.unit) && (
             <div style={{ display: "flex", fontSize: 40, color: COLORS.muted, paddingBottom: 16 }}>
               {indicator.unit}
             </div>
@@ -97,7 +107,13 @@ export default async function Image({ params }: { params: Promise<{ code: string
         )}
       </div>
 
-      <svg width={1080} height={200} viewBox="0 0 1080 200" role="img" aria-label="Serie histórica">
+      <svg
+        width={SPARKLINE_WIDTH}
+        height={SPARKLINE_HEIGHT}
+        viewBox={`0 0 ${SPARKLINE_WIDTH} ${SPARKLINE_HEIGHT}`}
+        role="img"
+        aria-label="Serie histórica"
+      >
         {path && <path d={path} fill="none" stroke={COLORS.accent} strokeWidth={5} />}
       </svg>
     </div>,

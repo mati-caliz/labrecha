@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import { HolidaysCalendar } from "@/components/holidays/HolidaysCalendar";
 import { holidaysQueries } from "@/lib/pageQueries";
 import { PrefetchedQueries } from "@/lib/prefetch";
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
   description: "Calendario de feriados nacionales de Argentina por año, con su fecha y fuente.",
 };
 
-export default function HolidaysPage() {
+export default function HolidaysPage(): ReactElement {
   return (
     <div style={{ maxWidth: 1000, margin: "0 auto", padding: "48px 24px 72px" }}>
       <header style={{ borderBottom: "2px solid var(--ink)", paddingBottom: 20, marginBottom: 30 }}>

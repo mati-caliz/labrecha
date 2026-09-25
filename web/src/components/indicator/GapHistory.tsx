@@ -1,4 +1,5 @@
 "use client";
+import type { ReactElement } from "react";
 
 import { AnnotatedSeriesChart } from "@/components/core";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,6 +11,7 @@ import type { GapHistoryPoint } from "@/lib/labrechaApi";
 const MONO = "var(--font-jb-mono)";
 const CHART_HEIGHT = 200;
 const MAX_X_LABELS = 6;
+const DAY_MONTH_LENGTH = 5;
 
 function spreadOf(point: GapHistoryPoint): number {
   return Math.abs(Number.parseFloat(point.spread));
@@ -20,12 +22,12 @@ function Milestone({
   point,
   unit,
   emphasis,
-}: {
+}: Readonly<{
   caption: string;
   point: GapHistoryPoint;
   unit: string;
   emphasis: boolean;
-}) {
+}>): ReactElement {
   const magnitude = automaticGapMagnitude(unit, Number.parseFloat(point.spread), point.gap_pct);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -60,10 +62,12 @@ function Milestone({
 
 function xLabels(points: GapHistoryPoint[]): string[] {
   const step = Math.max(1, Math.ceil(points.length / MAX_X_LABELS));
-  return points.map((point, index) => (index % step === 0 ? formatDateAR(point.date).slice(0, 5) : ""));
+  return points.map((point, index) =>
+    index % step === 0 ? formatDateAR(point.date).slice(0, DAY_MONTH_LENGTH) : "",
+  );
 }
 
-export function GapHistory({ code }: { code: string }) {
+export function GapHistory({ code }: Readonly<{ code: string }>): ReactElement | null {
   const { data, isLoading, isError } = useGapHistory(code);
 
   if (isLoading) {

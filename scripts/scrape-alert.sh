@@ -40,8 +40,10 @@ SQL
 
 failing="$(printf '%s\n' "${failing}" | sed '/^[[:space:]]*$/d')"
 
-if [ -z "${failing}" ]; then
-  echo "[$(date -u +%FT%TZ)] scrape-alert: todos los conectores OK (umbral ${THRESHOLD})"
+checked_at="$(date -u +%FT%TZ)"
+
+if [[ -z "${failing}" ]]; then
+  echo "[${checked_at}] scrape-alert: todos los conectores OK (umbral ${THRESHOLD})"
   exit 0
 fi
 
@@ -49,10 +51,10 @@ count="$(printf '%s\n' "${failing}" | wc -l | tr -d ' ')"
 message="La Brecha — scraper: ${count} conector(es) fallaron las últimas ${THRESHOLD} corridas:
 $(printf '%s\n' "${failing}" | sed 's/^/• /')"
 
-echo "[$(date -u +%FT%TZ)] scrape-alert:"
+echo "[${checked_at}] scrape-alert:"
 printf '%s\n' "${message}"
 
-if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
+if [[ -n "${TELEGRAM_BOT_TOKEN:-}" ]] && [[ -n "${TELEGRAM_CHAT_ID:-}" ]]; then
   if curl -s -o /dev/null \
     --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
     --data-urlencode "text=${message}" \

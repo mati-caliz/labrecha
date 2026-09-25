@@ -53,8 +53,8 @@ esas variables; el resto, Tailwind.
 ## SEO
 
 El JSON-LD vive en `src/lib/structuredData.ts` y lo emite `<JsonLd>`, que escapa `<`, `>` y `&` a
-`\uXXXX` para inyectarlo como texto: biome corre con `security: all`, así que no se usa
-`dangerouslySetInnerHTML`. Las `opengraph-image.tsx` comparten el marco de marca en
+`\uXXXX` para inyectarlo como texto: el lint prohíbe `dangerouslySetInnerHTML`
+(`no-unsanitized` y las reglas de React). Las `opengraph-image.tsx` comparten el marco de marca en
 `src/lib/ogImage.tsx`.
 
 ## `/comparar`

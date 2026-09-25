@@ -91,6 +91,7 @@ export const PERCENT_UNIT = "%";
 
 const PP_BAR_FULL_SCALE = 10;
 const PCT_BAR_FULL_SCALE = 100;
+const PERCENT_FACTOR = 100;
 
 function barWidthForPoints(points: number): number {
   return Math.min((points / PP_BAR_FULL_SCALE) * PCT_BAR_FULL_SCALE, PCT_BAR_FULL_SCALE);
@@ -106,7 +107,7 @@ export interface GapResult {
 
 export function computeGap(def: GapDef, valueA: number, valueB: number): GapResult {
   const gapValue = valueA - valueB;
-  const gapPct = valueB !== 0 ? (gapValue / Math.abs(valueB)) * 100 : 0;
+  const gapPct = valueB !== 0 ? (gapValue / Math.abs(valueB)) * PERCENT_FACTOR : 0;
   const points = Math.abs(gapValue);
   const relative = Math.abs(gapPct);
   const measuredInPoints = def.gapMode === "pp";

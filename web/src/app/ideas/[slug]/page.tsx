@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import { JsonLd } from "@/components/JsonLd";
 import { PostDetail } from "@/components/posts/PostDetail";
 import type { Post } from "@/lib/labrechaApi";
@@ -12,7 +13,7 @@ interface IdeaPageProps {
 }
 
 async function loadPost(slug: string): Promise<Post | undefined> {
-  return postQuery(slug)
+  return await postQuery(slug)
     .queryFn()
     .catch(() => undefined);
 }
@@ -41,7 +42,7 @@ export async function generateMetadata({ params }: IdeaPageProps): Promise<Metad
   };
 }
 
-export default async function IdeaDetailPage({ params }: IdeaPageProps) {
+export default async function IdeaDetailPage({ params }: Readonly<IdeaPageProps>): Promise<ReactElement> {
   const { slug } = await params;
   const post = await loadPost(slug);
 

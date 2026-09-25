@@ -3,7 +3,8 @@
 # Estado de los servicios en producción.
 # Uso: ./scripts/server-status.sh
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit 1
+set -o pipefail
 
 echo "🔍 Estado de los servicios de La Brecha"
 echo "═══════════════════════════════════════════════════════════"
@@ -26,10 +27,11 @@ fi
 
 echo ""
 echo "💾 Uso de Recursos:"
+mapfile -t container_ids < <(docker compose -f docker-compose.prod.yml ps -q || true)
 docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}" \
-  $(docker compose -f docker-compose.prod.yml ps -q)
+  "${container_ids[@]}"
 
 echo ""
 echo "🚨 Últimos errores en logs (si hay):"
 docker compose -f docker-compose.prod.yml logs --tail=200 api-py 2>/dev/null \
-  | grep -i "error\|exception\|failed" | tail -10 || echo "No se encontraron errores recientes"
+  | grep -i "error\|exception\|failed" | tail -10 || true

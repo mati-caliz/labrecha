@@ -10,7 +10,7 @@ export const alt = "Las brechas entre fuentes que miden lo mismo";
 
 const REVALIDATE_SECONDS = 1800;
 
-export default async function Image() {
+export default async function Image(): Promise<ImageResponse> {
   let widest: SourceGap | undefined;
   try {
     const gaps = await serverGet<SourceGap[]>("/gaps?limit=1", REVALIDATE_SECONDS);

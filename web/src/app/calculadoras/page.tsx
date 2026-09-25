@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -30,7 +31,7 @@ const CALCULATORS = [
   },
 ];
 
-export default function CalculatorsPage() {
+export default function CalculatorsPage(): ReactElement {
   return (
     <div style={{ maxWidth: 1000, margin: "0 auto", padding: "48px 24px 72px" }}>
       <header style={{ borderBottom: "2px solid var(--ink)", paddingBottom: 22, marginBottom: 32 }}>

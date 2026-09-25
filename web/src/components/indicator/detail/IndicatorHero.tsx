@@ -1,11 +1,17 @@
 "use client";
+import type { ReactElement } from "react";
 
 import { MONO, sourceColor } from "@/components/indicator/detail/styles";
 import type { VariationDisplay } from "@/components/indicator/detail/variation";
 import { type IndicatorDisplay, formatDateAR, sourceLabel } from "@/lib/indicators";
 import type { IndicatorSourceSummary } from "@/lib/labrechaApi";
+import { hasText } from "@/lib/utils";
 
-function SourceChipDot({ source, date, color }: { source: string; date: string; color: string }) {
+function SourceChipDot({
+  source,
+  date,
+  color,
+}: Readonly<{ source: string; date: string; color: string }>): ReactElement {
   return (
     <span
       style={{
@@ -35,7 +41,7 @@ export function IndicatorHero({
   stepVariation,
   sources,
   stale,
-}: {
+}: Readonly<{
   code: string;
   familyLabel: string;
   indicator: IndicatorDisplay;
@@ -43,7 +49,7 @@ export function IndicatorHero({
   stepVariation: VariationDisplay | undefined;
   sources: IndicatorSourceSummary[];
   stale: boolean;
-}) {
+}>): ReactElement {
   return (
     <div
       style={{
@@ -96,7 +102,7 @@ export function IndicatorHero({
               }}
             >
               {indicator.format(primaryValue)}
-              {indicator.unit ? (
+              {hasText(indicator.unit) ? (
                 <span style={{ fontSize: "0.5em", color: "var(--ink3)" }}> {indicator.unit}</span>
               ) : null}
             </span>

@@ -1,4 +1,5 @@
 "use client";
+import type { ReactElement } from "react";
 
 import { CARD_STYLE, MONO } from "@/components/indicator/detail/styles";
 import type { VariationDisplay } from "@/components/indicator/detail/variation";
@@ -7,11 +8,11 @@ export function VariationRow({
   label,
   reference,
   variation,
-}: {
+}: Readonly<{
   label: string;
   reference: string;
   variation: VariationDisplay | undefined;
-}) {
+}>): ReactElement {
   return (
     <div
       style={{

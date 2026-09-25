@@ -1,4 +1,4 @@
-const CACHE_RULES: Array<{ pattern: RegExp; revalidate: number }> = [
+const CACHE_RULES: { pattern: RegExp; revalidate: number }[] = [
   { pattern: /^political-events/, revalidate: 86400 },
   { pattern: /^congress/, revalidate: 86400 },
   { pattern: /^senate/, revalidate: 86400 },

@@ -7,7 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { usePosts } from "@/hooks/useLabrecha";
 import { POST_CATEGORIES, type Post } from "@/lib/labrechaApi";
 import Link from "next/link";
-import { type CSSProperties, useState } from "react";
+import { type CSSProperties, useState, type ReactElement } from "react";
+import { hasText } from "@/lib/utils";
 
 const SKELETON_KEYS = ["p1", "p2", "p3"];
 const ALL_FILTER = "Todas";
@@ -25,7 +26,7 @@ const IMPACT_CHIP_STYLE: CSSProperties = {
   padding: "4px 9px",
 };
 
-function CategoryBadge({ category }: { category: Post["category"] }) {
+function CategoryBadge({ category }: Readonly<{ category: Post["category"] }>): ReactElement {
   return (
     <span
       style={{
@@ -46,7 +47,7 @@ function CategoryBadge({ category }: { category: Post["category"] }) {
   );
 }
 
-function ImpactChips({ post, limit = 2 }: { post: Post; limit?: number }) {
+function ImpactChips({ post, limit = 2 }: Readonly<{ post: Post; limit?: number }>): ReactElement | null {
   const impacts = (post.impacts ?? []).slice(0, limit);
   if (impacts.length === 0) {
     return null;
@@ -67,7 +68,7 @@ function ImpactChips({ post, limit = 2 }: { post: Post; limit?: number }) {
   );
 }
 
-function FeaturedIdea({ post }: { post: Post }) {
+function FeaturedIdea({ post }: Readonly<{ post: Post }>): ReactElement {
   return (
     <Link
       href={`/ideas/${post.slug}`}
@@ -107,7 +108,7 @@ function FeaturedIdea({ post }: { post: Post }) {
       >
         {post.title}
       </h2>
-      {post.summary ? (
+      {hasText(post.summary) ? (
         <p
           style={{
             fontFamily: "var(--font-serif)",
@@ -127,7 +128,7 @@ function FeaturedIdea({ post }: { post: Post }) {
   );
 }
 
-function IdeaCard({ post }: { post: Post }) {
+function IdeaCard({ post }: Readonly<{ post: Post }>): ReactElement {
   return (
     <Link
       href={`/ideas/${post.slug}`}
@@ -158,7 +159,7 @@ function IdeaCard({ post }: { post: Post }) {
       >
         {post.title}
       </h3>
-      {post.summary ? (
+      {hasText(post.summary) ? (
         <p
           style={{
             fontFamily: "var(--font-serif)",
@@ -198,7 +199,7 @@ const FILTER_STYLE = (active: boolean): CSSProperties => ({
   color: active ? "var(--paper)" : "var(--ink2)",
 });
 
-export function PostsFeed() {
+export function PostsFeed(): ReactElement {
   const [activeFilter, setActiveFilter] = useState<string>(ALL_FILTER);
   const activeCategory = POST_CATEGORIES.find((category) => POST_CATEGORY_LABELS[category] === activeFilter);
   const { data, isLoading, isError, error, refetch } = usePosts(
@@ -216,7 +217,9 @@ export function PostsFeed() {
           <button
             key={item}
             type="button"
-            onClick={() => setActiveFilter(item)}
+            onClick={() => {
+              setActiveFilter(item);
+            }}
             style={FILTER_STYLE(item === activeFilter)}
           >
             {item}
@@ -224,7 +227,14 @@ export function PostsFeed() {
         ))}
       </div>
 
-      {isError && <QueryError error={error} onRetry={() => refetch()} />}
+      {isError && (
+        <QueryError
+          error={error}
+          onRetry={() => {
+            void refetch();
+          }}
+        />
+      )}
 
       {isLoading && (
         <div

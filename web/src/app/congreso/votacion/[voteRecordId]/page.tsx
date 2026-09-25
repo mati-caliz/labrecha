@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import { VoteDetail } from "@/components/congress/VoteDetail";
 import { congressVoteQueries } from "@/lib/pageQueries";
 import { PrefetchedQueries } from "@/lib/prefetch";
@@ -12,7 +13,7 @@ interface VotePageProps {
   params: Promise<{ voteRecordId: string }>;
 }
 
-export default async function VotePage({ params }: VotePageProps) {
+export default async function VotePage({ params }: Readonly<VotePageProps>): Promise<ReactElement> {
   const { voteRecordId } = await params;
   return (
     <PrefetchedQueries queries={congressVoteQueries(voteRecordId)}>
