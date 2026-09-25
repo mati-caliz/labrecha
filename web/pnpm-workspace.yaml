@@ -2,7 +2,6 @@ packages:
   - .
 
 onlyBuiltDependencies:
-  - "@biomejs/biome"
   - sharp
   - unrs-resolver
 
@@ -12,5 +11,6 @@ overrides:
   "tar": "7.5.7"
   "ws": "^8.21.0"
   "brace-expansion": "^5.0.8"
+  "minimatch@3>brace-expansion": "^1.1.12"
   "postcss": "^8.5.22"
   "next>sharp": "^0.35.4"

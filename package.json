@@ -8,24 +8,6 @@
     "dev": "./scripts/run-local.sh",
     "dev:docker": "./scripts/run-docker.sh",
     "dev:infra": "./scripts/dev-infra.sh",
-    "format": "pnpm run format:frontend",
-    "format:frontend": "pnpm --dir web run format",
-    "format:check": "pnpm run format:check:frontend",
-    "format:check:frontend": "pnpm --dir web run format:check",
-    "lint:frontend": "pnpm --dir web run lint",
-    "lint": "pnpm run lint:frontend",
-    "check": "pnpm run check:frontend",
-    "check:frontend": "pnpm --dir web run check",
-    "prepare": "husky"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "1.9.4",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.2.7"
-  },
-  "lint-staged": {
-    "web/**/*.{js,jsx,ts,tsx,json,css}": [
-      "pnpm exec biome check --write --no-errors-on-unmatched"
-    ]
+    "verify": "pnpm --dir web run verify"
   }
 }
