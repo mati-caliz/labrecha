@@ -85,9 +85,7 @@ export const GAPS: GapDef[] = [
   },
 ];
 
-export const GAP_BY_ID: Record<string, GapDef> = Object.fromEntries(
-  GAPS.map((gap) => [gap.id, gap]),
-);
+export const GAP_BY_ID: Record<string, GapDef> = Object.fromEntries(GAPS.map((gap) => [gap.id, gap]));
 
 export const PERCENT_UNIT = "%";
 
@@ -115,9 +113,7 @@ export function computeGap(def: GapDef, valueA: number, valueB: number): GapResu
   return {
     gapPct,
     gapValue,
-    formattedGap: measuredInPoints
-      ? `${formatNumberAR(points, 1)} pp`
-      : `${formatNumberAR(relative, 1)} %`,
+    formattedGap: measuredInPoints ? `${formatNumberAR(points, 1)} pp` : `${formatNumberAR(relative, 1)} %`,
     magnitude: measuredInPoints ? points : relative,
     barWidth: measuredInPoints ? barWidthForPoints(points) : Math.min(relative, PCT_BAR_FULL_SCALE),
   };
@@ -129,11 +125,7 @@ export interface AutomaticGapMagnitude {
   barWidth: number;
 }
 
-export function automaticGapMagnitude(
-  unit: string,
-  spread: number,
-  gapPct: number,
-): AutomaticGapMagnitude {
+export function automaticGapMagnitude(unit: string, spread: number, gapPct: number): AutomaticGapMagnitude {
   if (unit === PERCENT_UNIT) {
     const points = Math.abs(spread);
     return {

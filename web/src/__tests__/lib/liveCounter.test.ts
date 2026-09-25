@@ -1,9 +1,4 @@
-import {
-  daysInMonth,
-  monthlyRateToPerSecond,
-  projectedValue,
-  startOfCurrentMonth,
-} from "@/lib/liveCounter";
+import { daysInMonth, monthlyRateToPerSecond, projectedValue, startOfCurrentMonth } from "@/lib/liveCounter";
 
 const SECONDS_PER_DAY = 24 * 60 * 60;
 

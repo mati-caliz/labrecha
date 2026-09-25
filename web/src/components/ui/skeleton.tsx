@@ -6,11 +6,7 @@ interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function Skeleton({ className, style, ...props }: SkeletonProps) {
   return (
-    <div
-      className={cn("animate-pulse rounded-md bg-gray-800/50", className)}
-      style={style}
-      {...props}
-    />
+    <div className={cn("animate-pulse rounded-md bg-gray-800/50", className)} style={style} {...props} />
   );
 }
 
@@ -18,10 +14,7 @@ export function SkeletonText({ className, lines = 1 }: { className?: string; lin
   return (
     <div className={cn("space-y-2", className)}>
       {Array.from({ length: lines }, (_, i) => i).map((i) => (
-        <Skeleton
-          key={i}
-          className={cn("h-4", i === lines - 1 && lines > 1 ? "w-3/4" : "w-full")}
-        />
+        <Skeleton key={i} className={cn("h-4", i === lines - 1 && lines > 1 ? "w-3/4" : "w-full")} />
       ))}
     </div>
   );

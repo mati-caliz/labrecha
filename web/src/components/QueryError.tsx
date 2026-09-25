@@ -34,18 +34,14 @@ export function QueryError({ error, onRetry, title, compact = false }: QueryErro
 
   const isNetworkError =
     !isUnauthorized &&
-    (error?.message?.includes("Network") ||
-      error?.message?.includes("fetch") ||
-      error?.name === "TypeError");
+    (error?.message?.includes("Network") || error?.message?.includes("fetch") || error?.name === "TypeError");
 
   const isTimeoutError =
     !isUnauthorized && (error?.message?.includes("timeout") || error?.message?.includes("Timeout"));
 
   const isServerError =
     !isUnauthorized &&
-    (error?.message?.includes("500") ||
-      error?.message?.includes("502") ||
-      error?.message?.includes("503"));
+    (error?.message?.includes("500") || error?.message?.includes("502") || error?.message?.includes("503"));
 
   const getErrorConfig = () => {
     if (isUnauthorized) {
@@ -155,12 +151,7 @@ interface EmptyStateProps {
   };
 }
 
-export function EmptyState({
-  icon: Icon = AlertCircle,
-  title,
-  description,
-  action,
-}: EmptyStateProps) {
+export function EmptyState({ icon: Icon = AlertCircle, title, description, action }: EmptyStateProps) {
   return (
     <Card className="bg-card">
       <CardContent className="p-8 text-center">

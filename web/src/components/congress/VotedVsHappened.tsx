@@ -43,8 +43,7 @@ function OutcomeCard({ outcome }: { outcome: VoteOutcome }) {
     return null;
   }
 
-  const change =
-    variation.data === undefined ? undefined : Number.parseFloat(variation.data.change_pct);
+  const change = variation.data === undefined ? undefined : Number.parseFloat(variation.data.change_pct);
   const summary = (vote.data.summary ?? "").trim();
   const officialTitle = (vote.data.title ?? "").trim();
 
@@ -79,9 +78,7 @@ function OutcomeCard({ outcome }: { outcome: VoteOutcome }) {
             {summary.length > 0 ? summary : officialTitle || outcome.voteRecordId}
           </h3>
           {summary.length > 0 ? (
-            <div
-              style={{ fontFamily: MONO, fontSize: "0.6rem", color: "var(--ink3)", marginTop: 6 }}
-            >
+            <div style={{ fontFamily: MONO, fontSize: "0.6rem", color: "var(--ink3)", marginTop: 6 }}>
               Resumen generado por IA · título oficial: {officialTitle || "—"}
             </div>
           ) : null}
@@ -94,9 +91,7 @@ function OutcomeCard({ outcome }: { outcome: VoteOutcome }) {
           {variation.isLoading ? (
             <Skeleton className="mt-2 h-[34px] w-[110px] rounded-[6px]" />
           ) : change === undefined || variation.data === undefined ? (
-            <div
-              style={{ fontFamily: MONO, fontSize: "0.8rem", color: "var(--ink3)", marginTop: 6 }}
-            >
+            <div style={{ fontFamily: MONO, fontSize: "0.8rem", color: "var(--ink3)", marginTop: 6 }}>
               sin serie suficiente
             </div>
           ) : (
@@ -142,10 +137,7 @@ function OutcomeCard({ outcome }: { outcome: VoteOutcome }) {
         >
           Ver quién votó qué →
         </Link>
-        <Link
-          href={indicator.href}
-          style={{ fontFamily: MONO, fontSize: "0.68rem", color: "var(--ink2)" }}
-        >
+        <Link href={indicator.href} style={{ fontFamily: MONO, fontSize: "0.68rem", color: "var(--ink2)" }}>
           Ver la serie de {indicator.label} →
         </Link>
       </div>

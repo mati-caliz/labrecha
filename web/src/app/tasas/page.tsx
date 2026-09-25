@@ -35,8 +35,8 @@ export default function RatesPage() {
           Tasas para comparar
         </h1>
         <p style={{ fontSize: "1.125rem", color: "var(--ink2)", margin: 0, maxWidth: 650 }}>
-          Billeteras virtuales, plazo fijo y créditos hipotecarios UVA. Las condiciones cambian:
-          usalo para orientar la comparación, no como recomendación.
+          Billeteras virtuales, plazo fijo y créditos hipotecarios UVA. Las condiciones cambian: usalo para
+          orientar la comparación, no como recomendación.
         </p>
       </header>
       <RateComparator />

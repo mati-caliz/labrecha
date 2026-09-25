@@ -39,9 +39,7 @@ function ImpactTile({ impact }: { impact: PostImpact }) {
       >
         {meta.label}
       </div>
-      <div
-        style={{ fontFamily: MONO, fontWeight: 600, fontSize: "0.9375rem", color: "var(--ink)" }}
-      >
+      <div style={{ fontFamily: MONO, fontWeight: 600, fontSize: "0.9375rem", color: "var(--ink)" }}>
         {impact.value}
       </div>
     </div>
@@ -115,9 +113,7 @@ export function PostDetail({ slug }: { slug: string }) {
   return (
     <article style={{ fontFamily: "var(--font-serif)" }}>
       <div style={{ maxWidth: NARROW, margin: "0 auto", padding: "52px 24px 0" }}>
-        <div
-          style={{ fontFamily: MONO, fontSize: "0.72rem", color: "var(--ink3)", marginBottom: 22 }}
-        >
+        <div style={{ fontFamily: MONO, fontSize: "0.72rem", color: "var(--ink3)", marginBottom: 22 }}>
           <Link href="/ideas" style={{ color: "var(--ink3)", textDecoration: "none" }}>
             Ideas
           </Link>{" "}
@@ -262,8 +258,8 @@ export function PostDetail({ slug }: { slug: string }) {
             Atribución
           </span>
           <br />
-          Publicado por La Brecha el {formatPostDate(post.created_at)}. Todo dato citado en el texto
-          lleva su fuente.
+          Publicado por La Brecha el {formatPostDate(post.created_at)}. Todo dato citado en el texto lleva su
+          fuente.
         </div>
 
         {related.length > 0 && (

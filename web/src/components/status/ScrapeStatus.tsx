@@ -115,10 +115,7 @@ function StatusRow({ run }: { run: ScrapeRun }) {
             flexWrap: "wrap",
           }}
         >
-          <span
-            className="num"
-            style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--ink)" }}
-          >
+          <span className="num" style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--ink)" }}>
             {run.job_name}
           </span>
           <span style={{ fontSize: "0.75rem", color: "var(--ink3)" }}>
@@ -126,12 +123,9 @@ function StatusRow({ run }: { run: ScrapeRun }) {
           </span>
         </div>
         <div style={{ fontSize: "0.75rem", color: "var(--ink2)" }}>
-          {statusLabel(run)} · {(run.rows_upserted ?? 0).toLocaleString("es-AR")} filas ·{" "}
-          {durationLabel(run)}
+          {statusLabel(run)} · {(run.rows_upserted ?? 0).toLocaleString("es-AR")} filas · {durationLabel(run)}
         </div>
-        {isEmpty(run) && (
-          <div style={{ fontSize: "0.6875rem", color: "var(--gap)" }}>{EMPTY_HINT}</div>
-        )}
+        {isEmpty(run) && <div style={{ fontSize: "0.6875rem", color: "var(--gap)" }}>{EMPTY_HINT}</div>}
         {run.error && !isEmpty(run) && (
           <div
             style={{
@@ -201,9 +195,7 @@ export function ScrapeStatus() {
             <span className="num" style={{ fontSize: "1.5rem", fontWeight: 700 }}>
               {total}
             </span>
-            <span style={{ fontSize: "0.75rem", color: "var(--ink3)", marginLeft: 6 }}>
-              conectores
-            </span>
+            <span style={{ fontSize: "0.75rem", color: "var(--ink3)", marginLeft: 6 }}>conectores</span>
           </div>
           <div>
             <span

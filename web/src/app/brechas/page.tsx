@@ -64,8 +64,8 @@ export default function GapsPage() {
                 textWrap: "pretty",
               }}
             >
-              Las discrepancias que seguimos, ordenadas por magnitud. Cada brecha compara dos
-              mediciones del mismo fenómeno y muestra la fuente y la fecha de cada una.
+              Las discrepancias que seguimos, ordenadas por magnitud. Cada brecha compara dos mediciones del
+              mismo fenómeno y muestra la fuente y la fecha de cada una.
             </p>
           </div>
         </section>
@@ -95,9 +95,8 @@ export default function GapsPage() {
                 maxWidth: 660,
               }}
             >
-              Estas no están curadas: salen solas de los datos. Cada vez que dos fuentes publican el
-              mismo indicador para una misma fecha, la discrepancia aparece acá, ordenada por
-              magnitud.
+              Estas no están curadas: salen solas de los datos. Cada vez que dos fuentes publican el mismo
+              indicador para una misma fecha, la discrepancia aparece acá, ordenada por magnitud.
             </p>
             <SourceGapList />
           </div>

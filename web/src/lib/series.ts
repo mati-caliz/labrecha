@@ -31,9 +31,7 @@ export function mergePoints(history: ParsedPoint[], live: ParsedPoint[]): Parsed
   for (const point of live) {
     byDate.set(point.date, point);
   }
-  return Array.from(byDate.values()).sort((a, b) =>
-    a.date < b.date ? -1 : a.date > b.date ? 1 : 0,
-  );
+  return Array.from(byDate.values()).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 }
 
 function downsample(dates: string[], maxPoints: number): string[] {
@@ -96,10 +94,7 @@ function nearestIndex(axis: string[], date: string): number {
       hi = mid;
     }
   }
-  if (
-    lo > 0 &&
-    Math.abs(dateDiff(axis[lo - 1] ?? "", date)) < Math.abs(dateDiff(axis[lo] ?? "", date))
-  ) {
+  if (lo > 0 && Math.abs(dateDiff(axis[lo - 1] ?? "", date)) < Math.abs(dateDiff(axis[lo] ?? "", date))) {
     return lo - 1;
   }
   return lo;

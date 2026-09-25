@@ -2,12 +2,7 @@
 
 import { CARD_STYLE, MONO, sourceColor } from "@/components/indicator/detail/styles";
 import { GAPS } from "@/lib/gaps";
-import {
-  type IndicatorDisplay,
-  SOURCE_METHODOLOGY,
-  formatNumberAR,
-  sourceLabel,
-} from "@/lib/indicators";
+import { type IndicatorDisplay, SOURCE_METHODOLOGY, formatNumberAR, sourceLabel } from "@/lib/indicators";
 import type { IndicatorSourceSummary } from "@/lib/labrechaApi";
 import Link from "next/link";
 
@@ -74,8 +69,7 @@ export function GapPanel({
             lineHeight: 1.35,
           }}
         >
-          de diferencia entre {sourceLabel(firstSource.source)} y {sourceLabel(secondSource.source)}{" "}
-          hoy.
+          de diferencia entre {sourceLabel(firstSource.source)} y {sourceLabel(secondSource.source)} hoy.
         </span>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -124,8 +118,7 @@ export function GapPanel({
           margin: "18px 0 0",
         }}
       >
-        {SOURCE_METHODOLOGY[firstSource.source] ??
-          "Cada fuente publica con su propia metodología y rezago."}
+        {SOURCE_METHODOLOGY[firstSource.source] ?? "Cada fuente publica con su propia metodología y rezago."}
       </p>
     </div>
   );
@@ -156,8 +149,7 @@ export function SourcePanel({ primary }: { primary: IndicatorSourceSummary | und
         }}
       >
         {primary
-          ? (SOURCE_METHODOLOGY[primary.source] ??
-            `Serie publicada por ${sourceLabel(primary.source)}.`)
+          ? (SOURCE_METHODOLOGY[primary.source] ?? `Serie publicada por ${sourceLabel(primary.source)}.`)
           : "Sin datos de fuente."}
       </p>
     </div>

@@ -10,9 +10,7 @@ export function RangeSelector({
   onRangeChange: (range: string) => void;
 }) {
   return (
-    <div
-      style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap", alignItems: "center" }}
-    >
+    <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap", alignItems: "center" }}>
       {RANGE_OPTIONS.map((option) => {
         const active = option === range;
         return (

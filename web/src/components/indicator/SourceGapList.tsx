@@ -89,12 +89,10 @@ function GapRow({ gap, position }: { gap: SourceGap; position: number }) {
           }}
         >
           <span style={{ color: "var(--ink2)" }}>
-            {sourceLabel(gap.higher_source)}{" "}
-            <b style={{ color: "var(--ink)" }}>{indicator.format(higher)}</b>
+            {sourceLabel(gap.higher_source)} <b style={{ color: "var(--ink)" }}>{indicator.format(higher)}</b>
           </span>
           <span style={{ color: "var(--ink2)" }}>
-            {sourceLabel(gap.lower_source)}{" "}
-            <b style={{ color: "var(--ink)" }}>{indicator.format(lower)}</b>
+            {sourceLabel(gap.lower_source)} <b style={{ color: "var(--ink)" }}>{indicator.format(lower)}</b>
           </span>
         </div>
         <div
@@ -119,9 +117,7 @@ function GapRow({ gap, position }: { gap: SourceGap; position: number }) {
           {formatDateAR(gap.date)}
         </div>
         {gap.excluded_sources.length > 0 && (
-          <div
-            style={{ fontFamily: MONO, fontSize: "0.62rem", color: "var(--ink3)", marginTop: 4 }}
-          >
+          <div style={{ fontFamily: MONO, fontSize: "0.62rem", color: "var(--ink3)", marginTop: 4 }}>
             fuera de la comparación:{" "}
             {gap.excluded_sources
               .map((excluded) => `${sourceLabel(excluded.source)} (${excluded.reason})`)
@@ -142,9 +138,7 @@ function GapRow({ gap, position }: { gap: SourceGap; position: number }) {
         >
           {magnitude.headline}
         </div>
-        <div style={{ fontFamily: MONO, fontSize: "0.62rem", color: "var(--ink3)" }}>
-          {magnitude.caption}
-        </div>
+        <div style={{ fontFamily: MONO, fontSize: "0.62rem", color: "var(--ink3)" }}>{magnitude.caption}</div>
       </div>
     </Link>
   );
@@ -175,8 +169,8 @@ export function SourceGapList() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <span style={{ fontFamily: MONO, fontSize: "0.72rem", color: "var(--ink3)" }}>
-        {gaps.length} {gaps.length === 1 ? "indicador medido" : "indicadores medidos"} por más de
-        una fuente · ordenados por discrepancia
+        {gaps.length} {gaps.length === 1 ? "indicador medido" : "indicadores medidos"} por más de una fuente ·
+        ordenados por discrepancia
       </span>
       {gaps.map((gap, index) => (
         <GapRow key={gap.indicator_code} gap={gap} position={index} />

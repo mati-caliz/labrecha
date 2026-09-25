@@ -4,12 +4,7 @@ import { AnnotatedSeriesChart } from "@/components/core";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIndicatorSeries } from "@/hooks/useLabrecha";
 import { COMPARE_BASE, commonMonths, indexToBase } from "@/lib/compare";
-import {
-  INDICATOR_FAMILY_LABELS,
-  INDICATOR_META,
-  formatMonthAR,
-  formatNumberAR,
-} from "@/lib/indicators";
+import { INDICATOR_FAMILY_LABELS, INDICATOR_META, formatMonthAR, formatNumberAR } from "@/lib/indicators";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const MONO = "var(--font-jb-mono)";
@@ -120,9 +115,7 @@ export function IndicatorComparator() {
   const rightIndexed = indexToBase(rightSeries.data?.points ?? [], months);
 
   const step = Math.max(1, Math.ceil(months.length / MAX_X_LABELS));
-  const xLabels = months.map((month, index) =>
-    index % step === 0 ? formatMonthAR(`${month}-01`) : "",
-  );
+  const xLabels = months.map((month, index) => (index % step === 0 ? formatMonthAR(`${month}-01`) : ""));
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -135,8 +128,8 @@ export function IndicatorComparator() {
         <Skeleton className="h-[380px] rounded-[10px]" />
       ) : leftIndexed === null || rightIndexed === null ? (
         <p style={{ fontFamily: "var(--font-serif)", color: "var(--ink2)" }}>
-          Estas dos series no tienen ningún mes medido en común, así que no hay nada honesto que
-          comparar. Probá con otro par.
+          Estas dos series no tienen ningún mes medido en común, así que no hay nada honesto que comparar.
+          Probá con otro par.
         </p>
       ) : (
         <>
@@ -161,9 +154,8 @@ export function IndicatorComparator() {
                 flex: "1 1 100%",
               }}
             >
-              Ambas series arrancan en {COMPARE_BASE} en{" "}
-              {formatMonthAR(`${leftIndexed.baseDate}-01`)} — el índice sólo compara ritmos, no
-              niveles. {months.length} meses en común.
+              Ambas series arrancan en {COMPARE_BASE} en {formatMonthAR(`${leftIndexed.baseDate}-01`)} — el
+              índice sólo compara ritmos, no niveles. {months.length} meses en común.
             </span>
           </div>
 

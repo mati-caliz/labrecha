@@ -123,10 +123,9 @@ export default function TaxImpactPage() {
             title="Cuánto le dejás al Estado"
             footer={
               <span style={{ fontSize: "0.6875rem", color: "var(--ink3)" }}>
-                Estimación. El IVA se calcula al 21% embebido en tus gastos y los Ingresos Brutos a
-                una alícuota provincial representativa del 4%; los aportes de la seguridad social
-                financian tu jubilación y obra social. No incluye impuestos internos ni tasas
-                municipales.
+                Estimación. El IVA se calcula al 21% embebido en tus gastos y los Ingresos Brutos a una
+                alícuota provincial representativa del 4%; los aportes de la seguridad social financian tu
+                jubilación y obra social. No incluye impuestos internos ni tasas municipales.
               </span>
             }
           >
@@ -143,25 +142,15 @@ export default function TaxImpactPage() {
                 }}
               >
                 <div>
-                  <div style={{ fontSize: "0.75rem", fontWeight: 600 }}>
-                    Trabajás para el Estado hasta el
-                  </div>
-                  <div
-                    className="num"
-                    style={{ fontSize: "1.5rem", fontWeight: 600, lineHeight: 1.1 }}
-                  >
+                  <div style={{ fontSize: "0.75rem", fontWeight: 600 }}>Trabajás para el Estado hasta el</div>
+                  <div className="num" style={{ fontSize: "1.5rem", fontWeight: 600, lineHeight: 1.1 }}>
                     {formatFreedomDate(result.tax_freedom_date)}
                   </div>
-                  <div style={{ fontSize: "0.6875rem" }}>
-                    {result.days_for_the_state} días del año
-                  </div>
+                  <div style={{ fontSize: "0.6875rem" }}>{result.days_for_the_state} días del año</div>
                 </div>
                 <div>
                   <div style={{ fontSize: "0.75rem", fontWeight: 600 }}>Presión total</div>
-                  <div
-                    className="num"
-                    style={{ fontSize: "1.5rem", fontWeight: 600, lineHeight: 1.1 }}
-                  >
+                  <div className="num" style={{ fontSize: "1.5rem", fontWeight: 600, lineHeight: 1.1 }}>
                     {formatNumberAR(Number.parseFloat(result.total_pressure), 1)}%
                   </div>
                   <div style={{ fontSize: "0.6875rem" }}>

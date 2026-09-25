@@ -1,10 +1,5 @@
 import { GAPS } from "@/lib/gaps";
-import {
-  DEFAULT_RANGE,
-  INDICATOR_BY_CODE,
-  RANGE_MONTHS,
-  getIndicatorDisplay,
-} from "@/lib/indicators";
+import { DEFAULT_RANGE, INDICATOR_BY_CODE, RANGE_MONTHS, getIndicatorDisplay } from "@/lib/indicators";
 import type { IndicatorSourceSummary } from "@/lib/labrechaApi";
 import {
   congressAttendanceQuery,
@@ -102,9 +97,7 @@ export async function indicatorDetailData(
   const latestDate = latestSourceDate(ordered);
   const dateFrom = rangeDateFrom(latestDate, DEFAULT_RANGE_MONTHS);
   for (const summary of ordered) {
-    queries.push(
-      indicatorSeriesQuery(code, { order: "asc", date_from: dateFrom, source: summary.source }),
-    );
+    queries.push(indicatorSeriesQuery(code, { order: "asc", date_from: dateFrom, source: summary.source }));
   }
   queries.push(politicalEventsQuery({ date_from: dateFrom, date_to: latestDate }));
   queries.push(politicalEventsQuery());

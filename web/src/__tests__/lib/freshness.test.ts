@@ -88,8 +88,7 @@ describe("freshnessForCode", () => {
 
 describe("isTaxScaleOutdated", () => {
   const dayInMs = 86_400_000;
-  const dateDaysAgo = (days: number) =>
-    new Date(TODAY_MS - days * dayInMs).toISOString().slice(0, 10);
+  const dateDaysAgo = (days: number) => new Date(TODAY_MS - days * dayInMs).toISOString().slice(0, 10);
 
   it("trusts a scale that started within the semester", () => {
     expect(isTaxScaleOutdated(dateDaysAgo(TAX_SCALE_MAX_AGE_DAYS), TODAY_MS)).toBe(false);

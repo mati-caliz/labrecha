@@ -59,21 +59,17 @@ function ErrorRow({ event }: { event: ErrorEvent }) {
           alignItems: "baseline",
         }}
       >
-        <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--neg)" }}>
-          {event.kind}
-        </span>
+        <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--neg)" }}>{event.kind}</span>
         <span style={{ fontFamily: MONO, fontSize: "0.68rem", color: "var(--ink3)" }}>
-          {originLabel(event.origin)} · {event.occurrences}{" "}
-          {event.occurrences === 1 ? "vez" : "veces"} · {relativeTime(event.last_seen_at)}
+          {originLabel(event.origin)} · {event.occurrences} {event.occurrences === 1 ? "vez" : "veces"} ·{" "}
+          {relativeTime(event.last_seen_at)}
         </span>
       </div>
       <div style={{ fontSize: "0.8125rem", color: "var(--ink2)", wordBreak: "break-word" }}>
         {event.message}
       </div>
       {event.path === null ? null : (
-        <div style={{ fontFamily: MONO, fontSize: "0.68rem", color: "var(--ink3)" }}>
-          {event.path}
-        </div>
+        <div style={{ fontFamily: MONO, fontSize: "0.68rem", color: "var(--ink3)" }}>{event.path}</div>
       )}
     </div>
   );

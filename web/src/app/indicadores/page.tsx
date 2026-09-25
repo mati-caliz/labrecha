@@ -46,8 +46,8 @@ export default function IndicatorsPage() {
             maxWidth: 560,
           }}
         >
-          Las series económicas y sociales de la Argentina que reúne el observatorio, agrupadas por
-          familia. Cada una abre su serie histórica anotada, con fuente y fecha.
+          Las series económicas y sociales de la Argentina que reúne el observatorio, agrupadas por familia.
+          Cada una abre su serie histórica anotada, con fuente y fecha.
         </p>
       </header>
       <PrefetchedQueries queries={indicatorCatalogQueries()}>

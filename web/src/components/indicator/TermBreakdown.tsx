@@ -22,15 +22,7 @@ function changeColor(change: number, goodWhen: "up" | "down" | "neutral"): strin
   return good ? "var(--pos)" : "var(--neg)";
 }
 
-function TermRow({
-  term,
-  code,
-  widest,
-}: {
-  term: IndicatorTermStat;
-  code: string;
-  widest: number;
-}) {
+function TermRow({ term, code, widest }: { term: IndicatorTermStat; code: string; widest: number }) {
   const indicator = getIndicatorDisplay(code);
   const change = Number.parseFloat(term.change_pct);
   const annualized = term.annualized_pct === null ? null : Number.parseFloat(term.annualized_pct);
@@ -73,9 +65,7 @@ function TermRow({
             overflow: "hidden",
           }}
         >
-          <div
-            style={{ width: `${barWidth}%`, height: "100%", background: color, opacity: 0.85 }}
-          />
+          <div style={{ width: `${barWidth}%`, height: "100%", background: color, opacity: 0.85 }} />
         </div>
         <div style={{ fontFamily: MONO, fontSize: "0.62rem", color: "var(--ink3)", marginTop: 6 }}>
           {indicator.format(Number.parseFloat(term.first_value))} →{" "}
@@ -107,10 +97,7 @@ function TermRow({
 }
 
 export function TermBreakdown({ code, source }: { code: string; source?: string | undefined }) {
-  const { data, isLoading } = useIndicatorTerms(
-    code,
-    source === undefined ? undefined : { source },
-  );
+  const { data, isLoading } = useIndicatorTerms(code, source === undefined ? undefined : { source });
 
   if (isLoading) {
     return <Skeleton className="h-64 w-full rounded-[10px]" />;
@@ -121,10 +108,7 @@ export function TermBreakdown({ code, source }: { code: string; source?: string 
     return null;
   }
 
-  const widest = terms.reduce(
-    (max, term) => Math.max(max, Math.abs(Number.parseFloat(term.change_pct))),
-    0,
-  );
+  const widest = terms.reduce((max, term) => Math.max(max, Math.abs(Number.parseFloat(term.change_pct))), 0);
 
   return (
     <section style={{ marginTop: 44 }}>
@@ -169,8 +153,8 @@ export function TermBreakdown({ code, source }: { code: string; source?: string 
           paddingTop: 14,
         }}
       >
-        {METHOD_NOTE[data.method]} Fuente: {sourceLabel(data.source)}. Cada mandato se recorta a los
-        datos efectivamente disponibles, que pueden empezar después de la asunción.
+        {METHOD_NOTE[data.method]} Fuente: {sourceLabel(data.source)}. Cada mandato se recorta a los datos
+        efectivamente disponibles, que pueden empezar después de la asunción.
       </p>
     </section>
   );

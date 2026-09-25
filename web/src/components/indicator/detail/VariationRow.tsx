@@ -36,9 +36,7 @@ export function VariationRow({
         >
           {label}
         </div>
-        <div style={{ fontFamily: MONO, fontSize: "0.72rem", color: "var(--ink3)" }}>
-          {reference}
-        </div>
+        <div style={{ fontFamily: MONO, fontSize: "0.72rem", color: "var(--ink3)" }}>{reference}</div>
       </div>
       <span
         style={{

@@ -69,10 +69,7 @@ export function SeriesTable({
           >
             <th style={{ textAlign: "left", padding: CELL_PAD, fontWeight: 500 }}>Fecha</th>
             {aligned.lines.map((line) => (
-              <th
-                key={line.source}
-                style={{ textAlign: "right", padding: CELL_PAD, fontWeight: 500 }}
-              >
+              <th key={line.source} style={{ textAlign: "right", padding: CELL_PAD, fontWeight: 500 }}>
                 {sourceLabel(line.source)}
               </th>
             ))}

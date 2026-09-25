@@ -200,17 +200,12 @@ const FILTER_STYLE = (active: boolean): CSSProperties => ({
 
 export function PostsFeed() {
   const [activeFilter, setActiveFilter] = useState<string>(ALL_FILTER);
-  const activeCategory = POST_CATEGORIES.find(
-    (category) => POST_CATEGORY_LABELS[category] === activeFilter,
-  );
+  const activeCategory = POST_CATEGORIES.find((category) => POST_CATEGORY_LABELS[category] === activeFilter);
   const { data, isLoading, isError, error, refetch } = usePosts(
     activeCategory ? { category: activeCategory } : undefined,
   );
 
-  const filterItems = [
-    ALL_FILTER,
-    ...POST_CATEGORIES.map((category) => POST_CATEGORY_LABELS[category]),
-  ];
+  const filterItems = [ALL_FILTER, ...POST_CATEGORIES.map((category) => POST_CATEGORY_LABELS[category])];
   const posts = data ?? [];
   const [featured, ...rest] = posts;
 

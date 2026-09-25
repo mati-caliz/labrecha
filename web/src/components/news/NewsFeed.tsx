@@ -37,15 +37,7 @@ function formatPublished(value: string): string {
   });
 }
 
-function NewsImage({
-  article,
-  ratio,
-  width,
-}: {
-  article: NewsArticle;
-  ratio: string;
-  width?: number;
-}) {
+function NewsImage({ article, ratio, width }: { article: NewsArticle; ratio: string; width?: number }) {
   const [failed, setFailed] = useState(false);
   if (!article.image_url || failed) {
     return null;
@@ -161,9 +153,7 @@ function ListArticle({ article }: { article: NewsArticle }) {
     >
       <NewsImage article={article} ratio="4 / 3" width={104} />
       <div style={{ minWidth: 0 }}>
-        <div
-          style={{ fontFamily: MONO, fontSize: "0.7rem", color: "var(--ink3)", marginBottom: 7 }}
-        >
+        <div style={{ fontFamily: MONO, fontSize: "0.7rem", color: "var(--ink3)", marginBottom: 7 }}>
           {article.source} · {formatPublished(article.published_date)} ·{" "}
           <span style={{ color: "var(--ink2)" }}>{categoryLabel(article.category)}</span>
         </div>
@@ -182,11 +172,7 @@ function ListArticle({ article }: { article: NewsArticle }) {
           }}
         >
           <span>{article.title}</span>
-          <ArrowUpRight
-            size={15}
-            aria-hidden
-            style={{ flexShrink: 0, marginTop: 4, color: "var(--ink3)" }}
-          />
+          <ArrowUpRight size={15} aria-hidden style={{ flexShrink: 0, marginTop: 4, color: "var(--ink3)" }} />
         </h3>
       </div>
     </a>
@@ -268,8 +254,7 @@ export function NewsFeed() {
                       display: "flex",
                       gap: 16,
                       padding: "16px 0",
-                      borderBottom:
-                        index === sidebarList.length - 1 ? "none" : "1px solid var(--line)",
+                      borderBottom: index === sidebarList.length - 1 ? "none" : "1px solid var(--line)",
                       textDecoration: "none",
                     }}
                   >
@@ -342,8 +327,7 @@ export function NewsFeed() {
       </div>
 
       <p style={{ fontFamily: MONO, fontSize: "0.7rem", color: "var(--ink3)", margin: "32px 0 0" }}>
-        Titulares enlazados a la nota original. La Brecha no edita ni reproduce el contenido
-        completo.
+        Titulares enlazados a la nota original. La Brecha no edita ni reproduce el contenido completo.
       </p>
     </div>
   );

@@ -24,9 +24,7 @@ export interface BlocVoteTally {
   total: number;
 }
 
-export function tallyByBloc(
-  details: { bloc: string | null; vote: string | null }[],
-): BlocVoteTally[] {
+export function tallyByBloc(details: { bloc: string | null; vote: string | null }[]): BlocVoteTally[] {
   const byBloc = new Map<string, BlocVoteTally>();
   for (const detail of details) {
     const bloc = detail.bloc ?? "Sin bloque";

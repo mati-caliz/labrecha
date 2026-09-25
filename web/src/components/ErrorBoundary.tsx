@@ -73,8 +73,7 @@ export class ErrorBoundary extends Component<Props, State> {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-400 text-center text-sm">
-                Ha ocurrido un error inesperado. Podés intentar recargar la página o volver al
-                inicio.
+                Ha ocurrido un error inesperado. Podés intentar recargar la página o volver al inicio.
               </p>
 
               {process.env.NODE_ENV === "development" && this.state.error && (

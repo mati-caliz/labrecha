@@ -36,9 +36,7 @@ function LeadIdea({ post }: { post: Post }) {
     <article>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
         <CategoryBadge post={post} />
-        <span
-          style={{ fontFamily: "var(--font-jb-mono)", fontSize: "0.7rem", color: "var(--ink3)" }}
-        >
+        <span style={{ fontFamily: "var(--font-jb-mono)", fontSize: "0.7rem", color: "var(--ink3)" }}>
           {readingTimeMinutes(post.content)} min de lectura
         </span>
       </div>

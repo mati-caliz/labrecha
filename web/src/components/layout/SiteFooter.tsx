@@ -28,9 +28,7 @@ export function SiteFooter() {
   };
 
   return (
-    <footer
-      style={{ borderTop: "1px solid var(--line)", marginTop: 48, background: "var(--surface)" }}
-    >
+    <footer style={{ borderTop: "1px solid var(--line)", marginTop: 48, background: "var(--surface)" }}>
       <div
         style={{
           maxWidth: "var(--container-max)",
@@ -56,8 +54,8 @@ export function SiteFooter() {
               maxWidth: 340,
             }}
           >
-            Observatorio político-económico de la Argentina. Datos abiertos, con fuente y fecha
-            siempre a la vista.
+            Observatorio político-económico de la Argentina. Datos abiertos, con fuente y fecha siempre a la
+            vista.
           </p>
         </div>
         <div>

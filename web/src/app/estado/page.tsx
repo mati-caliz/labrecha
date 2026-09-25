@@ -34,9 +34,8 @@ export default function StatusPage() {
           Estado del observatorio
         </h1>
         <p style={{ fontSize: "0.9375rem", color: "var(--ink3)", margin: 0 }}>
-          La salud del pipeline de datos, a la vista. Cada conector reporta su última corrida:
-          cuándo fue, cuántas filas ingirió y si falló. Un dato viejo se muestra con su fecha; nunca
-          se oculta.
+          La salud del pipeline de datos, a la vista. Cada conector reporta su última corrida: cuándo fue,
+          cuántas filas ingirió y si falló. Un dato viejo se muestra con su fecha; nunca se oculta.
         </p>
       </header>
 

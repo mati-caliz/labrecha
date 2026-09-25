@@ -42,9 +42,7 @@ function groupByFamily(
     if (normalizedQuery.length === 0) {
       return true;
     }
-    const haystack = normalize(
-      `${indicator.indicator_code} ${indicatorLabel(indicator.indicator_code)}`,
-    );
+    const haystack = normalize(`${indicator.indicator_code} ${indicatorLabel(indicator.indicator_code)}`);
     return haystack.includes(normalizedQuery);
   });
 
@@ -73,10 +71,7 @@ function groupByFamily(
   }
   for (const group of groups) {
     group.items.sort((first, second) =>
-      indicatorLabel(first.indicator_code).localeCompare(
-        indicatorLabel(second.indicator_code),
-        "es",
-      ),
+      indicatorLabel(first.indicator_code).localeCompare(indicatorLabel(second.indicator_code), "es"),
     );
   }
   return groups;
@@ -236,11 +231,7 @@ export function IndicatorCatalog() {
           }}
         />
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          <button
-            type="button"
-            onClick={() => setFamily(null)}
-            style={filterStyle(family === null)}
-          >
+          <button type="button" onClick={() => setFamily(null)} style={filterStyle(family === null)}>
             {ALL_FILTER}
           </button>
           {INDICATOR_FAMILY_ORDER.map((familyKey) => (
@@ -256,12 +247,8 @@ export function IndicatorCatalog() {
         </div>
       </div>
 
-      <p
-        style={{ fontFamily: MONO, fontSize: "0.72rem", color: "var(--ink3)", margin: "0 0 26px" }}
-      >
-        {query.trim().length > 0 || family
-          ? `${shown} de ${total} indicadores`
-          : `${total} indicadores`}
+      <p style={{ fontFamily: MONO, fontSize: "0.72rem", color: "var(--ink3)", margin: "0 0 26px" }}>
+        {query.trim().length > 0 || family ? `${shown} de ${total} indicadores` : `${total} indicadores`}
       </p>
 
       {groups.length === 0 && (

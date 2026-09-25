@@ -26,10 +26,7 @@ function evictIdleClients(nowMs: number): void {
   }
 }
 
-export function blockedRetryAfterSeconds(
-  client: string,
-  nowMs: number = Date.now(),
-): number | null {
+export function blockedRetryAfterSeconds(client: string, nowMs: number = Date.now()): number | null {
   const recent = recentFailures(client, nowMs);
   if (recent.length < MAX_FAILED_ATTEMPTS) {
     return null;

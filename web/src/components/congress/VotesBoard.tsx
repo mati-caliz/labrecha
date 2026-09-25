@@ -280,9 +280,7 @@ export function VotesBoard() {
   const featured = votes[0];
   if (!featured) {
     return (
-      <p style={{ fontFamily: "var(--font-serif)", color: "var(--ink2)" }}>
-        No hay votaciones para mostrar.
-      </p>
+      <p style={{ fontFamily: "var(--font-serif)", color: "var(--ink2)" }}>No hay votaciones para mostrar.</p>
     );
   }
 

@@ -65,8 +65,8 @@ export function DeputiesComposition() {
       footer={
         <span style={{ fontSize: "0.6875rem", color: "var(--ink3)" }}>
           Bancas y bloques según la última votación nominal registrada
-          {latestVote.date ? ` (${formatDateAR(latestVote.date)})` : ""}. Fuente: Cámara de
-          Diputados (datos abiertos).
+          {latestVote.date ? ` (${formatDateAR(latestVote.date)})` : ""}. Fuente: Cámara de Diputados (datos
+          abiertos).
         </span>
       }
     >

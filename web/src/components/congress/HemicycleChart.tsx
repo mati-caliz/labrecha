@@ -56,10 +56,7 @@ function distributeSeatsByRow(total: number, rowRadii: number[]): number[] {
 function computeSeatPositions(total: number): SeatPosition[] {
   const rows = Math.max(MIN_ROWS, Math.round(Math.sqrt(total / SEATS_PER_ROW_UNIT)));
   const rowSeparation = rows > 1 ? (OUTER_RADIUS - INNER_RADIUS) / (rows - 1) : 0;
-  const rowRadii = Array.from(
-    { length: rows },
-    (_, rowNumber) => INNER_RADIUS + rowNumber * rowSeparation,
-  );
+  const rowRadii = Array.from({ length: rows }, (_, rowNumber) => INNER_RADIUS + rowNumber * rowSeparation);
   const seatsPerRow = distributeSeatsByRow(total, rowRadii);
 
   const minArcSpacing = Math.min(
@@ -69,8 +66,7 @@ function computeSeatPositions(total: number): SeatPosition[] {
         : Number.POSITIVE_INFINITY,
     ),
   );
-  const seatRadius =
-    SEAT_RADIUS_FACTOR * Math.min(rows > 1 ? rowSeparation : minArcSpacing, minArcSpacing);
+  const seatRadius = SEAT_RADIUS_FACTOR * Math.min(rows > 1 ? rowSeparation : minArcSpacing, minArcSpacing);
 
   const positions: SeatPosition[] = [];
   rowRadii.forEach((radius, rowNumber) => {
@@ -98,10 +94,7 @@ export function BlocLegend({ blocs }: { blocs: HemicycleBloc[] }) {
       }}
     >
       {blocs.map((bloc) => (
-        <div
-          key={bloc.name}
-          style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.8125rem" }}
-        >
+        <div key={bloc.name} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.8125rem" }}>
           <span
             style={{
               width: 10,

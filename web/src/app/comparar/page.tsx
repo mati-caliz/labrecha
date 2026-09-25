@@ -22,9 +22,7 @@ export default function ComparePage() {
         gap: "var(--sp-6)",
       }}
     >
-      <JsonLd
-        data={breadcrumbStructuredData([{ name: "Comparar indicadores", path: "/comparar" }])}
-      />
+      <JsonLd data={breadcrumbStructuredData([{ name: "Comparar indicadores", path: "/comparar" }])} />
       <header style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         <h1
           style={{
@@ -45,9 +43,9 @@ export default function ComparePage() {
             maxWidth: "60ch",
           }}
         >
-          Dos series en el mismo eje, las dos arrancando en 100 en el primer mes que ambas midieron.
-          Así se ve quién le ganó a quién sin que la diferencia de escala confunda: el salario
-          contra la inflación, la jubilación contra la canasta, el dólar contra los precios.
+          Dos series en el mismo eje, las dos arrancando en 100 en el primer mes que ambas midieron. Así se ve
+          quién le ganó a quién sin que la diferencia de escala confunda: el salario contra la inflación, la
+          jubilación contra la canasta, el dólar contra los precios.
         </p>
       </header>
 

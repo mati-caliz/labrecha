@@ -72,9 +72,9 @@ export function HomeHero() {
               textWrap: "pretty",
             }}
           >
-            Reunimos los indicadores dispersos de la Argentina —INDEC, BCRA, el Congreso,
-            consultoras— en un solo lugar. Marcamos las series con los hechos políticos que las
-            movieron y exponemos la brecha cuando dos fuentes miden distinto.
+            Reunimos los indicadores dispersos de la Argentina —INDEC, BCRA, el Congreso, consultoras— en un
+            solo lugar. Marcamos las series con los hechos políticos que las movieron y exponemos la brecha
+            cuando dos fuentes miden distinto.
           </p>
         </div>
         <div

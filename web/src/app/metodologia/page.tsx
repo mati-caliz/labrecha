@@ -81,80 +81,78 @@ export default function MethodologyPage() {
             maxWidth: 640,
           }}
         >
-          Un observatorio sirve si se puede auditar. Acá está de dónde sale cada serie, cada cuánto
-          se actualiza, cómo se calculan las brechas y qué límites tienen los datos.
+          Un observatorio sirve si se puede auditar. Acá está de dónde sale cada serie, cada cuánto se
+          actualiza, cómo se calculan las brechas y qué límites tienen los datos.
         </p>
       </header>
 
       <section style={{ display: "flex", flexDirection: "column", gap: 20, marginBottom: 52 }}>
         <Rule title="Ningún dato se muestra sin fuente y fecha">
-          Es la regla dura del proyecto. Cada valor del sitio se publica junto con la fuente que lo
-          midió y la fecha a la que corresponde. Si un dato está viejo, se muestra viejo con su
-          fecha: nunca se completa ni se estima en silencio.
+          Es la regla dura del proyecto. Cada valor del sitio se publica junto con la fuente que lo midió y la
+          fecha a la que corresponde. Si un dato está viejo, se muestra viejo con su fecha: nunca se completa
+          ni se estima en silencio.
         </Rule>
         <Rule title="La brecha entre fuentes se calcula sobre la misma fecha">
-          Cuando dos fuentes publican el mismo indicador, se busca la fecha más reciente en la que
-          las dos midieron, y se comparan esos valores. La discrepancia se expresa como cuánto más
-          alto está el valor mayor respecto del menor. Comparar el último dato de cada fuente sin
-          alinear fechas mezclaría cadencias distintas y exageraría la brecha.
+          Cuando dos fuentes publican el mismo indicador, se busca la fecha más reciente en la que las dos
+          midieron, y se comparan esos valores. La discrepancia se expresa como cuánto más alto está el valor
+          mayor respecto del menor. Comparar el último dato de cada fuente sin alinear fechas mezclaría
+          cadencias distintas y exageraría la brecha.
         </Rule>
         <Rule title="Las brechas curadas comparan indicadores distintos">
-          La brecha cambiaria (blue contra oficial) o la inflación esperada contra la medida no son
-          la misma serie medida dos veces: son dos indicadores que tiene sentido enfrentar. Esas
-          están definidas a mano. Las que salen solas de los datos aparecen por separado.
+          La brecha cambiaria (blue contra oficial) o la inflación esperada contra la medida no son la misma
+          serie medida dos veces: son dos indicadores que tiene sentido enfrentar. Esas están definidas a
+          mano. Las que salen solas de los datos aparecen por separado.
         </Rule>
         <Rule title="Por gestión: se compone, no se suma">
-          En las series que son tasas mensuales, como la inflación, la variación de un mandato se
-          calcula componiendo mes a mes, no sumando los porcentajes. En las series de nivel, como
-          las reservas, se compara el primer dato con el último dentro del período. Cada tabla
-          aclara cuál de los dos métodos usó.
+          En las series que son tasas mensuales, como la inflación, la variación de un mandato se calcula
+          componiendo mes a mes, no sumando los porcentajes. En las series de nivel, como las reservas, se
+          compara el primer dato con el último dentro del período. Cada tabla aclara cuál de los dos métodos
+          usó.
         </Rule>
         <Rule title="Los mandatos se recortan a los datos que existen">
-          Un período de gobierno se muestra desde el primer dato disponible dentro del mandato, que
-          puede ser posterior a la asunción, hasta el último. Por eso las fechas de cada fila no
-          siempre coinciden con las de la asunción y la entrega.
+          Un período de gobierno se muestra desde el primer dato disponible dentro del mandato, que puede ser
+          posterior a la asunción, hasta el último. Por eso las fechas de cada fila no siempre coinciden con
+          las de la asunción y la entrega.
         </Rule>
         <Rule title="El histórico oficial tiene un agujero conocido">
-          Entre 2007 y 2015 el INDEC estuvo intervenido y sus índices de precios fueron
-          cuestionados. Las series que provienen de estadísticas oficiales de ese período reflejan
-          esa medición, no una corrección nuestra. Mostrar la discrepancia entre mediciones, en vez
-          de elegir una, es justamente el punto del sitio.
+          Entre 2007 y 2015 el INDEC estuvo intervenido y sus índices de precios fueron cuestionados. Las
+          series que provienen de estadísticas oficiales de ese período reflejan esa medición, no una
+          corrección nuestra. Mostrar la discrepancia entre mediciones, en vez de elegir una, es justamente el
+          punto del sitio.
         </Rule>
         <Rule title="La brecha automática sólo compara la misma unidad">
-          El ranking de discrepancias que sale solo de los datos exige que las dos mediciones
-          declaren la misma unidad. Si una fuente publica en millones y otra en unidades, o si una
-          no declara unidad, queda afuera de la comparación y se lista aparte con el motivo: una
-          brecha de escala no es una brecha de medición.
+          El ranking de discrepancias que sale solo de los datos exige que las dos mediciones declaren la
+          misma unidad. Si una fuente publica en millones y otra en unidades, o si una no declara unidad,
+          queda afuera de la comparación y se lista aparte con el motivo: una brecha de escala no es una
+          brecha de medición.
         </Rule>
         <Rule title="Un hueco en la serie se dibuja como hueco">
-          Cuando una fuente todavía no empezó a medir, o dejó de hacerlo, el gráfico corta la línea
-          en vez de estirar el primer o el último valor conocido. La banda ámbar de brecha sólo se
-          pinta donde las dos fuentes midieron de verdad. Un dato mensual sí se mantiene vigente
-          hasta la medición siguiente, que es lo que significa una serie mensual.
+          Cuando una fuente todavía no empezó a medir, o dejó de hacerlo, el gráfico corta la línea en vez de
+          estirar el primer o el último valor conocido. La banda ámbar de brecha sólo se pinta donde las dos
+          fuentes midieron de verdad. Un dato mensual sí se mantiene vigente hasta la medición siguiente, que
+          es lo que significa una serie mensual.
         </Rule>
         <Rule title="Hay series que calculamos nosotros">
-          Algunas series no las publica nadie: las derivamos de otras dos que sí son oficiales y las
-          marcamos con la fuente <b>La Brecha (calculado)</b>. El salario mínimo y la jubilación
-          mínima a precios constantes se deflactan por el IPC nivel general contra un{" "}
-          <b>mes base fijo</b>, elegido en el código y publicado en cada gráfico ("pesos de …"): con
-          base móvil, cada corrida reescribía toda la serie y un CSV descargado el mes pasado dejaba
-          de coincidir con el de hoy. El dólar de convertibilidad es la base monetaria dividida por
-          las reservas, ambas del BCRA, tomando el último dato de reservas anterior o igual a la
-          fecha de la base monetaria —las dos series se publican con cadencias distintas— y su
-          metadata guarda qué día de reservas se usó.
+          Algunas series no las publica nadie: las derivamos de otras dos que sí son oficiales y las marcamos
+          con la fuente <b>La Brecha (calculado)</b>. El salario mínimo y la jubilación mínima a precios
+          constantes se deflactan por el IPC nivel general contra un <b>mes base fijo</b>, elegido en el
+          código y publicado en cada gráfico ("pesos de …"): con base móvil, cada corrida reescribía toda la
+          serie y un CSV descargado el mes pasado dejaba de coincidir con el de hoy. El dólar de
+          convertibilidad es la base monetaria dividida por las reservas, ambas del BCRA, tomando el último
+          dato de reservas anterior o igual a la fecha de la base monetaria —las dos series se publican con
+          cadencias distintas— y su metadata guarda qué día de reservas se usó.
         </Rule>
         <Rule title="Las reservas netas no están porque nadie las publica">
-          El BCRA publica reservas brutas. Las netas —descontando el swap con China, los encajes en
-          dólares y los repos— son una estimación de analistas, no una serie oficial, y cada
-          consultora usa un criterio distinto. Preferimos no inventar un número antes que publicar
-          una estimación propia disfrazada de dato.
+          El BCRA publica reservas brutas. Las netas —descontando el swap con China, los encajes en dólares y
+          los repos— son una estimación de analistas, no una serie oficial, y cada consultora usa un criterio
+          distinto. Preferimos no inventar un número antes que publicar una estimación propia disfrazada de
+          dato.
         </Rule>
         <Rule title="El pipeline se puede auditar">
-          Cada corrida de cada conector queda registrada con su estado, las filas que ingirió y el
-          error si falló. Está publicado en <b>/estado</b>: si una serie se congeló, se ve ahí. Una
-          corrida que termina sin excepción pero no trae filas no cuenta como exitosa: se marca{" "}
-          <b>sin datos</b> en ámbar y dispara la misma alerta que un error, porque un scraper mudo
-          es indistinguible de un scraper roto.
+          Cada corrida de cada conector queda registrada con su estado, las filas que ingirió y el error si
+          falló. Está publicado en <b>/estado</b>: si una serie se congeló, se ve ahí. Una corrida que termina
+          sin excepción pero no trae filas no cuenta como exitosa: se marca <b>sin datos</b> en ámbar y
+          dispara la misma alerta que un error, porque un scraper mudo es indistinguible de un scraper roto.
         </Rule>
       </section>
 
@@ -182,8 +180,8 @@ export default function MethodologyPage() {
               maxWidth: 620,
             }}
           >
-            Cobertura real de cada serie, tomada de la base en este momento. El ◆ marca los
-            indicadores que tienen más de una fuente y por lo tanto una brecha para comparar.
+            Cobertura real de cada serie, tomada de la base en este momento. El ◆ marca los indicadores que
+            tienen más de una fuente y por lo tanto una brecha para comparar.
           </p>
         </header>
         <PrefetchedQueries queries={methodologyQueries()}>

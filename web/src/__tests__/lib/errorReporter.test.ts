@@ -27,9 +27,7 @@ describe("buildErrorReport", () => {
 
   it("nunca manda un mensaje vacío, porque el schema de la API lo rechaza", () => {
     expect(buildErrorReport("web-browser", errorWithMessage("")).message).toBe("error sin mensaje");
-    expect(buildErrorReport("web-browser", errorWithMessage("   ")).message).toBe(
-      "error sin mensaje",
-    );
+    expect(buildErrorReport("web-browser", errorWithMessage("   ")).message).toBe("error sin mensaje");
   });
 
   it("recorta los campos a los topes que acepta la API", () => {

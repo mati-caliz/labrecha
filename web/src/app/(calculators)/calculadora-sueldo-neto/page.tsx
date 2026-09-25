@@ -48,12 +48,7 @@ function ScaleAttribution({ scale }: { scale: IncomeTaxScaleInfo }) {
       <span style={{ fontSize: "0.6875rem", color: "var(--ink3)" }}>
         Cálculo estimativo con la escala y las deducciones de Ganancias del período{" "}
         <b>{scale.period_label}</b> (vigentes desde {formatDateAR(scale.effective_from)}). Fuente:{" "}
-        <a
-          href={scale.source_url}
-          target="_blank"
-          rel="noreferrer"
-          style={{ color: "var(--ink2)" }}
-        >
+        <a href={scale.source_url} target="_blank" rel="noreferrer" style={{ color: "var(--ink2)" }}>
           {scale.source}
         </a>
       </span>
@@ -201,15 +196,13 @@ export default function IncomeTaxPage() {
                   { key: "concepto", label: "Descuento" },
                   { key: "monto", label: "Mensual", align: "right", numeric: true },
                 ]}
-                rows={DEDUCTION_LABELS.filter((item) => result.deduction_breakdown[item.key]).map(
-                  (item) => ({
-                    id: item.key,
-                    cells: [
-                      item.label,
-                      formatMoneyAR(Number.parseFloat(result.deduction_breakdown[item.key] ?? "0")),
-                    ],
-                  }),
-                )}
+                rows={DEDUCTION_LABELS.filter((item) => result.deduction_breakdown[item.key]).map((item) => ({
+                  id: item.key,
+                  cells: [
+                    item.label,
+                    formatMoneyAR(Number.parseFloat(result.deduction_breakdown[item.key] ?? "0")),
+                  ],
+                }))}
               />
             </div>
           </Card>

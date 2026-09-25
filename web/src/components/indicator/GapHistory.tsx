@@ -52,8 +52,7 @@ function Milestone({
         {magnitude.headline}
       </span>
       <span style={{ fontFamily: MONO, fontSize: "0.68rem", color: "var(--ink3)" }}>
-        {formatDateAR(point.date)} · {sourceLabel(point.higher_source)} vs{" "}
-        {sourceLabel(point.lower_source)}
+        {formatDateAR(point.date)} · {sourceLabel(point.higher_source)} vs {sourceLabel(point.lower_source)}
       </span>
     </div>
   );
@@ -61,9 +60,7 @@ function Milestone({
 
 function xLabels(points: GapHistoryPoint[]): string[] {
   const step = Math.max(1, Math.ceil(points.length / MAX_X_LABELS));
-  return points.map((point, index) =>
-    index % step === 0 ? formatDateAR(point.date).slice(0, 5) : "",
-  );
+  return points.map((point, index) => (index % step === 0 ? formatDateAR(point.date).slice(0, 5) : ""));
 }
 
 export function GapHistory({ code }: { code: string }) {
@@ -92,9 +89,8 @@ export function GapHistory({ code }: { code: string }) {
           La brecha en el tiempo
         </h2>
         <p style={{ fontFamily: "var(--font-serif)", color: "var(--ink2)", margin: 0 }}>
-          Cuánto se separaron las fuentes que miden este indicador, en cada fecha en que midieron
-          las dos. {data.points.length} fechas comparables desde{" "}
-          {formatDateAR(data.points[0]?.date ?? "")}.
+          Cuánto se separaron las fuentes que miden este indicador, en cada fecha en que midieron las dos.{" "}
+          {data.points.length} fechas comparables desde {formatDateAR(data.points[0]?.date ?? "")}.
         </p>
       </div>
 
@@ -110,12 +106,7 @@ export function GapHistory({ code }: { code: string }) {
         }}
       >
         <Milestone caption="La más ancha" point={data.widest} unit={data.unit} emphasis />
-        <Milestone
-          caption="La más angosta"
-          point={data.narrowest}
-          unit={data.unit}
-          emphasis={false}
-        />
+        <Milestone caption="La más angosta" point={data.narrowest} unit={data.unit} emphasis={false} />
         <Milestone caption="La última" point={data.latest} unit={data.unit} emphasis={false} />
       </div>
 

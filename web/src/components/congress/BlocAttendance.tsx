@@ -24,8 +24,8 @@ export function BlocAttendance() {
       subtitle="Cuántas veces estuvieron presentes en las votaciones nominales de cada cámara"
       footer={
         <span style={{ fontSize: "0.6875rem", color: "var(--ink3)" }}>
-          Presentismo = votos no ausentes sobre el total, por bloque y por cámara. Bloques con al
-          menos 1.000 votos registrados. Fuentes: HCDN y Senado de la Nación.
+          Presentismo = votos no ausentes sobre el total, por bloque y por cámara. Bloques con al menos 1.000
+          votos registrados. Fuentes: HCDN y Senado de la Nación.
         </span>
       }
     >
@@ -34,10 +34,7 @@ export function BlocAttendance() {
           const pct = Number.parseFloat(row.attendance_pct);
           const fill = Math.min(100, Math.max(0, pct));
           return (
-            <div
-              key={`${row.chamber}-${row.bloc}`}
-              style={{ display: "flex", alignItems: "center", gap: 8 }}
-            >
+            <div key={`${row.chamber}-${row.bloc}`} style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span
                 title={`${row.bloc} · ${chamberLabel(row.chamber)}`}
                 style={{
@@ -70,8 +67,7 @@ export function BlocAttendance() {
                     width: `${fill}%`,
                     height: "100%",
                     borderRadius: 3,
-                    background:
-                      pct >= 85 ? "var(--pos)" : pct >= 75 ? "var(--serie-1)" : "var(--neg)",
+                    background: pct >= 85 ? "var(--pos)" : pct >= 75 ? "var(--serie-1)" : "var(--neg)",
                   }}
                 />
               </div>

@@ -31,11 +31,7 @@ interface Row {
 function buildRow(indicator: IndicatorSummary): Row {
   const freshness = freshnessForCode(indicator.indicator_code, indicator.last_date);
   const limit = MAX_AGE_DAYS[freshness.cadence];
-  const health: Health = freshness.stale
-    ? "stale"
-    : freshness.days > limit * LATE_RATIO
-      ? "late"
-      : "ok";
+  const health: Health = freshness.stale ? "stale" : freshness.days > limit * LATE_RATIO ? "late" : "ok";
   return { indicator, health, days: freshness.days, cadence: freshness.cadence, limit };
 }
 
@@ -177,9 +173,8 @@ export function FreshnessBoard() {
           paddingTop: 14,
         }}
       >
-        La tolerancia sale de la cadencia esperada de cada serie: una diaria se considera congelada
-        mucho antes que una anual. Un dato viejo se muestra igual, con su fecha; nunca se completa
-        ni se estima.
+        La tolerancia sale de la cadencia esperada de cada serie: una diaria se considera congelada mucho
+        antes que una anual. Un dato viejo se muestra igual, con su fecha; nunca se completa ni se estima.
       </p>
     </section>
   );

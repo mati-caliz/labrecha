@@ -3,12 +3,7 @@ import { CHAMBER_DEPUTIES } from "@/lib/chambers";
 export const HERO_CODE = "cpi_monthly";
 export const HERO_SOURCE = "argentinadatos";
 export const HERO_POINTS = 24;
-export const TILE_CODES = [
-  "dollar_official",
-  "country_risk",
-  "international_reserves",
-  "unemployment",
-];
+export const TILE_CODES = ["dollar_official", "country_risk", "international_reserves", "unemployment"];
 export const TEASER_CODES = ["international_reserves", "cpi_monthly", "dollar_official"];
 
 export const HOME_POSTS_PARAMS = { limit: 4 } as const;

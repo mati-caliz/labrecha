@@ -48,8 +48,7 @@ const STATIC_COMMANDS: Command[] = [
     title: "Brechas entre mediciones",
     subtitle: "Cambiaria, financiera, inflación esperada, reservas",
     href: "/brechas",
-    keywords:
-      "brecha cambiaria financiera dolar blue mep reservas inflacion esperada rem comparador",
+    keywords: "brecha cambiaria financiera dolar blue mep reservas inflacion esperada rem comparador",
     icon: <Scale className="h-4 w-4" />,
   },
   {

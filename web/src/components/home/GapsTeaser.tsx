@@ -12,9 +12,7 @@ function GapItem({ code }: { code: string }) {
   if (sources.length < 2) {
     return null;
   }
-  const [firstValue = 0, secondValue = 0] = sources.map((source) =>
-    Number.parseFloat(source.latest_value),
-  );
+  const [firstValue = 0, secondValue = 0] = sources.map((source) => Number.parseFloat(source.latest_value));
   const base = Math.max(Math.abs(firstValue), Math.abs(secondValue)) || 1;
   const gapPct = (Math.abs(firstValue - secondValue) / base) * 100;
 
@@ -53,9 +51,7 @@ function GapItem({ code }: { code: string }) {
         {sources.map((source, index) => (
           <span key={source.source}>
             {sourceLabel(source.source)}{" "}
-            <b style={{ color: "var(--ink)" }}>
-              {indicator.format(index === 0 ? firstValue : secondValue)}
-            </b>
+            <b style={{ color: "var(--ink)" }}>{indicator.format(index === 0 ? firstValue : secondValue)}</b>
             {index === 0 ? " · " : ""}
           </span>
         ))}
@@ -96,8 +92,8 @@ export function GapsTeaser() {
                 margin: "10px 0 0",
               }}
             >
-              Cuando un mismo dato lo miden dos fuentes distintas, casi nunca coinciden. Estas son
-              algunas de las discrepancias de hoy.
+              Cuando un mismo dato lo miden dos fuentes distintas, casi nunca coinciden. Estas son algunas de
+              las discrepancias de hoy.
             </p>
           </div>
           <a

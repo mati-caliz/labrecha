@@ -16,9 +16,7 @@ export async function PrefetchedQueries({
 }) {
   const queryClient = createQueryClient();
   await Promise.all(
-    queries.map((query) =>
-      queryClient.prefetchQuery({ queryKey: query.queryKey, queryFn: query.queryFn }),
-    ),
+    queries.map((query) => queryClient.prefetchQuery({ queryKey: query.queryKey, queryFn: query.queryFn })),
   );
   return <HydrationBoundary state={dehydrate(queryClient)}>{children}</HydrationBoundary>;
 }

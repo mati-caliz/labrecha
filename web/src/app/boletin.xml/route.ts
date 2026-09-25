@@ -38,10 +38,7 @@ function itemXml(summary: GazetteSummary): string {
 export async function GET() {
   let summaries: GazetteSummary[] = [];
   try {
-    summaries = await serverGet<GazetteSummary[]>(
-      "/gazette/summaries?limit=50",
-      REVALIDATE_SECONDS,
-    );
+    summaries = await serverGet<GazetteSummary[]>("/gazette/summaries?limit=50", REVALIDATE_SECONDS);
   } catch {
     summaries = [];
   }

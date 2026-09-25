@@ -73,11 +73,7 @@ function measuredTogether(first: SeriesPoint[], second: SeriesPoint[]): number[]
   return segments;
 }
 
-function gapAreaPath(
-  first: SeriesPoint[],
-  second: SeriesPoint[],
-  project: Projection,
-): string | null {
+function gapAreaPath(first: SeriesPoint[], second: SeriesPoint[], project: Projection): string | null {
   const subpaths = measuredTogether(first, second).map((segment) => {
     const forward = segment.map((index) => project(index, first[index]?.v ?? 0));
     const back = [...segment].reverse().map((index) => project(index, second[index]?.v ?? 0));
@@ -119,9 +115,7 @@ export function AnnotatedSeriesChart({
   const firstSeries = series[0];
   const secondSeries = series[1];
   const gapArea =
-    gapFill && firstSeries && secondSeries
-      ? gapAreaPath(firstSeries.data, secondSeries.data, project)
-      : null;
+    gapFill && firstSeries && secondSeries ? gapAreaPath(firstSeries.data, secondSeries.data, project) : null;
 
   const onMove = (event: MouseEvent<SVGSVGElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -142,14 +136,7 @@ export function AnnotatedSeriesChart({
       >
         {ticks.map((t) => (
           <g key={`grid-${t}`}>
-            <line
-              x1={padL}
-              x2={W - padR}
-              y1={Y(t)}
-              y2={Y(t)}
-              stroke="var(--line2)"
-              strokeWidth="1"
-            />
+            <line x1={padL} x2={W - padR} y1={Y(t)} y2={Y(t)} stroke="var(--line2)" strokeWidth="1" />
             <text
               x={padL - 8}
               y={Y(t) + 3}
@@ -215,14 +202,7 @@ export function AnnotatedSeriesChart({
         ))}
         {hover !== null && (
           <g>
-            <line
-              x1={X(hover)}
-              x2={X(hover)}
-              y1={padT}
-              y2={H - padB}
-              stroke="var(--ink3)"
-              strokeWidth="1"
-            />
+            <line x1={X(hover)} x2={X(hover)} y1={padT} y2={H - padB} stroke="var(--ink3)" strokeWidth="1" />
             {series.map((s, si) => {
               const value = s.data[hover]?.v;
               return value === null || value === undefined ? null : (
@@ -280,9 +260,7 @@ export function AnnotatedSeriesChart({
                     color: "var(--ink2)",
                   }}
                 >
-                  <span
-                    style={{ width: 8, height: 2, background: s.color || `var(--serie-${si + 1})` }}
-                  />
+                  <span style={{ width: 8, height: 2, background: s.color || `var(--serie-${si + 1})` }} />
                   {s.name}
                 </span>
                 <b className="num" style={value === null ? { color: "var(--ink3)" } : undefined}>
@@ -320,10 +298,7 @@ export function AnnotatedSeriesChart({
         }}
       >
         {series.map((s, si) => (
-          <span
-            key={`legend-${s.name}`}
-            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-          >
+          <span key={`legend-${s.name}`} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
             <span
               style={{
                 width: 14,

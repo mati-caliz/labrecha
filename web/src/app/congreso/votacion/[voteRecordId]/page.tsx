@@ -5,8 +5,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Votación - La Brecha",
-  description:
-    "Detalle de una votación nominal del Congreso, con el voto de cada bloque.",
+  description: "Detalle de una votación nominal del Congreso, con el voto de cada bloque.",
 };
 
 interface VotePageProps {

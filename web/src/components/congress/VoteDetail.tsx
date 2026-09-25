@@ -50,9 +50,7 @@ export function VoteDetail({ voteRecordId }: VoteDetailProps) {
 
   return (
     <div style={{ maxWidth: 900, margin: "0 auto", padding: "28px 24px 72px" }}>
-      <div
-        style={{ fontFamily: MONO, fontSize: "0.72rem", color: "var(--ink3)", marginBottom: 22 }}
-      >
+      <div style={{ fontFamily: MONO, fontSize: "0.72rem", color: "var(--ink3)", marginBottom: 22 }}>
         <Link href="/congreso" style={{ color: "var(--ink3)", textDecoration: "none" }}>
           Congreso
         </Link>{" "}

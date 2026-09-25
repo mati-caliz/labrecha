@@ -39,11 +39,7 @@ export function useIndicatorSeries(code: string, params?: IndicatorSeriesParams)
   return useQuery({ ...indicatorSeriesQuery(code, params), enabled: Boolean(code) });
 }
 
-export function useIndicatorSeriesMulti(
-  code: string,
-  sources: string[],
-  params?: IndicatorSeriesParams,
-) {
+export function useIndicatorSeriesMulti(code: string, sources: string[], params?: IndicatorSeriesParams) {
   return useQueries({
     queries: sources.map((source) => ({
       ...indicatorSeriesQuery(code, { ...params, source }),
@@ -98,10 +94,7 @@ export function useCongressVote(voteRecordId: string) {
   return useQuery({ ...congressVoteQuery(voteRecordId), enabled: Boolean(voteRecordId) });
 }
 
-export function useCongressVoteDetails(
-  voteRecordId: string,
-  params?: { vote?: string; bloc?: string },
-) {
+export function useCongressVoteDetails(voteRecordId: string, params?: { vote?: string; bloc?: string }) {
   return useQuery({
     ...congressVoteDetailsQuery(voteRecordId, params),
     enabled: Boolean(voteRecordId),
@@ -120,12 +113,7 @@ export function useHolidays(params?: { year?: number; date_from?: string; date_t
   return useQuery(holidaysQuery(params));
 }
 
-export function useNews(params?: {
-  source?: string;
-  category?: string;
-  limit?: number;
-  offset?: number;
-}) {
+export function useNews(params?: { source?: string; category?: string; limit?: number; offset?: number }) {
   return useQuery(newsQuery(params));
 }
 
@@ -137,11 +125,7 @@ export function usePost(slug: string) {
   return useQuery({ ...postQuery(slug), enabled: Boolean(slug) });
 }
 
-export function useBoletinSummaries(params?: {
-  category?: string;
-  limit?: number;
-  offset?: number;
-}) {
+export function useBoletinSummaries(params?: { category?: string; limit?: number; offset?: number }) {
   return useQuery(gazetteSummariesQuery(params));
 }
 

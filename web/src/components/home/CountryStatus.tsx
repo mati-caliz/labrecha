@@ -122,15 +122,11 @@ function StatTile({ code }: { code: string }) {
       >
         {indicator.format(latestValue)}
         {indicator.unit ? (
-          <span style={{ fontSize: "0.8rem", color: "var(--ink3)", marginLeft: 4 }}>
-            {indicator.unit}
-          </span>
+          <span style={{ fontSize: "0.8rem", color: "var(--ink3)", marginLeft: 4 }}>{indicator.unit}</span>
         ) : null}
       </div>
       <MiniSparkline data={ascending} style={{ margin: "8px 0 6px" }} />
-      <div
-        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}
-      >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
         <span
           style={{
             fontFamily: "var(--font-jb-mono)",
@@ -140,9 +136,7 @@ function StatTile({ code }: { code: string }) {
         >
           {variation?.text ?? ""}
         </span>
-        <span
-          style={{ fontFamily: "var(--font-jb-mono)", fontSize: "0.62rem", color: "var(--ink3)" }}
-        >
+        <span style={{ fontFamily: "var(--font-jb-mono)", fontSize: "0.62rem", color: "var(--ink3)" }}>
           {sourceLabel(latest.source)} · {formatDateAR(latest.date)}
         </span>
       </div>

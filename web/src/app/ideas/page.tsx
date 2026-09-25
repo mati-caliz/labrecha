@@ -50,8 +50,8 @@ export default function IdeasPage() {
             maxWidth: 640,
           }}
         >
-          Políticas que funcionaron en otros países, analizadas y adaptadas. Cada una con su
-          categoría, su impacto estimado y su fecha.
+          Políticas que funcionaron en otros países, analizadas y adaptadas. Cada una con su categoría, su
+          impacto estimado y su fecha.
         </p>
       </header>
       <PrefetchedQueries queries={postsFeedQueries()}>

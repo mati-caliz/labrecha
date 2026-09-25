@@ -162,11 +162,7 @@ interface ReferenceArea {
   label: string;
 }
 
-function axisValueAt(
-  chartData: ChartDataWithDate[],
-  index: number,
-  useIndex: boolean,
-): string | number {
+function axisValueAt(chartData: ChartDataWithDate[], index: number, useIndex: boolean): string | number {
   if (useIndex) {
     return index;
   }
@@ -201,9 +197,7 @@ export function generateReferenceAreas(
   const lastDataDate = new Date(chartData[chartData.length - 1]?.originalDate || "");
 
   return governments
-    .filter(
-      (gov) => new Date(gov.startDate) <= lastDataDate && new Date(gov.endDate) >= firstDataDate,
-    )
+    .filter((gov) => new Date(gov.startDate) <= lastDataDate && new Date(gov.endDate) >= firstDataDate)
     .map((gov) => ({
       x1: axisValueAt(chartData, firstIndexOnOrAfter(chartData, new Date(gov.startDate)), useIndex),
       x2: axisValueAt(chartData, lastIndexOnOrBefore(chartData, new Date(gov.endDate)), useIndex),

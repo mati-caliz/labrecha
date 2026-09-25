@@ -44,9 +44,7 @@ function LawCard({ law }: { law: SanctionedLaw }) {
         )}
       </div>
 
-      <div
-        style={{ fontSize: "0.9375rem", fontWeight: 600, color: "var(--ink)", lineHeight: 1.35 }}
-      >
+      <div style={{ fontSize: "0.9375rem", fontWeight: 600, color: "var(--ink)", lineHeight: 1.35 }}>
         {law.title ?? `Ley ${law.law_number}`}
       </div>
 
@@ -79,10 +77,7 @@ function LawCard({ law }: { law: SanctionedLaw }) {
                     {step.label}
                   </span>
                 </span>
-                <span
-                  className="num"
-                  style={{ fontSize: "0.6875rem", color: "var(--ink3)", marginLeft: 15 }}
-                >
+                <span className="num" style={{ fontSize: "0.6875rem", color: "var(--ink3)", marginLeft: 15 }}>
                   {step.date ? formatDateAR(step.date) : "—"}
                 </span>
               </div>

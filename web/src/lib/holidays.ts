@@ -72,11 +72,7 @@ export function freeRunAround(isoDate: string, holidayDates: Set<string>): FreeR
   return { start, end, length: daysUntil(end, start) + 1 };
 }
 
-export function upcomingHolidays(
-  holidays: Holiday[],
-  fromISO: string = todayISO(),
-  count = 4,
-): Holiday[] {
+export function upcomingHolidays(holidays: Holiday[], fromISO: string = todayISO(), count = 4): Holiday[] {
   return holidays
     .filter((holiday) => holiday.date >= fromISO)
     .sort((first, second) => (first.date < second.date ? -1 : first.date > second.date ? 1 : 0))

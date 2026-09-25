@@ -69,9 +69,7 @@ describe("the security headers of every route", () => {
   beforeAll(async () => {
     const headers = nextConfig.headers;
     if (headers === undefined) {
-      throw new Error(
-        "next.config.js dejó de declarar headers(): las cabeceras son parte del contrato",
-      );
+      throw new Error("next.config.js dejó de declarar headers(): las cabeceras son parte del contrato");
     }
     rules = (await headers()) as HeaderRule[];
   });
@@ -101,9 +99,8 @@ describe("the security headers of every route", () => {
 
   it("lets the nginx CSP load every image host the app declares, since the browser intersects both", () => {
     const declared = imageHostsOf(
-      rulesFor(rules, "/noticias")[0]?.headers.find(
-        (header) => header.key === "Content-Security-Policy",
-      )?.value,
+      rulesFor(rules, "/noticias")[0]?.headers.find((header) => header.key === "Content-Security-Policy")
+        ?.value,
     );
     const allowedByNginx = nginxSiteImageHosts();
 

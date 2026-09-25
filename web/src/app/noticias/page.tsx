@@ -50,9 +50,7 @@ export default function NewsPage() {
             Titulares del día
           </h1>
         </div>
-        <span
-          style={{ fontFamily: "var(--font-jb-mono)", fontSize: "0.72rem", color: "var(--ink3)" }}
-        >
+        <span style={{ fontFamily: "var(--font-jb-mono)", fontSize: "0.72rem", color: "var(--ink3)" }}>
           Agregado de medios · con enlace a la fuente
         </span>
       </header>

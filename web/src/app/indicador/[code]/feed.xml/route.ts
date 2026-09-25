@@ -1,9 +1,4 @@
-import {
-  type ThresholdAlert,
-  crossesThreshold,
-  describeAlert,
-  parseThresholdAlert,
-} from "@/lib/feedAlerts";
+import { type ThresholdAlert, crossesThreshold, describeAlert, parseThresholdAlert } from "@/lib/feedAlerts";
 import { formatDateAR, getIndicatorDisplay, sourceLabel } from "@/lib/indicators";
 import type { IndicatorPoint, IndicatorSeries } from "@/lib/labrechaApi";
 import { buildRssResponse, toRfc822 } from "@/lib/rss";
@@ -27,9 +22,7 @@ function selectPoints(points: IndicatorPoint[], alert: ThresholdAlert | null): I
 }
 
 function alertTitle(label: string, alert: ThresholdAlert | null, boundary: string): string {
-  return alert === null
-    ? `La Brecha — ${label}`
-    : `La Brecha — ${label} ${describeAlert(alert, boundary)}`;
+  return alert === null ? `La Brecha — ${label}` : `La Brecha — ${label} ${describeAlert(alert, boundary)}`;
 }
 
 function feedDescription(label: string, alert: ThresholdAlert | null, boundary: string): string {

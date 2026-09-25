@@ -17,11 +17,7 @@ import {
   variationVsPreviousPoint,
 } from "@/components/indicator/detail/variation";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  useIndicatorSeriesMulti,
-  useIndicatorSources,
-  usePoliticalEvents,
-} from "@/hooks/useLabrecha";
+import { useIndicatorSeriesMulti, useIndicatorSources, usePoliticalEvents } from "@/hooks/useLabrecha";
 import { freshnessForCode } from "@/lib/freshness";
 import {
   DEFAULT_RANGE,
@@ -105,15 +101,13 @@ export function IndicatorDetail({ code }: IndicatorDetailProps) {
   const isComparator = ordered.length >= 2;
 
   const primary = ordered[0];
-  const primaryPoints =
-    parsedSources.find((source) => source.source === primary?.source)?.points ?? [];
+  const primaryPoints = parsedSources.find((source) => source.source === primary?.source)?.points ?? [];
   const primaryValue = primary ? Number.parseFloat(primary.latest_value) : undefined;
   const stepVariation = variationVsPreviousPoint(indicator, primaryPoints);
   const monthVariation = variationVsMonthsAgo(indicator, primaryPoints, 1);
   const yearVariation = variationVsMonthsAgo(indicator, primaryPoints, 12);
 
-  const secondValue =
-    isComparator && ordered[1] ? Number.parseFloat(ordered[1].latest_value) : undefined;
+  const secondValue = isComparator && ordered[1] ? Number.parseFloat(ordered[1].latest_value) : undefined;
   const gapPct = gapPercent(primaryValue, secondValue);
   const tableRows = buildTableRows(aligned);
   const stale = primary ? freshnessForCode(code, primary.last_date).stale : false;
@@ -121,9 +115,7 @@ export function IndicatorDetail({ code }: IndicatorDetailProps) {
 
   return (
     <div style={{ maxWidth: "var(--container-max)", margin: "0 auto", padding: "28px 24px 72px" }}>
-      <div
-        style={{ fontFamily: MONO, fontSize: "0.72rem", color: "var(--ink3)", marginBottom: 20 }}
-      >
+      <div style={{ fontFamily: MONO, fontSize: "0.72rem", color: "var(--ink3)", marginBottom: 20 }}>
         <Link href="/indicadores" style={{ color: "var(--ink3)", textDecoration: "none" }}>
           Indicadores
         </Link>{" "}
@@ -154,8 +146,7 @@ export function IndicatorDetail({ code }: IndicatorDetailProps) {
           />
         ) : (
           <p style={{ fontFamily: "var(--font-serif)", color: "var(--ink2)", margin: 0 }}>
-            Todavía no hay suficiente serie histórica para graficar este indicador en el rango
-            seleccionado.
+            Todavía no hay suficiente serie histórica para graficar este indicador en el rango seleccionado.
           </p>
         )}
         {baseMonth && (
@@ -181,16 +172,8 @@ export function IndicatorDetail({ code }: IndicatorDetailProps) {
         )}
 
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <VariationRow
-            label="Variación reciente"
-            reference="vs. dato anterior"
-            variation={stepVariation}
-          />
-          <VariationRow
-            label="Variación mensual"
-            reference="vs. hace 1 mes"
-            variation={monthVariation}
-          />
+          <VariationRow label="Variación reciente" reference="vs. dato anterior" variation={stepVariation} />
+          <VariationRow label="Variación mensual" reference="vs. hace 1 mes" variation={monthVariation} />
           <VariationRow
             label="Variación interanual"
             reference="vs. hace 12 meses"
@@ -234,12 +217,7 @@ export function IndicatorDetail({ code }: IndicatorDetailProps) {
             }
           />
         </div>
-        <SeriesTable
-          indicator={indicator}
-          aligned={aligned}
-          rows={tableRows}
-          isComparator={isComparator}
-        />
+        <SeriesTable indicator={indicator} aligned={aligned} rows={tableRows} isComparator={isComparator} />
         <div
           style={{
             padding: "14px 24px",

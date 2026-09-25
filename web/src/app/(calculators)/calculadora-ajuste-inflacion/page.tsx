@@ -131,9 +131,9 @@ export default function InflationAdjustmentPage() {
                 </div>
               </div>
               <p style={{ fontSize: "0.875rem", color: "var(--ink2)", margin: 0 }}>
-                {formatMoneyAR(Number.parseFloat(result.original_amount))} de{" "}
-                {monthLabel(fromMonth)} equivalen a{" "}
-                {formatMoneyAR(Number.parseFloat(result.adjusted_amount))} de {monthLabel(toMonth)}.
+                {formatMoneyAR(Number.parseFloat(result.original_amount))} de {monthLabel(fromMonth)}{" "}
+                equivalen a {formatMoneyAR(Number.parseFloat(result.adjusted_amount))} de{" "}
+                {monthLabel(toMonth)}.
               </p>
               <div>
                 <div style={{ fontSize: "0.75rem", color: "var(--ink3)" }}>

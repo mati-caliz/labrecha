@@ -48,10 +48,7 @@ describe("parsePoints", () => {
 
 describe("mergePoints", () => {
   it("keeps both series ordered by date", () => {
-    const merged = mergePoints(
-      [{ date: "2024-01-01", value: 1 }],
-      [{ date: "2024-02-01", value: 2 }],
-    );
+    const merged = mergePoints([{ date: "2024-01-01", value: 1 }], [{ date: "2024-02-01", value: 2 }]);
 
     expect(merged).toEqual([
       { date: "2024-01-01", value: 1 },
@@ -60,10 +57,7 @@ describe("mergePoints", () => {
   });
 
   it("lets the live value win over the historical one on the same date", () => {
-    const merged = mergePoints(
-      [{ date: "2024-01-01", value: 1 }],
-      [{ date: "2024-01-01", value: 99 }],
-    );
+    const merged = mergePoints([{ date: "2024-01-01", value: 1 }], [{ date: "2024-01-01", value: 99 }]);
 
     expect(merged).toEqual([{ date: "2024-01-01", value: 99 }]);
   });
@@ -170,8 +164,7 @@ describe("alignSources", () => {
     expect(aligned.lines[1]?.data.slice(0, 2)).toEqual([null, null]);
     expect(
       aligned.axis.filter(
-        (_date, index) =>
-          aligned.lines[0]?.data[index] !== null && aligned.lines[1]?.data[index] !== null,
+        (_date, index) => aligned.lines[0]?.data[index] !== null && aligned.lines[1]?.data[index] !== null,
       ),
     ).toEqual(["2024-03-01", "2024-04-01"]);
   });
@@ -265,9 +258,7 @@ describe("orderIndicatorSources", () => {
 
 describe("latestSourceDate", () => {
   it("takes the most recent date across sources", () => {
-    expect(latestSourceDate([{ last_date: "2024-01-01" }, { last_date: "2024-05-01" }])).toBe(
-      "2024-05-01",
-    );
+    expect(latestSourceDate([{ last_date: "2024-01-01" }, { last_date: "2024-05-01" }])).toBe("2024-05-01");
   });
 
   it("returns an empty string when there are no sources", () => {

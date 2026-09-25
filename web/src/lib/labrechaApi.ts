@@ -456,13 +456,11 @@ export const congressApi = {
     limit?: number;
     offset?: number;
   }) => get<SanctionedLaw[]>("/congress/laws", params),
-  attendance: (params?: { chamber?: Chamber }) =>
-    get<BlocAttendance[]>("/congress/attendance", params),
+  attendance: (params?: { chamber?: Chamber }) => get<BlocAttendance[]>("/congress/attendance", params),
 };
 
 export const senateApi = {
-  members: (params?: { bloc?: string; province?: string }) =>
-    get<Senator[]>("/senate/members", params),
+  members: (params?: { bloc?: string; province?: string }) => get<Senator[]>("/senate/members", params),
   blocs: () => get<BlocSummary[]>("/senate/blocs"),
 };
 
@@ -488,12 +486,8 @@ export const gazetteApi = {
 };
 
 export const taxesApi = {
-  changes: (params?: {
-    change_type?: string;
-    jurisdiction?: string;
-    limit?: number;
-    offset?: number;
-  }) => get<TaxChange[]>("/taxes/changes", params),
+  changes: (params?: { change_type?: string; jurisdiction?: string; limit?: number; offset?: number }) =>
+    get<TaxChange[]>("/taxes/changes", params),
 };
 
 export const gapsApi = {
@@ -503,8 +497,7 @@ export const gapsApi = {
 };
 
 export const termsApi = {
-  byIndicator: (code: string, params?: { source?: string }) =>
-    get<IndicatorTerms>(`/terms/${code}`, params),
+  byIndicator: (code: string, params?: { source?: string }) => get<IndicatorTerms>(`/terms/${code}`, params),
 };
 
 export interface ErrorEvent {
@@ -541,8 +534,6 @@ export const calculatorsApi = {
     post<CompoundInterestResponse>(`/${CALCULATOR_PATHS.compoundInterest}`, body),
   inflationAdjustment: (body: InflationAdjustmentRequest) =>
     post<InflationAdjustmentResponse>(`/${CALCULATOR_PATHS.inflationAdjustment}`, body),
-  incomeTax: (body: IncomeTaxRequest) =>
-    post<IncomeTaxResponse>(`/${CALCULATOR_PATHS.incomeTax}`, body),
-  taxImpact: (body: TaxImpactRequest) =>
-    post<TaxImpactResponse>(`/${CALCULATOR_PATHS.taxImpact}`, body),
+  incomeTax: (body: IncomeTaxRequest) => post<IncomeTaxResponse>(`/${CALCULATOR_PATHS.incomeTax}`, body),
+  taxImpact: (body: TaxImpactRequest) => post<TaxImpactResponse>(`/${CALCULATOR_PATHS.taxImpact}`, body),
 };

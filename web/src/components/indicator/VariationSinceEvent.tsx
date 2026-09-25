@@ -10,8 +10,7 @@ const MONO = "var(--font-jb-mono)";
 const CHANGE_DECIMALS = 1;
 
 const METHOD_NOTE: Record<TermMethod, string> = {
-  COMPOUNDED:
-    "Acumulado componiendo las tasas mensuales desde el evento: no es la suma de los meses.",
+  COMPOUNDED: "Acumulado componiendo las tasas mensuales desde el evento: no es la suma de los meses.",
   ENDPOINTS: "Variación entre el primer dato posterior al evento y el último disponible.",
 };
 
@@ -55,13 +54,7 @@ function eventOptionLabel(event: PoliticalEvent): string {
   return `${formatDateAR(event.date)} · ${event.title}`;
 }
 
-export function VariationSinceEvent({
-  code,
-  source,
-}: {
-  code: string;
-  source: string | undefined;
-}) {
+export function VariationSinceEvent({ code, source }: { code: string; source: string | undefined }) {
   const indicator = getIndicatorDisplay(code);
   const { data: events } = usePoliticalEvents();
   const [selectedDate, setSelectedDate] = useState("");
@@ -111,9 +104,7 @@ export function VariationSinceEvent({
       </div>
 
       <label style={{ display: "flex", flexDirection: "column", gap: 6, maxWidth: 560 }}>
-        <span style={{ fontFamily: MONO, fontSize: "0.66rem", color: "var(--ink3)" }}>
-          Elegí un evento
-        </span>
+        <span style={{ fontFamily: MONO, fontSize: "0.66rem", color: "var(--ink3)" }}>Elegí un evento</span>
         <select
           value={selectedDate}
           onChange={(changeEvent) => setSelectedDate(changeEvent.target.value)}
@@ -139,8 +130,8 @@ export function VariationSinceEvent({
             marginTop: 16,
           }}
         >
-          No hay al menos dos mediciones de {indicator.label} posteriores al{" "}
-          {formatDateAR(selected.date)}, así que no se puede calcular la variación desde ese evento.
+          No hay al menos dos mediciones de {indicator.label} posteriores al {formatDateAR(selected.date)},
+          así que no se puede calcular la variación desde ese evento.
         </p>
       ) : (
         <div
@@ -182,17 +173,12 @@ export function VariationSinceEvent({
                 fontWeight: 700,
                 fontSize: "2rem",
                 lineHeight: 1,
-                color: changeColor(
-                  Number.parseFloat(variation.data.change_pct),
-                  indicator.goodWhen,
-                ),
+                color: changeColor(Number.parseFloat(variation.data.change_pct), indicator.goodWhen),
               }}
             >
               {formatChange(Number.parseFloat(variation.data.change_pct))}
             </div>
-            <div
-              style={{ fontFamily: MONO, fontSize: "0.62rem", color: "var(--ink3)", marginTop: 6 }}
-            >
+            <div style={{ fontFamily: MONO, fontSize: "0.62rem", color: "var(--ink3)", marginTop: 6 }}>
               {indicator.format(Number.parseFloat(variation.data.first_value))} →{" "}
               {indicator.format(Number.parseFloat(variation.data.last_value))}
             </div>
@@ -209,10 +195,10 @@ export function VariationSinceEvent({
             marginTop: 14,
           }}
         >
-          {METHOD_NOTE[variation.data.method]} Medido entre el{" "}
-          {formatDateAR(variation.data.first_date)} y el {formatDateAR(variation.data.last_date)} (
-          {variation.data.points} mediciones) según {sourceLabel(variation.data.source)}. Que el
-          indicador se haya movido después del evento no significa que el evento lo haya causado.
+          {METHOD_NOTE[variation.data.method]} Medido entre el {formatDateAR(variation.data.first_date)} y el{" "}
+          {formatDateAR(variation.data.last_date)} ({variation.data.points} mediciones) según{" "}
+          {sourceLabel(variation.data.source)}. Que el indicador se haya movido después del evento no
+          significa que el evento lo haya causado.
         </p>
       )}
     </section>

@@ -155,9 +155,7 @@ export function RateComparator() {
                       </span>
                     )}
                   </td>
-                  <td style={{ color: "var(--ink)", fontWeight: 700 }}>
-                    {percent.format(Number(row.tna))}%
-                  </td>
+                  <td style={{ color: "var(--ink)", fontWeight: 700 }}>{percent.format(Number(row.tna))}%</td>
                   <td style={{ color: "var(--ink2)", padding: "14px 10px" }}>
                     {row.product}
                     {details(row) && (
@@ -183,9 +181,8 @@ export function RateComparator() {
         </div>
       )}
       <p style={{ color: "var(--ink3)", fontSize: "0.82rem", lineHeight: 1.5, marginTop: 14 }}>
-        Las tasas informan una referencia, no una oferta ni recomendación. En hipotecarios UVA la
-        cuota y el capital se ajustan por UVA; revisá siempre las condiciones vigentes de cada
-        entidad.
+        Las tasas informan una referencia, no una oferta ni recomendación. En hipotecarios UVA la cuota y el
+        capital se ajustan por UVA; revisá siempre las condiciones vigentes de cada entidad.
       </p>
     </section>
   );

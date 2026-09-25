@@ -25,10 +25,7 @@ export function formatIndicatorValue(indicator: IndicatorDisplay, value: number)
   return `${formatted}${unitSuffix(indicator.unit, formatted)}`;
 }
 
-export function indicatorDescription(
-  indicator: IndicatorDisplay,
-  sources: IndicatorSourceSummary[],
-): string {
+export function indicatorDescription(indicator: IndicatorDisplay, sources: IndicatorSourceSummary[]): string {
   const [primary, ...rest] = orderIndicatorSources(sources, indicator.preferredSource);
   if (primary === undefined) {
     return `Serie histórica de ${indicator.label} en Argentina, con su fuente, fecha y eventos políticos.`;

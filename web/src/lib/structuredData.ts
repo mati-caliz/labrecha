@@ -39,10 +39,7 @@ export function indicatorDatasetStructuredData(
     (min, source) => (min === "" || source.first_date < min ? source.first_date : min),
     "",
   );
-  const lastDate = sources.reduce(
-    (max, source) => (source.last_date > max ? source.last_date : max),
-    "",
-  );
+  const lastDate = sources.reduce((max, source) => (source.last_date > max ? source.last_date : max), "");
 
   const dataset: Record<string, unknown> = {
     "@context": "https://schema.org",
@@ -116,9 +113,7 @@ export function postStructuredData(post: Post): Record<string, unknown> {
   };
 }
 
-export function breadcrumbStructuredData(
-  trail: { name: string; path: string }[],
-): Record<string, unknown> {
+export function breadcrumbStructuredData(trail: { name: string; path: string }[]): Record<string, unknown> {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",

@@ -18,9 +18,7 @@ describe("catálogo curado de lo votado y lo que pasó", () => {
   });
 
   it("no repite el par votación + indicador", () => {
-    const pairs = VOTE_OUTCOMES.map(
-      (outcome) => `${outcome.voteRecordId}:${outcome.indicatorCode}`,
-    );
+    const pairs = VOTE_OUTCOMES.map((outcome) => `${outcome.voteRecordId}:${outcome.indicatorCode}`);
 
     expect(new Set(pairs).size).toBe(pairs.length);
   });

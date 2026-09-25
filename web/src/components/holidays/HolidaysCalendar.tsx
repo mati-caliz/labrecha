@@ -291,9 +291,7 @@ export function HolidaysCalendar() {
             })}
           </div>
 
-          <div
-            style={{ marginTop: 24, fontFamily: MONO, fontSize: "0.7rem", color: "var(--ink3)" }}
-          >
+          <div style={{ marginTop: 24, fontFamily: MONO, fontSize: "0.7rem", color: "var(--ink3)" }}>
             Fuente: calendario oficial de feriados nacionales · Nager.Date.
           </div>
         </>

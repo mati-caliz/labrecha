@@ -58,9 +58,7 @@ export function CafecitoModal() {
               <Coffee className="h-6 w-6 text-amber-600 dark:text-amber-500" />
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-amber-900 dark:text-amber-100 mb-1">
-                ¿Te gusta La Brecha?
-              </h3>
+              <h3 className="font-bold text-amber-900 dark:text-amber-100 mb-1">¿Te gusta La Brecha?</h3>
               <p className="text-sm text-amber-800 dark:text-amber-200 mb-3 leading-relaxed">
                 ¡Invitame un cafecito! Tu apoyo ayuda a mantener el sitio funcionando y mejorando.
               </p>

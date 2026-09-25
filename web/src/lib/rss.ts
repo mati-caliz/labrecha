@@ -39,9 +39,7 @@ export function buildRssResponse(channel: FeedChannel, revalidateSeconds: number
       <title>${escapeXml(item.title)}</title>
       <link>${escapeXml(item.link)}</link>
       <guid isPermaLink="false">${escapeXml(item.guid)}</guid>${
-        item.category === undefined
-          ? ""
-          : `\n      <category>${escapeXml(item.category)}</category>`
+        item.category === undefined ? "" : `\n      <category>${escapeXml(item.category)}</category>`
       }
       <pubDate>${item.pubDate}</pubDate>
       <description>${escapeXml(item.description)}</description>

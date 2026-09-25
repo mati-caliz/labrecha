@@ -40,8 +40,7 @@ export default function CompoundInterestCalculatorPage() {
   const [initialCapital, setInitialCapital] = useState(100000);
   const [annualRate, setAnnualRate] = useState(40);
   const [years, setYears] = useState(5);
-  const [frequency, setFrequency] =
-    useState<CompoundInterestRequest["compounding_frequency"]>("MONTHLY");
+  const [frequency, setFrequency] = useState<CompoundInterestRequest["compounding_frequency"]>("MONTHLY");
   const [contribution, setContribution] = useState(0);
 
   const mutation = useMutation({
@@ -124,9 +123,7 @@ export default function CompoundInterestCalculatorPage() {
                 <select
                   value={frequency}
                   onChange={(event) =>
-                    setFrequency(
-                      event.target.value as CompoundInterestRequest["compounding_frequency"],
-                    )
+                    setFrequency(event.target.value as CompoundInterestRequest["compounding_frequency"])
                   }
                   style={inputStyle}
                 >

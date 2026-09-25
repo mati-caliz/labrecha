@@ -3,12 +3,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLegLatest } from "@/hooks/useLabrecha";
 import { GAPS, computeGap } from "@/lib/gaps";
-import {
-  INDICATOR_FAMILY_LABELS,
-  formatDateAR,
-  getIndicatorMeta,
-  sourceLabel,
-} from "@/lib/indicators";
+import { INDICATOR_FAMILY_LABELS, formatDateAR, getIndicatorMeta, sourceLabel } from "@/lib/indicators";
 import Link from "next/link";
 
 const MONO = "var(--font-jb-mono)";
@@ -197,9 +192,7 @@ export function GapRankList() {
               >
                 {gap.formattedGap}
               </div>
-              <div style={{ fontFamily: MONO, fontSize: "0.62rem", color: "var(--ink3)" }}>
-                de brecha
-              </div>
+              <div style={{ fontFamily: MONO, fontSize: "0.62rem", color: "var(--ink3)" }}>de brecha</div>
             </div>
           </Link>
         );

@@ -29,8 +29,7 @@ const ENDPOINTS: Endpoint[] = [
   {
     method: "GET",
     path: "/indicators/{code}",
-    description:
-      "La serie histórica. Filtrable por fuente y rango, y ordenable. Cada punto trae su fuente.",
+    description: "La serie histórica. Filtrable por fuente y rango, y ordenable. Cada punto trae su fuente.",
     example: `curl "${BASE}/indicators/cpi_monthly?source=argentinadatos&date_from=2023-01-01&order=asc"`,
   },
   {
@@ -76,8 +75,7 @@ const ENDPOINTS: Endpoint[] = [
 const FEEDS = [
   {
     path: "/brechas.xml",
-    description:
-      "RSS que avisa cuando dos fuentes difieren. Con ?min=5 sólo trae discrepancias de 5% o más.",
+    description: "RSS que avisa cuando dos fuentes difieren. Con ?min=5 sólo trae discrepancias de 5% o más.",
   },
   {
     path: "/indicador/{code}/feed.xml",
@@ -167,9 +165,8 @@ export default function PublicApiPage() {
             maxWidth: 640,
           }}
         >
-          Todo lo que ves en el sitio sale de una API de lectura, sin claves ni registro. Es la
-          misma que consume esta página. Si vas a usarla, citá a La Brecha y a la fuente original de
-          cada serie.
+          Todo lo que ves en el sitio sale de una API de lectura, sin claves ni registro. Es la misma que
+          consume esta página. Si vas a usarla, citá a La Brecha y a la fuente original de cada serie.
         </p>
       </header>
 
@@ -265,17 +262,14 @@ export default function PublicApiPage() {
             <code style={{ fontFamily: MONO, fontSize: "0.8125rem" }}>Retry-After</code>.
           </li>
           <li>
-            Las respuestas se cachean por ruta. Pedir la misma serie cada un segundo no te va a dar
-            un dato más nuevo: el scraper corre con la cadencia de cada fuente.
+            Las respuestas se cachean por ruta. Pedir la misma serie cada un segundo no te va a dar un dato
+            más nuevo: el scraper corre con la cadencia de cada fuente.
           </li>
+          <li>Si necesitás la serie completa, usá el CSV una vez en lugar de paginar la API muchas veces.</li>
           <li>
-            Si necesitás la serie completa, usá el CSV una vez en lugar de paginar la API muchas
-            veces.
-          </li>
-          <li>
-            Los datos son de terceros (INDEC, BCRA, datos.gob.ar, HCDN, consultoras). Nosotros los
-            reunimos y los publicamos con su fuente y su fecha; la autoridad sobre el dato sigue
-            siendo de quien lo midió.
+            Los datos son de terceros (INDEC, BCRA, datos.gob.ar, HCDN, consultoras). Nosotros los reunimos y
+            los publicamos con su fuente y su fecha; la autoridad sobre el dato sigue siendo de quien lo
+            midió.
           </li>
         </ul>
       </Section>

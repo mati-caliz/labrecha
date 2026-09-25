@@ -41,11 +41,7 @@ export interface ProjectedPoint {
   y: number;
 }
 
-export function projectCentroid(
-  centroid: ProvinceCentroid,
-  width: number,
-  height: number,
-): ProjectedPoint {
+export function projectCentroid(centroid: ProvinceCentroid, width: number, height: number): ProjectedPoint {
   const lonSpan = (LON_MAX - LON_MIN) * MEAN_LAT_COS;
   const latSpan = LAT_MAX - LAT_MIN;
   const usableWidth = height * (lonSpan / latSpan);

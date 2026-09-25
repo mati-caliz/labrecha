@@ -4,13 +4,7 @@ import { AnnotatedSeriesChart, type ChartSeries } from "@/components/core";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIndicatorSeries, usePoliticalEvents } from "@/hooks/useLabrecha";
 import { GAP_BY_ID, computeGap } from "@/lib/gaps";
-import {
-  DEFAULT_RANGE,
-  RANGE_MONTHS,
-  SOURCE_METHODOLOGY,
-  formatDateAR,
-  sourceLabel,
-} from "@/lib/indicators";
+import { DEFAULT_RANGE, RANGE_MONTHS, SOURCE_METHODOLOGY, formatDateAR, sourceLabel } from "@/lib/indicators";
 import {
   alignSources,
   eventsToChartEvents,
@@ -228,9 +222,7 @@ export function GapComparison({ id }: { id: string }) {
             >
               {gap.formattedGap}
             </div>
-            <span style={{ fontFamily: MONO, fontSize: "0.62rem", color: "var(--ink3)" }}>
-              brecha actual
-            </span>
+            <span style={{ fontFamily: MONO, fontSize: "0.62rem", color: "var(--ink3)" }}>brecha actual</span>
           </div>
         </div>
       )}

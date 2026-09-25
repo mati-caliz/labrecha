@@ -16,9 +16,7 @@ export function OgBrand() {
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
       <div style={{ display: "flex", fontSize: 30, fontWeight: 700, color: OG_COLORS.ink }}>La</div>
       <div style={{ width: 5, height: 30, background: OG_COLORS.brecha, borderRadius: 3 }} />
-      <div style={{ display: "flex", fontSize: 30, fontWeight: 700, color: OG_COLORS.ink }}>
-        Brecha
-      </div>
+      <div style={{ display: "flex", fontSize: 30, fontWeight: 700, color: OG_COLORS.ink }}>Brecha</div>
       <div style={{ display: "flex", marginLeft: 14, fontSize: 22, color: OG_COLORS.muted }}>
         Observatorio político-económico de Argentina
       </div>
@@ -57,9 +55,7 @@ export function OgHeadline({
 }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      <div style={{ display: "flex", fontSize: 30, fontWeight: 600, color: OG_COLORS.brecha }}>
-        {eyebrow}
-      </div>
+      <div style={{ display: "flex", fontSize: 30, fontWeight: 600, color: OG_COLORS.brecha }}>{eyebrow}</div>
       <div
         style={{
           display: "flex",

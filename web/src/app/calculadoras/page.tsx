@@ -67,8 +67,8 @@ export default function CalculatorsPage() {
             maxWidth: 560,
           }}
         >
-          Herramientas para poner números concretos a lo que pasa con tu plata. Cálculos
-          orientativos, con la fuente de cada parámetro a la vista.
+          Herramientas para poner números concretos a lo que pasa con tu plata. Cálculos orientativos, con la
+          fuente de cada parámetro a la vista.
         </p>
       </header>
 

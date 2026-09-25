@@ -35,9 +35,7 @@ export default async function CongressPage() {
   return (
     <PrefetchedQueries queries={await congressQueries()}>
       <div style={{ maxWidth: 1120, margin: "0 auto", padding: "48px 24px 72px" }}>
-        <header
-          style={{ borderBottom: "2px solid var(--ink)", paddingBottom: 22, marginBottom: 32 }}
-        >
+        <header style={{ borderBottom: "2px solid var(--ink)", paddingBottom: 22, marginBottom: 32 }}>
           <div
             style={{
               fontFamily: "var(--font-jb-mono)",

@@ -49,11 +49,7 @@ function shouldReport(report: ErrorReport): boolean {
   return true;
 }
 
-export async function reportError(
-  origin: ErrorOrigin,
-  error: unknown,
-  path?: string,
-): Promise<void> {
+export async function reportError(origin: ErrorOrigin, error: unknown, path?: string): Promise<void> {
   const report = buildErrorReport(origin, error, path);
   if (!shouldReport(report)) {
     return;

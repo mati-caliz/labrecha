@@ -1,14 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 
-export function SectionHead({
-  index,
-  title,
-  action,
-}: {
-  index: string;
-  title: string;
-  action?: ReactNode;
-}) {
+export function SectionHead({ index, title, action }: { index: string; title: string; action?: ReactNode }) {
   return (
     <div
       style={{
@@ -53,10 +45,7 @@ export function SectionHead({
   );
 }
 
-export function Eyebrow({
-  children,
-  color = "var(--gap)",
-}: { children: ReactNode; color?: string }) {
+export function Eyebrow({ children, color = "var(--gap)" }: { children: ReactNode; color?: string }) {
   return (
     <div
       style={{

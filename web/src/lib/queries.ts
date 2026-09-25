@@ -48,8 +48,7 @@ export const labrechaKeys = {
   gapHistory: (code: string) => ["labrecha", "gap-history", code] as const,
   indicatorVariation: (code: string, params: object) =>
     ["labrecha", "indicator-variation", code, params] as const,
-  indicatorTerms: (code: string, params?: object) =>
-    ["labrecha", "terms", code, params ?? {}] as const,
+  indicatorTerms: (code: string, params?: object) => ["labrecha", "terms", code, params ?? {}] as const,
 };
 
 export const indicatorsQuery = () => ({
@@ -124,11 +123,7 @@ export const senateBlocsQuery = () => ({
   queryFn: () => senateApi.blocs(),
 });
 
-export const holidaysQuery = (params?: {
-  year?: number;
-  date_from?: string;
-  date_to?: string;
-}) => ({
+export const holidaysQuery = (params?: { year?: number; date_from?: string; date_to?: string }) => ({
   queryKey: labrechaKeys.holidays(params),
   queryFn: () => holidaysApi.list(params),
 });
@@ -143,11 +138,7 @@ export const newsQuery = (params?: {
   queryFn: () => newsApi.list(params),
 });
 
-export const postsQuery = (params?: {
-  category?: PostCategory;
-  limit?: number;
-  offset?: number;
-}) => ({
+export const postsQuery = (params?: { category?: PostCategory; limit?: number; offset?: number }) => ({
   queryKey: labrechaKeys.posts(params),
   queryFn: () => postsApi.list(params),
 });
@@ -157,11 +148,7 @@ export const postQuery = (slug: string) => ({
   queryFn: () => postsApi.bySlug(slug),
 });
 
-export const gazetteSummariesQuery = (params?: {
-  category?: string;
-  limit?: number;
-  offset?: number;
-}) => ({
+export const gazetteSummariesQuery = (params?: { category?: string; limit?: number; offset?: number }) => ({
   queryKey: labrechaKeys.gazette(params),
   queryFn: () => gazetteApi.summaries(params),
 });
@@ -206,10 +193,7 @@ export const gapHistoryQuery = (code: string) => ({
   queryFn: () => gapsApi.history(code),
 });
 
-export const indicatorVariationQuery = (
-  code: string,
-  params: { date_from: string; source?: string },
-) => ({
+export const indicatorVariationQuery = (code: string, params: { date_from: string; source?: string }) => ({
   queryKey: labrechaKeys.indicatorVariation(code, params),
   queryFn: () => indicatorsApi.variation(code, params),
 });

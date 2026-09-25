@@ -15,10 +15,7 @@ function points(...pairs: [string, number][]): ParsedPoint[] {
 
 describe("variationVsPreviousPoint", () => {
   it("compara el último dato con el anterior en porcentaje", () => {
-    const variation = variationVsPreviousPoint(
-      BLUE,
-      points(["2026-07-24", 1000], ["2026-07-25", 1100]),
-    );
+    const variation = variationVsPreviousPoint(BLUE, points(["2026-07-24", 1000], ["2026-07-25", 1100]));
 
     expect(variation?.text).toBe("▲ 10,0%");
   });
@@ -35,9 +32,7 @@ describe("variationVsPreviousPoint", () => {
   });
 
   it("no divide por cero cuando la base es cero", () => {
-    expect(
-      variationVsPreviousPoint(BLUE, points(["2026-07-24", 0], ["2026-07-25", 1100])),
-    ).toBeUndefined();
+    expect(variationVsPreviousPoint(BLUE, points(["2026-07-24", 0], ["2026-07-25", 1100]))).toBeUndefined();
   });
 
   it("marca como bueno que baje un indicador que conviene bajo", () => {
