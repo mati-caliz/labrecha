@@ -1,21 +1,24 @@
 from __future__ import annotations
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, Query
-from labrecha_db import Senator
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from labrecha_api.db import get_session
+from labrecha_api.db import SessionDependency, get_session
 from labrecha_api.schemas import BlocSummary, SenatorOut
+from labrecha_db import Senator
 
 router = APIRouter(prefix="/senate", tags=["senate"])
 
 
 @router.get("/members", response_model=list[SenatorOut])
 def list_members(
-    bloc: str | None = Query(default=None),
-    province: str | None = Query(default=None),
-    session: Session = Depends(get_session),
+    *,
+    bloc: Annotated[str | None, Query()] = None,
+    province: Annotated[str | None, Query()] = None,
+    session: SessionDependency,
 ) -> list[SenatorOut]:
     conditions = []
     if bloc is not None:
@@ -40,7 +43,7 @@ def list_members(
 
 
 @router.get("/blocs", response_model=list[BlocSummary])
-def list_blocs(session: Session = Depends(get_session)) -> list[BlocSummary]:
+def list_blocs(session: Annotated[Session, Depends(get_session)]) -> list[BlocSummary]:
     statement = (
         select(Senator.bloc, func.count())
         .group_by(Senator.bloc)

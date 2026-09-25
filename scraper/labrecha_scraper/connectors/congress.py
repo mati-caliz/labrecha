@@ -3,11 +3,12 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from datetime import date
+from typing import Any
 
 import httpx
-from labrecha_db import CHAMBER_DEPUTIES, CongressVote, CongressVoteDetail
 from sqlalchemy.orm import Session
 
+from labrecha_db import CHAMBER_DEPUTIES, CongressVote, CongressVoteDetail
 from labrecha_scraper.base import Connector, upsert_rows
 from labrecha_scraper.connectors.hcdn_ckan import (
     LARGE_DOWNLOAD_TIMEOUT_SECONDS,
@@ -22,8 +23,8 @@ DETAIL_KEYWORD = "detalle"
 
 @dataclass
 class CongressData:
-    votes: list[dict] = field(default_factory=list)
-    details: list[dict] = field(default_factory=list)
+    votes: list[dict[str, Any]] = field(default_factory=list)
+    details: list[dict[str, Any]] = field(default_factory=list)
 
 
 def _text(value: object) -> str | None:
@@ -53,7 +54,7 @@ def _parse_date(value: object) -> date | None:
         return None
 
 
-class CongressConnector(Connector):
+class CongressConnector(Connector[CongressData]):
     name = "congress"
     source = "hcdn"
 
@@ -67,8 +68,7 @@ class CongressConnector(Connector):
                 data.details.extend(self._map_details(self._download_json(client, url)))
             return data
 
-    def persist(self, session: Session, data: object) -> int:
-        assert isinstance(data, CongressData)
+    def persist(self, session: Session, data: CongressData) -> int:
         votes = upsert_rows(session, CongressVote, data.votes, ["vote_record_id"])
         details = upsert_rows(session, CongressVoteDetail, data.details, ["vote_detail_id"])
         return votes + details
@@ -92,13 +92,14 @@ class CongressConnector(Connector):
             raise ValueError("no se encontraron recursos JSON de cabecera y detalle en CKAN")
         return header_urls, detail_urls
 
-    def _download_json(self, client: httpx.Client, url: str) -> dict:
+    def _download_json(self, client: httpx.Client, url: str) -> dict[str, Any]:
         response = client.get(url, timeout=LARGE_DOWNLOAD_TIMEOUT_SECONDS)
         response.raise_for_status()
-        return json.loads(response.content.decode("utf-8-sig"))
+        payload: dict[str, Any] = json.loads(response.content.decode("utf-8-sig"))
+        return payload
 
-    def _map_votes(self, payload: dict) -> list[dict]:
-        rows: list[dict] = []
+    def _map_votes(self, payload: dict[str, Any]) -> list[dict[str, Any]]:
+        rows: list[dict[str, Any]] = []
         for record in payload.values():
             vote_record_id = _text(record.get("acta_id"))
             if vote_record_id is None:
@@ -129,8 +130,8 @@ class CongressConnector(Connector):
             )
         return rows
 
-    def _map_details(self, payload: dict) -> list[dict]:
-        rows: list[dict] = []
+    def _map_details(self, payload: dict[str, Any]) -> list[dict[str, Any]]:
+        rows: list[dict[str, Any]] = []
         for record in payload.values():
             vote_detail_id = _text(record.get("acta_detalle_id"))
             vote_record_id = _text(record.get("acta_id"))

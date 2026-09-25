@@ -33,5 +33,7 @@ def test_units_serialize_to_jsonb_as_plain_strings() -> None:
 
 
 def test_units_compare_equal_to_the_strings_already_in_the_database() -> None:
-    assert Unit.PERCENT == "%"
-    assert Unit.INDEX == "indice"
+    stored_percent: str = "%"
+    stored_index: str = "indice"
+    assert stored_percent == Unit.PERCENT
+    assert stored_index == Unit.INDEX

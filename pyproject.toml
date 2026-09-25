@@ -1,0 +1,36 @@
+# Configuración de las herramientas de Python del monorepo: api-py, scraper y shared se
+# validan juntos con la misma vara. No es un paquete; cada pieza tiene su pyproject propio.
+
+[tool.ruff]
+extend = "ruff.standard.toml"
+src = ["api-py", "scraper", "shared"]
+
+[tool.ruff.lint.extend-per-file-ignores]
+# Las mismas excepciones que el estándar da a `tests/**`, para los tests de la API. INP001
+# porque pytest los descubre por ruta: un __init__.py los volvería un paquete `tests` que
+# choca con el de otros proyectos instalados en el mismo entorno.
+"api-py/tests/**" = ["S101", "S105", "S106", "S108", "ANN", "PLR2004", "SLF001", "ARG", "PLR0913", "FBT", "INP001"]
+# conftest fija DATABASE_URL antes de que nadie importe labrecha_api: la app arma su engine
+# al importarse, así que el import de la app tiene que quedar diferido dentro del fixture.
+"api-py/tests/conftest.py" = ["PLC0415"]
+# Alembic carga las migraciones por ruta: un __init__.py las convertiría en un paquete.
+"shared/labrecha_db/migrations/versions/*.py" = ["INP001"]
+# La CLI del scraper reporta al operador por stdout: es su salida, no un log.
+"scraper/labrecha_scraper/cli.py" = ["T201"]
+# La clase base registra cualquier falla de un conector en scrape_runs y sigue con el
+# siguiente: capturar todo es la razón de ser de ese punto.
+"scraper/labrecha_scraper/base.py" = ["BLE001"]
+# El cliente del LLM invoca un binario fijo con argumentos armados por el propio código,
+# nunca por una shell.
+"scraper/labrecha_scraper/llm.py" = ["S603"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unreachable = true
+warn_unused_ignores = true
+enable_error_code = ["redundant-expr", "truthy-bool", "ignore-without-code", "possibly-undefined"]
+plugins = ["pydantic.mypy"]
+files = ["api-py/labrecha_api", "api-py/tests", "scraper/labrecha_scraper", "shared/labrecha_db"]
+explicit_package_bases = true
+mypy_path = ["api-py", "scraper", "shared"]

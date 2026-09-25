@@ -6,7 +6,7 @@ from decimal import Decimal
 
 import httpx
 
-from labrecha_scraper.base import Connector, IndicatorPoint
+from labrecha_scraper.base import IndicatorConnector, IndicatorPoint
 from labrecha_scraper.connectors.crypto import COINGECKO_IDS, VS_CURRENCY
 from labrecha_scraper.units import Unit
 
@@ -19,7 +19,7 @@ TOO_MANY_REQUESTS_STATUS = 429
 PRICE_ENTRY_FIELDS = 2
 
 
-class CryptoHistoricalConnector(Connector):
+class CryptoHistoricalConnector(IndicatorConnector):
     name = "crypto_historical"
     source = "coingecko"
 
@@ -47,7 +47,8 @@ class CryptoHistoricalConnector(Connector):
                 time.sleep(RATE_LIMIT_BACKOFF_SECONDS)
                 continue
             response.raise_for_status()
-            return response.json().get("prices", [])
+            prices: list[list[float]] = response.json().get("prices", [])
+            return prices
         return []
 
     def _daily_points(

@@ -4,8 +4,9 @@ from datetime import date
 from decimal import Decimal
 
 from fastapi.testclient import TestClient
-from labrecha_db import IndicatorHistory
 from sqlalchemy.orm import Session
+
+from labrecha_db import IndicatorHistory
 
 OK = 200
 NOT_FOUND = 404

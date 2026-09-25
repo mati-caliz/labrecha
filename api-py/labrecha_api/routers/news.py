@@ -1,23 +1,25 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query
-from labrecha_db import NewsArticle
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from typing import Annotated
 
-from labrecha_api.db import get_session
+from fastapi import APIRouter, Query
+from sqlalchemy import select
+
+from labrecha_api.db import SessionDependency
 from labrecha_api.schemas import NewsArticleOut
+from labrecha_db import NewsArticle
 
 router = APIRouter(prefix="/news", tags=["news"])
 
 
 @router.get("", response_model=list[NewsArticleOut])
 def list_news(
-    source: str | None = Query(default=None),
-    category: str | None = Query(default=None),
-    limit: int = Query(default=20, ge=1, le=100),
-    offset: int = Query(default=0, ge=0),
-    session: Session = Depends(get_session),
+    *,
+    source: Annotated[str | None, Query()] = None,
+    category: Annotated[str | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    session: SessionDependency,
 ) -> list[NewsArticleOut]:
     conditions = []
     if source is not None:

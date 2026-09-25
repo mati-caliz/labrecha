@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+from typing import Any
 
 CLAUDE_BIN = "claude"
 CLAUDE_TIMEOUT_SECONDS = 300
@@ -11,15 +12,16 @@ class LlmError(RuntimeError):
     pass
 
 
-def _extract_json_array(text: str) -> list:
+def _extract_json_array(text: str) -> list[Any]:
     start = text.find("[")
     end = text.rfind("]")
     if start == -1 or end == -1 or end < start:
         raise LlmError(f"la respuesta del LLM no contiene un array JSON: {text[:200]}")
-    return json.loads(text[start : end + 1])
+    items: list[Any] = json.loads(text[start : end + 1])
+    return items
 
 
-def run_claude_json_array(prompt: str) -> list:
+def run_claude_json_array(prompt: str) -> list[Any]:
     try:
         completed = subprocess.run(
             [CLAUDE_BIN, "-p", prompt],

@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import Any
 
-from labrecha_db import PoliticalEvent
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
-EVENTS: list[dict] = [
+from labrecha_db import PoliticalEvent
+
+EVENTS: list[dict[str, Any]] = [
     {
         "date": date(2001, 12, 20),
         "title": "Renuncia de De la Rúa",

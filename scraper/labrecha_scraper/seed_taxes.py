@@ -2,17 +2,18 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
+from typing import Any
 
-from labrecha_db import IndicatorHistory
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
+from labrecha_db import IndicatorHistory
 from labrecha_scraper.units import Unit
 
 SOURCE = "iaraf"
 SOURCE_REF = "IARAF — Vademécum Tributario"
 
-TAX_SNAPSHOTS: list[dict] = [
+TAX_SNAPSHOTS: list[dict[str, Any]] = [
     {
         "date": date(2023, 7, 1),
         "total": 148,
@@ -40,7 +41,7 @@ LEVEL_CODES = {
 
 
 def seed_taxes(session: Session) -> int:
-    rows: list[dict] = []
+    rows: list[dict[str, Any]] = []
     for snapshot in TAX_SNAPSHOTS:
         for level, code in LEVEL_CODES.items():
             rows.append(

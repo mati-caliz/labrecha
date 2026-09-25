@@ -4,7 +4,7 @@ import re
 from datetime import date
 from decimal import Decimal
 
-from labrecha_scraper.base import Connector, IndicatorPoint
+from labrecha_scraper.base import IndicatorConnector, IndicatorPoint
 from labrecha_scraper.clock import today_in_argentina
 
 ICG_URL = "https://www.utdt.edu/ver_contenido.php?id_contenido=1439&id_item_menu=2964"
@@ -38,7 +38,7 @@ ICG_PATTERN = re.compile(
 )
 
 
-class IcgConnector(Connector):
+class IcgConnector(IndicatorConnector):
     name = "icg"
     source = "utdt"
 
@@ -71,8 +71,11 @@ def _parse(text: str) -> list[IndicatorPoint]:
             f"{len(named)} con mes nombrado (¿cambió el HTML de UTDT?)"
         )
 
-    anchor_index = next(index for index, (month, _) in enumerate(matches) if month in MONTHS)
-    anchor_month = MONTHS[matches[anchor_index][0]]
+    anchor_index, anchor_month = next(
+        (index, MONTHS[month])
+        for index, (month, _) in enumerate(matches)
+        if month is not None and month in MONTHS
+    )
     today = today_in_argentina()
     anchor_year = today.year if anchor_month <= today.month else today.year - 1
     year, month = _add_months(anchor_year, anchor_month, -anchor_index)

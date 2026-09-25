@@ -5,6 +5,9 @@ from collections.abc import Iterator
 import pytest
 from alembic import command
 from alembic.script import ScriptDirectory
+from sqlalchemy import create_engine, inspect, text
+from sqlalchemy.engine import Engine, make_url
+
 from labrecha_db import Base
 from labrecha_db.migrate import (
     build_config,
@@ -13,8 +16,6 @@ from labrecha_db.migrate import (
     head_revision,
     upgrade,
 )
-from sqlalchemy import create_engine, inspect, text
-from sqlalchemy.engine import Engine, make_url
 
 ROUNDTRIP_DATABASE_SUFFIX = "_roundtrip"
 MAINTENANCE_DATABASE = "postgres"

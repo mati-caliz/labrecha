@@ -5,12 +5,13 @@ from collections.abc import Iterator
 
 import pytest
 from fastapi.testclient import TestClient
-from labrecha_db import Base
-from labrecha_db.migrate import upgrade
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine, make_url
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
+
+from labrecha_db import Base
+from labrecha_db.migrate import upgrade
 
 DEFAULT_TEST_DATABASE_URL = (
     "postgresql+psycopg2://labrecha:labrecha123@localhost:5433/labrecha_test"

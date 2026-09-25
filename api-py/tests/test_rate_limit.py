@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from fastapi import Request
+
 from labrecha_api.rate_limit import SlidingWindowCounter, client_key
 
 INTERNAL_PEER = "172.18.0.5"

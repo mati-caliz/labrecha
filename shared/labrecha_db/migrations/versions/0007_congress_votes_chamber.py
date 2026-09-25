@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import sqlalchemy as sa
 from alembic import op
+
 from labrecha_db import CHAMBER_DEPUTIES
 
 revision = "0007"

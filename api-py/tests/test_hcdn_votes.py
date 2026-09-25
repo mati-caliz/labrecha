@@ -4,6 +4,7 @@ from datetime import date
 from pathlib import Path
 
 import pytest
+
 from labrecha_db import CHAMBER_DEPUTIES
 from labrecha_scraper.connectors.hcdn_votes import HcdnVotesConnector
 

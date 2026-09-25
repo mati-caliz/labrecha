@@ -4,10 +4,10 @@ from bisect import bisect_right
 from datetime import date
 from decimal import Decimal
 
-from labrecha_db import IndicatorHistory
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from labrecha_db import IndicatorHistory
 from labrecha_scraper.base import Connector, IndicatorPoint, upsert_indicator_points
 from labrecha_scraper.units import Unit
 
@@ -120,14 +120,14 @@ def _implicit_fx_points(session: Session) -> list[IndicatorPoint]:
     return points
 
 
-class DerivedIndicatorsConnector(Connector):
+class DerivedIndicatorsConnector(Connector[None]):
     name = "derived"
     source = DERIVED_SOURCE
 
     def fetch(self) -> None:
         return None
 
-    def persist(self, session: Session, _data: object) -> int:
+    def persist(self, session: Session, _data: None) -> int:
         points: list[IndicatorPoint] = []
         for nominal_code, real_code in DEFLATED_SERIES.items():
             points.extend(_deflated_points(session, nominal_code, real_code))

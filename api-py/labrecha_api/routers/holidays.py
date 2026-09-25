@@ -1,24 +1,25 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
-from labrecha_db import Holiday
+from fastapi import APIRouter, Query
 from sqlalchemy import extract, select
-from sqlalchemy.orm import Session
 
-from labrecha_api.db import get_session
+from labrecha_api.db import SessionDependency
 from labrecha_api.schemas import HolidayOut
+from labrecha_db import Holiday
 
 router = APIRouter(prefix="/holidays", tags=["holidays"])
 
 
 @router.get("", response_model=list[HolidayOut])
 def list_holidays(
-    year: int | None = Query(default=None),
-    date_from: date | None = Query(default=None),
-    date_to: date | None = Query(default=None),
-    session: Session = Depends(get_session),
+    *,
+    year: Annotated[int | None, Query()] = None,
+    date_from: Annotated[date | None, Query()] = None,
+    date_to: Annotated[date | None, Query()] = None,
+    session: SessionDependency,
 ) -> list[HolidayOut]:
     conditions = []
     if year is not None:

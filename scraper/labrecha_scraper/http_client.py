@@ -19,7 +19,7 @@ class InvalidResponseError(ValueError):
 
 
 def _retry_delay(attempt: int) -> float:
-    return min(BACKOFF_BASE_SECONDS * 2 ** (attempt - 1), BACKOFF_MAX_SECONDS)
+    return min(BACKOFF_BASE_SECONDS * 2.0 ** (attempt - 1), BACKOFF_MAX_SECONDS)
 
 
 def retry_invalid_response[ResponseData](

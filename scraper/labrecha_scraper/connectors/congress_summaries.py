@@ -7,12 +7,13 @@ import json
 import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 import httpx
-from labrecha_db import CongressVote, CongressVoteSummary
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
+from labrecha_db import CongressVote, CongressVoteSummary
 from labrecha_scraper.base import Connector, upsert_rows
 from labrecha_scraper.connectors.hcdn_ckan import (
     LARGE_DOWNLOAD_TIMEOUT_SECONDS,
@@ -110,12 +111,12 @@ def _build_prompt(batch: list[PendingVote]) -> str:
     )
 
 
-class CongressSummariesConnector(Connector):
+class CongressSummariesConnector(Connector[list[dict[str, Any]]]):
     name = "congress_summaries"
     source = "hcdn"
     min_rows = 0
 
-    def fetch(self) -> list[dict]:
+    def fetch(self) -> list[dict[str, Any]]:
         pending = self._pending_votes()
         if not pending:
             return []
@@ -128,8 +129,7 @@ class CongressSummariesConnector(Connector):
                 ]
         return self._summarize(pending)
 
-    def persist(self, session: Session, data: object) -> int:
-        assert isinstance(data, list)
+    def persist(self, session: Session, data: list[dict[str, Any]]) -> int:
         return upsert_rows(session, CongressVoteSummary, data, ["vote_record_id"])
 
     def _pending_votes(self) -> list[PendingVote]:
@@ -160,6 +160,7 @@ class CongressSummariesConnector(Connector):
                 file_numbers=_file_keys_in(title),
             )
             for vote_record_id, title in rows
+            if title is not None
         ]
 
     def _download_project_titles(self, client: httpx.Client) -> dict[str, str]:
@@ -183,7 +184,7 @@ class CongressSummariesConnector(Connector):
                 titles_by_file.setdefault(_file_key(*match.groups()), _clean_project_title(title))
         return titles_by_file
 
-    def _summarize(self, pending: list[PendingVote]) -> list[dict]:
+    def _summarize(self, pending: list[PendingVote]) -> list[dict[str, Any]]:
         # Toda votación intentada se persiste: la que no se pudo resumir queda con summary
         # NULL para no volver a ocupar la ventana de la próxima corrida.
         attempted_at = datetime.now(UTC)

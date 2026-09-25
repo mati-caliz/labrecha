@@ -3,13 +3,13 @@ from __future__ import annotations
 from datetime import date
 from decimal import Decimal
 
-from labrecha_scraper.base import Connector, IndicatorPoint
+from labrecha_scraper.base import IndicatorConnector, IndicatorPoint
 from labrecha_scraper.units import Unit
 
 COUNTRY_RISK_URL = "https://api.argentinadatos.com/v1/finanzas/indices/riesgo-pais"
 
 
-class CountryRiskConnector(Connector):
+class CountryRiskConnector(IndicatorConnector):
     name = "country_risk"
     source = "argentinadatos"
 

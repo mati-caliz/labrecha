@@ -1,0 +1,59 @@
+# Estándar de calidad compartido. Se copia tal cual con `quality/sync.sh` y el pyproject del
+# repo lo hereda con `[tool.ruff] extend = "ruff.standard.toml"`. Lo propio del repo
+# (src, per-file-ignores con su motivo) va en el pyproject.
+line-length = 100
+target-version = "py312"
+
+[lint]
+# Se prende todo y se saca lo que no aplica con el motivo escrito: cuando ruff suma una
+# regla nueva entra sola, y sacarla hay que justificarlo.
+select = ["ALL"]
+ignore = [
+    # El código se explica solo; exigir docstring en cada símbolo devuelve prosa que repite
+    # la firma.
+    "D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107",
+    # Incompatibles entre sí; se elige la convención de Google.
+    "D203", "D213",
+    # Sin cabeceras de copyright en los fuentes.
+    "CPY001",
+    # Los decide `ruff format`; como reglas de lint pelean con el formateador.
+    "COM812", "ISC001",
+    # El mensaje va en el raise: extraerlo a una variable agrega ceremonia sin mejorar
+    # el diagnóstico.
+    "TRY003", "EM101", "EM102",
+    # Mover imports a `if TYPE_CHECKING` rompe lo que Pydantic y FastAPI resuelven en
+    # tiempo de ejecución a partir de las anotaciones.
+    "TC001", "TC002", "TC003",
+]
+
+[lint.per-file-ignores]
+"tests/**" = [
+    "S101",                   # assert es la forma de afirmar en los tests
+    "S105", "S106", "S108",   # credenciales y rutas de juguete
+    "ANN",                    # firmas de tests y fixtures
+    "PLR2004",                # el valor esperado va literal en la afirmación
+    "SLF001",                 # se prueban invariantes internos a propósito
+    "ARG",                    # fixtures y dobles que reciben lo que ignoran
+    "PLR0913",                # un test puede pedir muchas fixtures
+    "FBT",                    # parametrize pasa booleanos posicionales
+]
+
+[lint.pydocstyle]
+convention = "google"
+
+[lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[lint.pylint]
+max-args = 6
+max-positional-args = 4
+max-returns = 6
+max-branches = 10
+max-statements = 40
+
+[lint.mccabe]
+max-complexity = 10
+
+[format]
+quote-style = "double"
+docstring-code-format = true

@@ -3,9 +3,9 @@ from __future__ import annotations
 from datetime import date
 from decimal import Decimal
 
-from labrecha_db import IndicatorHistory
 from sqlalchemy.orm import Session
 
+from labrecha_db import IndicatorHistory
 from labrecha_scraper.base import Connector, IndicatorPoint, upsert_rows
 from labrecha_scraper.connectors.dollar import dollar_code
 from labrecha_scraper.units import Unit
@@ -13,7 +13,7 @@ from labrecha_scraper.units import Unit
 HISTORICAL_DOLLARS_URL = "https://api.argentinadatos.com/v1/cotizaciones/dolares"
 
 
-class DollarHistoricalConnector(Connector):
+class DollarHistoricalConnector(Connector[list[IndicatorPoint]]):
     name = "dollar_historical"
     source = "argentinadatos"
 
@@ -41,7 +41,7 @@ class DollarHistoricalConnector(Connector):
             )
         return list(points_by_key.values())
 
-    def persist(self, session: Session, data: object) -> int:
+    def persist(self, session: Session, data: list[IndicatorPoint]) -> int:
         points: list[IndicatorPoint] = data
         rows = [
             {

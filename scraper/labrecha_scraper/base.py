@@ -5,14 +5,15 @@ import traceback
 from abc import ABC, abstractmethod
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
+from typing import Any
 
 import httpx
-from labrecha_db import IndicatorHistory, ScrapeRun
 from pydantic import BaseModel
-from sqlalchemy import func, select, update
+from sqlalchemy import CursorResult, Result, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
+from labrecha_db import IndicatorHistory, ScrapeRun
 from labrecha_scraper.config import settings
 from labrecha_scraper.http_client import RetryingTransport
 
@@ -38,10 +39,10 @@ class IndicatorPoint(BaseModel):
     source: str
     date: date
     value: Decimal
-    meta: dict = {}
+    meta: dict[str, Any] = {}
 
 
-class Connector(ABC):
+class Connector[DataT](ABC):
     name: str
     source: str
     min_rows: int = DEFAULT_MIN_ROWS
@@ -58,18 +59,26 @@ class Connector(ABC):
         )
 
     @abstractmethod
-    def fetch(self) -> object:
+    def fetch(self) -> DataT:
         raise NotImplementedError
 
-    def persist(self, session: Session, data: object) -> int:
+    @abstractmethod
+    def persist(self, session: Session, data: DataT) -> int:
+        raise NotImplementedError
+
+
+class IndicatorConnector(Connector[list[IndicatorPoint]]):
+    """Un conector de series: lo que baja son puntos de indicator_history."""
+
+    def persist(self, session: Session, data: list[IndicatorPoint]) -> int:
         return upsert_indicator_points(session, data)
 
 
 UPSERT_BATCH_SIZE = 5000
 
 
-def _last_per_key(rows: list[dict], index_elements: list[str]) -> list[dict]:
-    deduplicated: dict[tuple, dict] = {}
+def _last_per_key(rows: list[dict[str, Any]], index_elements: list[str]) -> list[dict[str, Any]]:
+    deduplicated: dict[tuple[Any, ...], dict[str, Any]] = {}
     for row in rows:
         deduplicated[tuple(row[column] for column in index_elements)] = row
     return list(deduplicated.values())
@@ -78,7 +87,7 @@ def _last_per_key(rows: list[dict], index_elements: list[str]) -> list[dict]:
 def upsert_rows(
     session: Session,
     model: type,
-    rows: list[dict],
+    rows: list[dict[str, Any]],
     index_elements: list[str],
     *,
     update_on_conflict: bool = True,
@@ -135,6 +144,13 @@ def _format_error(error: Exception) -> str:
     return f"{summary}\n\n[traceback truncado]\n...{detail[-ERROR_MAX_LENGTH:]}"
 
 
+def affected_rows(result: Result[Any]) -> int:
+    if not isinstance(result, CursorResult):
+        msg = "la sentencia de escritura no devolvió un CursorResult"
+        raise TypeError(msg)
+    return result.rowcount
+
+
 def close_interrupted_runs(session: Session, job_name: str) -> int:
     cutoff = datetime.now(UTC) - ZOMBIE_RUN_MAX_AGE
     statement = (
@@ -146,7 +162,7 @@ def close_interrupted_runs(session: Session, job_name: str) -> int:
         )
         .values(status=STATUS_ERROR, error=ZOMBIE_RUN_ERROR, finished_at=func.now())
     )
-    closed = session.execute(statement).rowcount
+    closed = affected_rows(session.execute(statement))
     session.commit()
     if closed:
         logger.warning(
@@ -155,7 +171,7 @@ def close_interrupted_runs(session: Session, job_name: str) -> int:
     return closed
 
 
-def run_job(session: Session, connector: Connector) -> ScrapeRun:
+def run_job[DataT](session: Session, connector: Connector[DataT]) -> ScrapeRun:
     close_interrupted_runs(session, connector.name)
 
     run = ScrapeRun(job_name=connector.name, status=STATUS_RUNNING)

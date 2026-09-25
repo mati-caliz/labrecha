@@ -1,23 +1,25 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query
-from labrecha_db import TaxChange
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from typing import Annotated
 
-from labrecha_api.db import get_session
+from fastapi import APIRouter, Query
+from sqlalchemy import select
+
+from labrecha_api.db import SessionDependency
 from labrecha_api.schemas import TaxChangeOut
+from labrecha_db import TaxChange
 
 router = APIRouter(prefix="/taxes", tags=["taxes"])
 
 
 @router.get("/changes", response_model=list[TaxChangeOut])
 def list_changes(
-    change_type: str | None = Query(default=None),
-    jurisdiction: str | None = Query(default=None),
-    limit: int = Query(default=20, ge=1, le=100),
-    offset: int = Query(default=0, ge=0),
-    session: Session = Depends(get_session),
+    *,
+    change_type: Annotated[str | None, Query()] = None,
+    jurisdiction: Annotated[str | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    session: SessionDependency,
 ) -> list[TaxChangeOut]:
     conditions = []
     if change_type is not None:

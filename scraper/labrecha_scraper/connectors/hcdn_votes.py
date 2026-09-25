@@ -4,12 +4,13 @@ import re
 import time
 from dataclasses import dataclass, field
 from datetime import date
+from typing import Any
 
 import httpx
-from labrecha_db import CHAMBER_DEPUTIES, CongressVote, CongressVoteDetail
 from sqlalchemy import Integer, func, select
 from sqlalchemy.orm import Session
 
+from labrecha_db import CHAMBER_DEPUTIES, CongressVote, CongressVoteDetail
 from labrecha_scraper.base import Connector, upsert_rows
 from labrecha_scraper.db import SessionLocal
 
@@ -61,8 +62,8 @@ VOTE_CELL = 4
 
 @dataclass
 class HcdnVotesData:
-    votes: list[dict] = field(default_factory=list)
-    details: list[dict] = field(default_factory=list)
+    votes: list[dict[str, Any]] = field(default_factory=list)
+    details: list[dict[str, Any]] = field(default_factory=list)
 
 
 def _flatten(fragment: str) -> str:
@@ -79,7 +80,7 @@ def _deputy_key(photo_cell: str, position: int) -> str:
     return deputy.group(1) if deputy else f"p{position}"
 
 
-class HcdnVotesConnector(Connector):
+class HcdnVotesConnector(Connector[HcdnVotesData]):
     name = "hcdn_votes"
     source = "hcdn"
     min_rows = 0
@@ -104,8 +105,7 @@ class HcdnVotesConnector(Connector):
                 acta_id += 1
         return data
 
-    def persist(self, session: Session, data: object) -> int:
-        assert isinstance(data, HcdnVotesData)
+    def persist(self, session: Session, data: HcdnVotesData) -> int:
         votes = upsert_rows(session, CongressVote, data.votes, ["vote_record_id"])
         details = upsert_rows(session, CongressVoteDetail, data.details, ["vote_detail_id"])
         return votes + details
@@ -127,7 +127,7 @@ class HcdnVotesConnector(Connector):
         # encabezado de acta no hay nada que guardar.
         return response.text if HEADING.search(response.text) else None
 
-    def _parse_vote(self, html: str, acta_id: int) -> dict:
+    def _parse_vote(self, html: str, acta_id: int) -> dict[str, Any]:
         heading = HEADING.search(html)
         if heading is None:
             raise ValueError(f"acta {acta_id} de Diputados sin encabezado de período/reunión")
@@ -174,11 +174,11 @@ class HcdnVotesConnector(Connector):
             "absents": counts[ABSENT_LABEL],
         }
 
-    def _parse_deputy_votes(self, html: str, acta_id: int) -> list[dict]:
+    def _parse_deputy_votes(self, html: str, acta_id: int) -> list[dict[str, Any]]:
         body = html.find(TABLE_BODY)
         if body < 0:
             raise ValueError(f"acta {acta_id} de Diputados sin tabla de votos por diputado")
-        rows: list[dict] = []
+        rows: list[dict[str, Any]] = []
         for position, row in enumerate(ROW.findall(html[body:])):
             cells = CELL.findall(row)
             if len(cells) < DEPUTY_CELLS:

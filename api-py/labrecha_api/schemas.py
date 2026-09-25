@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from decimal import Decimal
 from enum import StrEnum
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -25,7 +26,7 @@ class IndicatorPoint(BaseModel):
     date: date
     value: Decimal
     source: str
-    meta: dict
+    meta: dict[str, Any]
 
 
 class IndicatorSeries(BaseModel):

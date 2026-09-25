@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from decimal import ROUND_HALF_UP, Decimal
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
-from labrecha_db import IndicatorHistory
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -21,6 +21,7 @@ from labrecha_api.schemas import (
     TaxImpactResponse,
 )
 from labrecha_api.tax_impact import calculate_tax_impact
+from labrecha_db import IndicatorHistory
 
 router = APIRouter(prefix="/calculators", tags=["calculators"])
 
@@ -86,7 +87,7 @@ def tax_impact(request: TaxImpactRequest) -> TaxImpactResponse:
 
 @router.post("/inflation-adjustment", response_model=InflationAdjustmentResponse)
 def inflation_adjustment(
-    request: InflationAdjustmentRequest, session: Session = Depends(get_session)
+    request: InflationAdjustmentRequest, session: Annotated[Session, Depends(get_session)]
 ) -> InflationAdjustmentResponse:
     if request.from_date > request.to_date:
         raise HTTPException(status_code=422, detail="from_date debe ser anterior o igual a to_date")

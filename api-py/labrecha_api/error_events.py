@@ -3,10 +3,11 @@ from __future__ import annotations
 import re
 from hashlib import sha256
 
-from labrecha_db import ErrorEvent
 from sqlalchemy import func
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
+
+from labrecha_db import ErrorEvent
 
 DIGITS = re.compile(r"\d+")
 WHITESPACE = re.compile(r"\s+")

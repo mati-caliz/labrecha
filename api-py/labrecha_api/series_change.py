@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 from collections import Counter
+from collections.abc import Sequence
 from datetime import date
 from decimal import Decimal
+
+from sqlalchemy import Row
 
 from labrecha_api.schemas import TermMethod
 
@@ -50,6 +53,8 @@ def accumulated_change(points: list[tuple[date, Decimal]], method: TermMethod) -
     return (last_value - first_value) / abs(first_value) * PERCENT
 
 
-def most_covered_source(rows: list[tuple[date, Decimal, str]]) -> str:
+def most_covered_source(
+    rows: Sequence[tuple[date, Decimal, str]] | Sequence[Row[date, Decimal, str]],
+) -> str:
     counts = Counter(row_source for _, _, row_source in rows)
     return counts.most_common(1)[0][0]

@@ -5,7 +5,7 @@ from decimal import Decimal
 
 import httpx
 
-from labrecha_scraper.base import Connector, IndicatorPoint
+from labrecha_scraper.base import IndicatorConnector, IndicatorPoint
 from labrecha_scraper.units import Unit
 
 SERIES_URL = "https://apis.datos.gob.ar/series/api/series/"
@@ -56,7 +56,7 @@ SERIES: dict[str, SeriesSpec] = {
 }
 
 
-class SeriesDatosGobConnector(Connector):
+class SeriesDatosGobConnector(IndicatorConnector):
     name = "series_datosgob"
     source = "datosgobar"
 

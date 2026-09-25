@@ -3,14 +3,15 @@ from __future__ import annotations
 import csv
 import io
 from datetime import date
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from labrecha_db import IndicatorHistory
+from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from labrecha_api.db import get_session
+from labrecha_api.db import SessionDependency, get_session
 from labrecha_api.schemas import (
     IndicatorPoint,
     IndicatorSeries,
@@ -24,16 +25,34 @@ from labrecha_api.series_change import (
     method_for,
     most_covered_source,
 )
+from labrecha_db import IndicatorHistory
 
 router = APIRouter(prefix="/indicators", tags=["indicators"])
 
 DEFAULT_LIMIT = 5000
 MAX_LIMIT = 50000
+
+
+class SeriesFilters(BaseModel):
+    source: str | None = None
+    date_from: date | None = None
+    date_to: date | None = None
+    limit: int = Field(default=DEFAULT_LIMIT, ge=1, le=MAX_LIMIT)
+    order: str = Field(default="asc", pattern="^(asc|desc)$")
+
+
+class CsvFilters(SeriesFilters):
+    """El CSV baja la serie entera en orden cronológico salvo que se pida menos."""
+
+    limit: int = Field(default=MAX_LIMIT, ge=1, le=MAX_LIMIT)
+    order: Literal["asc"] = "asc"
+
+
 MIN_VARIATION_POINTS = 2
 
 
 @router.get("", response_model=list[IndicatorSummary])
-def list_indicators(session: Session = Depends(get_session)) -> list[IndicatorSummary]:
+def list_indicators(session: Annotated[Session, Depends(get_session)]) -> list[IndicatorSummary]:
     statement = (
         select(
             IndicatorHistory.indicator_code,
@@ -59,7 +78,7 @@ def list_indicators(session: Session = Depends(get_session)) -> list[IndicatorSu
 
 @router.get("/{indicator_code}/sources", response_model=list[IndicatorSourceSummary])
 def list_indicator_sources(
-    indicator_code: str, session: Session = Depends(get_session)
+    indicator_code: str, session: Annotated[Session, Depends(get_session)]
 ) -> list[IndicatorSourceSummary]:
     aggregate = (
         select(
@@ -105,10 +124,11 @@ def list_indicator_sources(
 
 @router.get("/{indicator_code}/variation", response_model=IndicatorVariationOut)
 def indicator_variation_since(
+    *,
     indicator_code: str,
-    date_from: date = Query(),
-    source: str | None = Query(default=None),
-    session: Session = Depends(get_session),
+    date_from: Annotated[date, Query()],
+    source: Annotated[str | None, Query()] = None,
+    session: SessionDependency,
 ) -> IndicatorVariationOut:
     conditions = [IndicatorHistory.indicator_code == indicator_code]
     if source is not None:
@@ -161,27 +181,24 @@ def indicator_variation_since(
 @router.get("/{indicator_code}", response_model=IndicatorSeries)
 def get_indicator_series(
     indicator_code: str,
-    source: str | None = Query(default=None),
-    date_from: date | None = Query(default=None),
-    date_to: date | None = Query(default=None),
-    limit: int = Query(default=DEFAULT_LIMIT, ge=1, le=MAX_LIMIT),
-    order: str = Query(default="asc", pattern="^(asc|desc)$"),
-    session: Session = Depends(get_session),
+    filters: Annotated[SeriesFilters, Query()],
+    session: SessionDependency,
 ) -> IndicatorSeries:
     conditions = [IndicatorHistory.indicator_code == indicator_code]
-    if source is not None:
-        conditions.append(IndicatorHistory.source == source)
-    if date_from is not None:
-        conditions.append(IndicatorHistory.date >= date_from)
-    if date_to is not None:
-        conditions.append(IndicatorHistory.date <= date_to)
+    if filters.source is not None:
+        conditions.append(IndicatorHistory.source == filters.source)
+    if filters.date_from is not None:
+        conditions.append(IndicatorHistory.date >= filters.date_from)
+    if filters.date_to is not None:
+        conditions.append(IndicatorHistory.date <= filters.date_to)
 
-    ordering = IndicatorHistory.date.asc() if order == "asc" else IndicatorHistory.date.desc()
+    ascending = filters.order == "asc"
+    ordering = IndicatorHistory.date.asc() if ascending else IndicatorHistory.date.desc()
     statement = (
         select(IndicatorHistory)
         .where(*conditions)
         .order_by(ordering, IndicatorHistory.source)
-        .limit(limit)
+        .limit(filters.limit)
     )
     rows = session.scalars(statement).all()
     if not rows:
@@ -204,21 +221,10 @@ CSV_HEADER = ["date", "indicator_code", "source", "value"]
 @router.get("/{indicator_code}/csv", response_class=StreamingResponse)
 def get_indicator_csv(
     indicator_code: str,
-    source: str | None = Query(default=None),
-    date_from: date | None = Query(default=None),
-    date_to: date | None = Query(default=None),
-    limit: int = Query(default=MAX_LIMIT, ge=1, le=MAX_LIMIT),
-    session: Session = Depends(get_session),
+    filters: Annotated[CsvFilters, Query()],
+    session: SessionDependency,
 ) -> StreamingResponse:
-    series = get_indicator_series(
-        indicator_code=indicator_code,
-        source=source,
-        date_from=date_from,
-        date_to=date_to,
-        limit=limit,
-        order="asc",
-        session=session,
-    )
+    series = get_indicator_series(indicator_code, filters, session)
 
     buffer = io.StringIO()
     writer = csv.writer(buffer)

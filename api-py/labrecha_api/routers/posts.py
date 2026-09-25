@@ -1,15 +1,16 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from labrecha_db import Post
-from sqlalchemy import select
+from sqlalchemy import ColumnElement, select
 from sqlalchemy.orm import Session
 
 from labrecha_api.admin_auth import require_admin
-from labrecha_api.db import get_session
+from labrecha_api.db import SessionDependency, get_session
 from labrecha_api.schemas import PostCategory, PostCreate, PostImpact, PostOut, PostUpdate
+from labrecha_db import Post
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
@@ -33,12 +34,13 @@ def to_post_out(post: Post) -> PostOut:
 
 @router.get("", response_model=list[PostOut])
 def list_published_posts(
-    category: PostCategory | None = Query(default=None),
-    limit: int = Query(default=50, ge=1, le=200),
-    offset: int = Query(default=0, ge=0),
-    session: Session = Depends(get_session),
+    *,
+    category: Annotated[PostCategory | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    session: SessionDependency,
 ) -> list[PostOut]:
-    conditions = [Post.published.is_(True)]
+    conditions: list[ColumnElement[bool]] = [Post.published.is_(True)]
     if category is not None:
         conditions.append(Post.category == category.value)
     statement = (
@@ -48,13 +50,13 @@ def list_published_posts(
 
 
 @router.get("/all", response_model=list[PostOut], dependencies=[Depends(require_admin)])
-def list_all_posts(session: Session = Depends(get_session)) -> list[PostOut]:
+def list_all_posts(session: Annotated[Session, Depends(get_session)]) -> list[PostOut]:
     statement = select(Post).order_by(Post.created_at.desc())
     return [to_post_out(post) for post in session.scalars(statement).all()]
 
 
 @router.get("/{slug}", response_model=PostOut)
-def get_published_post(slug: str, session: Session = Depends(get_session)) -> PostOut:
+def get_published_post(slug: str, session: Annotated[Session, Depends(get_session)]) -> PostOut:
     post = session.scalars(select(Post).where(Post.slug == slug, Post.published.is_(True))).first()
     if post is None:
         raise HTTPException(status_code=404, detail="Post no encontrado")
@@ -62,7 +64,7 @@ def get_published_post(slug: str, session: Session = Depends(get_session)) -> Po
 
 
 @router.post("", response_model=PostOut, status_code=201, dependencies=[Depends(require_admin)])
-def create_post(payload: PostCreate, session: Session = Depends(get_session)) -> PostOut:
+def create_post(payload: PostCreate, session: Annotated[Session, Depends(get_session)]) -> PostOut:
     existing = session.scalars(select(Post).where(Post.slug == payload.slug)).first()
     if existing is not None:
         raise HTTPException(status_code=409, detail="Ya existe un post con ese slug")
@@ -88,7 +90,7 @@ def create_post(payload: PostCreate, session: Session = Depends(get_session)) ->
 
 @router.put("/{post_id}", response_model=PostOut, dependencies=[Depends(require_admin)])
 def update_post(
-    post_id: int, payload: PostUpdate, session: Session = Depends(get_session)
+    post_id: int, payload: PostUpdate, session: Annotated[Session, Depends(get_session)]
 ) -> PostOut:
     post = session.get(Post, post_id)
     if post is None:
@@ -110,7 +112,7 @@ def update_post(
 
 
 @router.delete("/{post_id}", status_code=204, dependencies=[Depends(require_admin)])
-def delete_post(post_id: int, session: Session = Depends(get_session)) -> None:
+def delete_post(post_id: int, session: Annotated[Session, Depends(get_session)]) -> None:
     post = session.get(Post, post_id)
     if post is None:
         raise HTTPException(status_code=404, detail="Post no encontrado")

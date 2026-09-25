@@ -7,7 +7,7 @@ from decimal import Decimal
 
 import httpx
 
-from labrecha_scraper.base import Connector, IndicatorPoint
+from labrecha_scraper.base import IndicatorConnector, IndicatorPoint
 from labrecha_scraper.units import Unit
 
 SERIES_URL = "https://apis.datos.gob.ar/series/api/series/"
@@ -93,7 +93,7 @@ def percent_variation(previous: Decimal, current: Decimal) -> Decimal:
     return ((current / previous - 1) * PERCENT_FACTOR).quantize(VARIATION_DECIMALS)
 
 
-class CpiJurisdictionsConnector(Connector):
+class CpiJurisdictionsConnector(IndicatorConnector):
     name = "cpi_jurisdictions"
     source = "datosgobar"
 

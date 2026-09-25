@@ -5,7 +5,7 @@ from decimal import Decimal
 
 import httpx
 
-from labrecha_scraper.base import Connector, IndicatorPoint
+from labrecha_scraper.base import IndicatorConnector, IndicatorPoint
 from labrecha_scraper.clock import today_in_argentina
 from labrecha_scraper.units import Unit
 
@@ -19,7 +19,7 @@ VARIABLES = {
 }
 
 
-class BcraRatesConnector(Connector):
+class BcraRatesConnector(IndicatorConnector):
     name = "bcra_rates"
     source = "bcra"
 

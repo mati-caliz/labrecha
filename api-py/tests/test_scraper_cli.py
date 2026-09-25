@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import time
 from types import SimpleNamespace
 
 import pytest
+
 from labrecha_scraper import cli
 
 
@@ -32,7 +34,7 @@ def test_run_all_retries_only_failed_jobs(
     monkeypatch.setattr(cli, "SessionLocal", SessionContext)
     monkeypatch.setattr(cli, "get_connector", lambda name: SimpleNamespace(name=name))
     monkeypatch.setattr(cli, "run_job", fake_run_job)
-    monkeypatch.setattr(cli.time, "sleep", lambda _seconds: None)
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
 
     assert cli._run("all") == 0
     assert attempts == {"stable": 1, "transient": 2}
@@ -53,7 +55,7 @@ def test_run_all_reports_final_failures(
     monkeypatch.setattr(cli, "SessionLocal", SessionContext)
     monkeypatch.setattr(cli, "get_connector", lambda name: SimpleNamespace(name=name))
     monkeypatch.setattr(cli, "run_job", fake_run_job)
-    monkeypatch.setattr(cli.time, "sleep", lambda _seconds: None)
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
 
     assert cli._run("all") == 1
     assert attempts == 2

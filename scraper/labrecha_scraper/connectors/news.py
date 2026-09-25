@@ -5,12 +5,13 @@ import re
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
+from typing import Any
 
 import httpx
 from defusedxml import ElementTree
-from labrecha_db import NewsArticle
 from sqlalchemy.orm import Session
 
+from labrecha_db import NewsArticle
 from labrecha_scraper.base import Connector, upsert_rows
 
 COUNTRY = "ARGENTINA"
@@ -64,12 +65,12 @@ def _parse_date(raw: str | None) -> datetime:
     return datetime.now(UTC)
 
 
-class NewsConnector(Connector):
+class NewsConnector(Connector[list[dict[str, Any]]]):
     name = "news"
     source = "rss"
 
-    def fetch(self) -> list[dict]:
-        rows: list[dict] = []
+    def fetch(self) -> list[dict[str, Any]]:
+        rows: list[dict[str, Any]] = []
         seen_urls: set[str] = set()
         with self.build_client() as client:
             for feed in FEEDS:
@@ -80,17 +81,16 @@ class NewsConnector(Connector):
                     rows.append(row)
         return rows
 
-    def persist(self, session: Session, data: object) -> int:
-        assert isinstance(data, list)
+    def persist(self, session: Session, data: list[dict[str, Any]]) -> int:
         return upsert_rows(session, NewsArticle, data, ["source_url"], update_on_conflict=False)
 
-    def _fetch_feed(self, client: httpx.Client, feed: RssFeed) -> list[dict]:
+    def _fetch_feed(self, client: httpx.Client, feed: RssFeed) -> list[dict[str, Any]]:
         response = client.get(feed.url)
         response.raise_for_status()
         root = ElementTree.fromstring(response.content)
 
         now = datetime.now(UTC)
-        rows: list[dict] = []
+        rows: list[dict[str, Any]] = []
         for item in list(root.iter("item"))[:MAX_ITEMS_PER_FEED]:
             title = _strip_html(item.findtext("title"))
             source_url = (item.findtext("link") or "").strip()

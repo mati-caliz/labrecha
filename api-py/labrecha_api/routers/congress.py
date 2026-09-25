@@ -2,8 +2,20 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
+from sqlalchemy import ColumnElement, case, func, select
+from sqlalchemy.orm import Session
+
+from labrecha_api.db import SessionDependency, get_session
+from labrecha_api.schemas import (
+    BlocAttendanceOut,
+    CongressVoteDetailOut,
+    CongressVoteOut,
+    SanctionedLawOut,
+)
 from labrecha_db import (
     CHAMBER_DEPUTIES,
     CHAMBER_SENATE,
@@ -11,16 +23,6 @@ from labrecha_db import (
     CongressVoteDetail,
     CongressVoteSummary,
     SanctionedLaw,
-)
-from sqlalchemy import case, func, select
-from sqlalchemy.orm import Session
-
-from labrecha_api.db import get_session
-from labrecha_api.schemas import (
-    BlocAttendanceOut,
-    CongressVoteDetailOut,
-    CongressVoteOut,
-    SanctionedLawOut,
 )
 
 ABSENT_VOTE = "AUSENTE"
@@ -52,30 +54,39 @@ def _to_vote_out(vote: CongressVote, summary: CongressVoteSummary | None) -> Con
     )
 
 
+class VoteFilters(BaseModel):
+    date_from: date | None = None
+    date_to: date | None = None
+    result: str | None = None
+    chamber: str | None = None
+    period_number: int | None = None
+    limit: int = Field(default=50, ge=1, le=500)
+    offset: int = Field(default=0, ge=0)
+
+
+def _vote_conditions(filters: VoteFilters) -> list[ColumnElement[bool]]:
+    conditions: list[ColumnElement[bool]] = []
+    if filters.date_from is not None:
+        conditions.append(CongressVote.date >= filters.date_from)
+    if filters.date_to is not None:
+        conditions.append(CongressVote.date <= filters.date_to)
+    if filters.result is not None:
+        conditions.append(CongressVote.result == filters.result)
+    if filters.chamber is not None:
+        if filters.chamber not in CHAMBERS:
+            raise HTTPException(status_code=422, detail=f"cámara desconocida: {filters.chamber}")
+        conditions.append(CongressVote.chamber == filters.chamber)
+    if filters.period_number is not None:
+        conditions.append(CongressVote.period_number == filters.period_number)
+    return conditions
+
+
 @router.get("/votes", response_model=list[CongressVoteOut])
 def list_votes(
-    date_from: date | None = Query(default=None),
-    date_to: date | None = Query(default=None),
-    result: str | None = Query(default=None),
-    chamber: str | None = Query(default=None),
-    period_number: int | None = Query(default=None),
-    limit: int = Query(default=50, ge=1, le=500),
-    offset: int = Query(default=0, ge=0),
-    session: Session = Depends(get_session),
+    filters: Annotated[VoteFilters, Query()],
+    session: SessionDependency,
 ) -> list[CongressVoteOut]:
-    conditions = []
-    if date_from is not None:
-        conditions.append(CongressVote.date >= date_from)
-    if date_to is not None:
-        conditions.append(CongressVote.date <= date_to)
-    if result is not None:
-        conditions.append(CongressVote.result == result)
-    if chamber is not None:
-        if chamber not in CHAMBERS:
-            raise HTTPException(status_code=422, detail=f"cámara desconocida: {chamber}")
-        conditions.append(CongressVote.chamber == chamber)
-    if period_number is not None:
-        conditions.append(CongressVote.period_number == period_number)
+    conditions = _vote_conditions(filters)
 
     statement = (
         select(CongressVote, CongressVoteSummary)
@@ -85,20 +96,21 @@ def list_votes(
         )
         .where(*conditions)
         .order_by(CongressVote.date.desc().nullslast(), CongressVote.vote_record_id.desc())
-        .limit(limit)
-        .offset(offset)
+        .limit(filters.limit)
+        .offset(filters.offset)
     )
     return [_to_vote_out(vote, summary) for vote, summary in session.execute(statement).all()]
 
 
 @router.get("/attendance", response_model=list[BlocAttendanceOut])
 def bloc_attendance(
-    chamber: str | None = Query(default=None),
-    session: Session = Depends(get_session),
+    *,
+    chamber: Annotated[str | None, Query()] = None,
+    session: SessionDependency,
 ) -> list[BlocAttendanceOut]:
     # Se agrupa por cámara además de por bloque: un mismo nombre de bloque puede existir en
     # las dos y sumarlos daría un porcentaje sobre denominadores que no son comparables.
-    conditions = [CongressVoteDetail.bloc.is_not(None)]
+    conditions: list[ColumnElement[bool]] = [CongressVoteDetail.bloc.is_not(None)]
     if chamber is not None:
         if chamber not in CHAMBERS:
             raise HTTPException(status_code=422, detail=f"cámara desconocida: {chamber}")
@@ -137,12 +149,13 @@ def bloc_attendance(
 
 @router.get("/laws", response_model=list[SanctionedLawOut])
 def list_laws(
-    date_from: date | None = Query(default=None),
-    date_to: date | None = Query(default=None),
-    chamber: str | None = Query(default=None),
-    limit: int = Query(default=30, ge=1, le=500),
-    offset: int = Query(default=0, ge=0),
-    session: Session = Depends(get_session),
+    *,
+    date_from: Annotated[date | None, Query()] = None,
+    date_to: Annotated[date | None, Query()] = None,
+    chamber: Annotated[str | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=500)] = 30,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    session: SessionDependency,
 ) -> list[SanctionedLawOut]:
     conditions = []
     if date_from is not None:
@@ -176,7 +189,9 @@ def list_laws(
 
 
 @router.get("/votes/{vote_record_id}", response_model=CongressVoteOut)
-def get_vote(vote_record_id: str, session: Session = Depends(get_session)) -> CongressVoteOut:
+def get_vote(
+    vote_record_id: str, session: Annotated[Session, Depends(get_session)]
+) -> CongressVoteOut:
     vote = session.get(CongressVote, vote_record_id)
     if vote is None:
         raise HTTPException(status_code=404, detail=f"acta desconocida: {vote_record_id}")
@@ -185,10 +200,11 @@ def get_vote(vote_record_id: str, session: Session = Depends(get_session)) -> Co
 
 @router.get("/votes/{vote_record_id}/details", response_model=list[CongressVoteDetailOut])
 def list_vote_details(
+    *,
     vote_record_id: str,
-    vote: str | None = Query(default=None),
-    bloc: str | None = Query(default=None),
-    session: Session = Depends(get_session),
+    vote: Annotated[str | None, Query()] = None,
+    bloc: Annotated[str | None, Query()] = None,
+    session: SessionDependency,
 ) -> list[CongressVoteDetailOut]:
     if session.get(CongressVote, vote_record_id) is None:
         raise HTTPException(status_code=404, detail=f"acta desconocida: {vote_record_id}")

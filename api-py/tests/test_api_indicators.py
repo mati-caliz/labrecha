@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import csv
 import io
+from collections.abc import Mapping
 from datetime import date
 from decimal import Decimal
 
 import pytest
 from fastapi.testclient import TestClient
-from labrecha_db import IndicatorHistory
 from sqlalchemy.orm import Session
+
+from labrecha_db import IndicatorHistory
 
 OK = 200
 NOT_FOUND = 404
@@ -17,7 +19,7 @@ UNPROCESSABLE = 422
 PERCENT_META = {"unit": "%"}
 
 
-def seed(session: Session, rows: list[tuple[str, str, date, str, dict[str, object]]]) -> None:
+def seed(session: Session, rows: list[tuple[str, str, date, str, Mapping[str, object]]]) -> None:
     session.add_all(
         [
             IndicatorHistory(

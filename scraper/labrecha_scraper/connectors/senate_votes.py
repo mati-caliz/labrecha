@@ -6,12 +6,13 @@ import time
 from dataclasses import dataclass, field
 from datetime import date
 from functools import partial
+from typing import Any
 
 import httpx
-from labrecha_db import CHAMBER_SENATE, CongressVote, CongressVoteDetail
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from labrecha_db import CHAMBER_SENATE, CongressVote, CongressVoteDetail
 from labrecha_scraper.base import Connector, upsert_rows
 from labrecha_scraper.clock import today_in_argentina
 from labrecha_scraper.config import settings
@@ -26,8 +27,8 @@ YEAR_FIELD = "busqueda_actas[anio]"
 # páginas vacías para siempre y el backfill no tendría dónde detenerse.
 EARLIEST_YEAR = 1993
 # Un año son ~100 actas y cada una es un request al detalle, así que se completa un año
-# entero por corrida: run_job commitea una sola vez, de modo que un año queda cargado del
-# todo o no queda nada y se reintenta.
+# entero por corrida: run_job commitea una sola vez, de modo que un año queda cargado
+# completo o no queda nada y se reintenta.
 MAX_DETAILS_PER_RUN = 250
 PAUSE_BETWEEN_REQUESTS_SECONDS = 1.0
 
@@ -66,8 +67,8 @@ VOTE_CELL = 4
 
 @dataclass
 class SenateVotesData:
-    votes: list[dict] = field(default_factory=list)
-    details: list[dict] = field(default_factory=list)
+    votes: list[dict[str, Any]] = field(default_factory=list)
+    details: list[dict[str, Any]] = field(default_factory=list)
 
 
 def _record_id(acta_id: str) -> str:
@@ -96,13 +97,13 @@ def _senator_key(photo_cell: str, name: str | None, position: int) -> str:
     return f"p{position}"
 
 
-def _same_senator_vote(one: dict, other: dict) -> bool:
+def _same_senator_vote(one: dict[str, Any], other: dict[str, Any]) -> bool:
     return all(
         one[column] == other[column] for column in ("legislator_name", "bloc", "district", "vote")
     )
 
 
-class SenateVotesConnector(Connector):
+class SenateVotesConnector(Connector[SenateVotesData]):
     name = "senate_votes"
     source = "senado"
     min_rows = 0
@@ -128,8 +129,7 @@ class SenateVotesConnector(Connector):
                     data.details.extend(self._parse_senator_votes(detail, acta_id))
         return data
 
-    def persist(self, session: Session, data: object) -> int:
-        assert isinstance(data, SenateVotesData)
+    def persist(self, session: Session, data: SenateVotesData) -> int:
         votes = upsert_rows(session, CongressVote, data.votes, ["vote_record_id"])
         details = upsert_rows(session, CongressVoteDetail, data.details, ["vote_detail_id"])
         return votes + details
@@ -185,7 +185,7 @@ class SenateVotesConnector(Connector):
             actas.append((link.group(1), date(*(int(part) for part in stamp.groups()))))
         return actas
 
-    def _parse_vote(self, html: str, acta_id: str, session_date: date) -> dict:
+    def _parse_vote(self, html: str, acta_id: str, session_date: date) -> dict[str, Any]:
         counts = {label.upper(): int(value) for value, label in COUNT.findall(html)}
         missing = [label for label in COUNT_LABELS if label not in counts]
         if missing:
@@ -227,12 +227,12 @@ class SenateVotesConnector(Connector):
             "absents": counts[ABSENT_LABEL],
         }
 
-    def _parse_senator_votes(self, html: str, acta_id: str) -> list[dict]:
+    def _parse_senator_votes(self, html: str, acta_id: str) -> list[dict[str, Any]]:
         body = html.find(TABLE_BODY)
         if body < 0:
             raise ValueError(f"acta {acta_id} del Senado sin tabla de votos por senador")
-        rows: list[dict] = []
-        seen: dict[str, dict] = {}
+        rows: list[dict[str, Any]] = []
+        seen: dict[str, dict[str, Any]] = {}
         for position, row in enumerate(ROW.findall(html[body:])):
             cells = CELL.findall(row)
             if len(cells) < SENATOR_CELLS:

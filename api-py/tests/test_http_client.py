@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+
 from labrecha_scraper.http_client import InvalidResponseError, retry_invalid_response
 
 

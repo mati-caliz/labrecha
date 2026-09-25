@@ -4,11 +4,12 @@ import html
 import json
 from dataclasses import dataclass, field
 from datetime import date
+from typing import Any
 
 import httpx
-from labrecha_db import SanctionedLaw
 from sqlalchemy.orm import Session
 
+from labrecha_db import SanctionedLaw
 from labrecha_scraper.base import Connector, upsert_rows
 from labrecha_scraper.connectors.hcdn_ckan import (
     LARGE_DOWNLOAD_TIMEOUT_SECONDS,
@@ -26,10 +27,10 @@ BOM = "\ufeff"
 
 @dataclass
 class LawsData:
-    laws: list[dict] = field(default_factory=list)
+    laws: list[dict[str, Any]] = field(default_factory=list)
 
 
-def _normalize_keys(record: dict) -> dict:
+def _normalize_keys(record: dict[str, Any]) -> dict[str, Any]:
     return {key.lstrip(BOM): value for key, value in record.items()}
 
 
@@ -55,7 +56,7 @@ def _parse_date(value: object) -> date | None:
         return None
 
 
-class LawsConnector(Connector):
+class LawsConnector(Connector[LawsData]):
     name = "laws"
     source = "hcdn"
 
@@ -65,7 +66,7 @@ class LawsConnector(Connector):
             summaries = self._download_records(client, SUMMARY_DATASET)
             projects = self._download_records(client, PROJECTS_DATASET)
 
-            summary_by_law: dict[str, dict] = {}
+            summary_by_law: dict[str, dict[str, Any]] = {}
             for record in summaries:
                 law_number = _text(record.get("ley"))
                 if law_number is not None:
@@ -80,11 +81,10 @@ class LawsConnector(Connector):
 
             return LawsData(laws=self._map_laws(sanctioned, summary_by_law, title_by_project))
 
-    def persist(self, session: Session, data: object) -> int:
-        assert isinstance(data, LawsData)
+    def persist(self, session: Session, data: LawsData) -> int:
         return upsert_rows(session, SanctionedLaw, data.laws, ["law_number"])
 
-    def _download_records(self, client: httpx.Client, dataset_id: str) -> list[dict]:
+    def _download_records(self, client: httpx.Client, dataset_id: str) -> list[dict[str, Any]]:
         resources = fetch_package_resources(client, dataset_id)
         url = find_resource_url(resources, dataset_id, JSON_FORMAT)
         response = client.get(url, timeout=LARGE_DOWNLOAD_TIMEOUT_SECONDS)
@@ -95,11 +95,11 @@ class LawsConnector(Connector):
 
     def _map_laws(
         self,
-        sanctioned: list[dict],
-        summary_by_law: dict[str, dict],
+        sanctioned: list[dict[str, Any]],
+        summary_by_law: dict[str, dict[str, Any]],
         title_by_project: dict[str, str],
-    ) -> list[dict]:
-        rows_by_law: dict[str, dict] = {}
+    ) -> list[dict[str, Any]]:
+        rows_by_law: dict[str, dict[str, Any]] = {}
         for record in sanctioned:
             law_number = _text(record.get("LEY"))
             if law_number is None:

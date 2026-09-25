@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from datetime import date, timedelta
 from decimal import Decimal
 
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
+
 from labrecha_api.clock import today_in_argentina
 from labrecha_api.routers.gaps import RECENT_WINDOW_DAYS
 from labrecha_db import IndicatorHistory
-from sqlalchemy.orm import Session
 
 OK = 200
 NOT_FOUND = 404
@@ -18,7 +20,7 @@ MILLIONS = {"unit": "ARS_millones"}
 NO_UNIT: dict[str, object] = {}
 
 
-def seed(session: Session, rows: list[tuple[str, str, date, str, dict[str, object]]]) -> None:
+def seed(session: Session, rows: list[tuple[str, str, date, str, Mapping[str, object]]]) -> None:
     session.add_all(
         [
             IndicatorHistory(

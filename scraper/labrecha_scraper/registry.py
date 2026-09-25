@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from labrecha_scraper.base import Connector
 from labrecha_scraper.connectors.bcra_rates import BcraRatesConnector
 from labrecha_scraper.connectors.big_mac import BigMacConnector
@@ -30,7 +32,7 @@ from labrecha_scraper.connectors.series_datosgob import SeriesDatosGobConnector
 
 DISABLED_CONNECTOR_NAMES = frozenset({"hcdn_votes", "official_gazette"})
 
-CONNECTORS: dict[str, Connector] = {
+CONNECTORS: dict[str, Connector[Any]] = {
     connector.name: connector
     for connector in (
         RentCabaConnector(),
@@ -62,14 +64,14 @@ CONNECTORS: dict[str, Connector] = {
     )
 }
 
-ACTIVE_CONNECTORS: dict[str, Connector] = {
+ACTIVE_CONNECTORS: dict[str, Connector[Any]] = {
     name: connector
     for name, connector in CONNECTORS.items()
     if name not in DISABLED_CONNECTOR_NAMES
 }
 
 
-def get_connector(name: str) -> Connector:
+def get_connector(name: str) -> Connector[Any]:
     if name not in CONNECTORS:
         available = ", ".join(sorted(CONNECTORS))
         raise KeyError(f"job desconocido: {name}. Disponibles: {available}")

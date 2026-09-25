@@ -1,14 +1,16 @@
 from __future__ import annotations
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, Query
-from labrecha_db import ErrorEvent
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from labrecha_api.admin_auth import is_admin
-from labrecha_api.db import get_session
+from labrecha_api.db import SessionDependency, get_session
 from labrecha_api.error_events import record_error
 from labrecha_api.schemas import ErrorEventOut, ErrorReportIn
+from labrecha_db import ErrorEvent
 
 router = APIRouter(prefix="/errors", tags=["errors"])
 
@@ -31,7 +33,9 @@ def _to_out(event: ErrorEvent, *, include_stack: bool) -> ErrorEventOut:
 
 
 @router.post("", response_model=ErrorEventOut, status_code=201)
-def report_error(payload: ErrorReportIn, session: Session = Depends(get_session)) -> ErrorEventOut:
+def report_error(
+    payload: ErrorReportIn, session: Annotated[Session, Depends(get_session)]
+) -> ErrorEventOut:
     fingerprint = record_error(
         session,
         origin=payload.origin.value,
@@ -46,10 +50,10 @@ def report_error(payload: ErrorReportIn, session: Session = Depends(get_session)
 
 @router.get("", response_model=list[ErrorEventOut])
 def list_errors(
-    limit: int = Query(default=DEFAULT_LIMIT, ge=1, le=MAX_LIMIT),
     *,
-    admin: bool = Depends(is_admin),
-    session: Session = Depends(get_session),
+    limit: Annotated[int, Query(ge=1, le=MAX_LIMIT)] = DEFAULT_LIMIT,
+    admin: Annotated[bool, Depends(is_admin)],
+    session: SessionDependency,
 ) -> list[ErrorEventOut]:
     statement = select(ErrorEvent).order_by(ErrorEvent.last_seen_at.desc()).limit(limit)
     return [_to_out(event, include_stack=admin) for event in session.scalars(statement)]

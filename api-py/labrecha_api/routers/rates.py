@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from datetime import date
 from decimal import Decimal
+from typing import Any
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
@@ -15,12 +16,13 @@ API_HOST_AND_PATH = "api.argentinadatos.com/v1/finanzas"
 HEADERS = {"Accept": "application/json", "User-Agent": "labrecha-api/1.0"}
 
 
-def _get(path: str) -> tuple[object, int]:
+def _get(path: str) -> tuple[list[dict[str, Any]], int]:
     try:
         with urlopen(
             Request(f"https://{API_HOST_AND_PATH}/{path}", headers=HEADERS), timeout=20
         ) as response:
-            return json.load(response), int(response.headers.get("Age", "0"))
+            payload: list[dict[str, Any]] = json.load(response)
+            return payload, int(response.headers.get("Age", "0"))
     except (URLError, TimeoutError, json.JSONDecodeError) as error:
         raise HTTPException(status_code=503, detail="tasas temporalmente no disponibles") from error
 

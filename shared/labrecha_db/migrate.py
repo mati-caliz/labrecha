@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Any
 
 from alembic import command
 from alembic.autogenerate import compare_metadata
@@ -74,7 +75,7 @@ def _difference_table_name(subject: object) -> str:
     return str(getattr(subject, "name", ""))
 
 
-def _describe(difference: tuple) -> str | None:
+def _describe(difference: tuple[Any, ...] | list[Any]) -> str | None:
     if isinstance(difference, list):
         return "; ".join(filter(None, (_describe(item) for item in difference)))
     action = difference[0]

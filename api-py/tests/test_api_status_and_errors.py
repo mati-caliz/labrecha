@@ -3,11 +3,12 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 
 from fastapi.testclient import TestClient
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
 from labrecha_api.db import get_session
 from labrecha_api.main import app
 from labrecha_db import ErrorEvent, ScrapeRun
-from sqlalchemy import select
-from sqlalchemy.orm import Session
 
 OK = 200
 CREATED = 201

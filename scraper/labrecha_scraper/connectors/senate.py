@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import Any
 
 import httpx
-from labrecha_db import Senator
 from sqlalchemy.orm import Session
 
+from labrecha_db import Senator
 from labrecha_scraper.base import Connector, upsert_rows
 from labrecha_scraper.config import settings
 from labrecha_scraper.http_client import InvalidResponseError, retry_invalid_response
@@ -32,11 +33,11 @@ def _parse_date(value: object) -> date | None:
         return None
 
 
-class SenateConnector(Connector):
+class SenateConnector(Connector[list[dict[str, Any]]]):
     name = "senate"
     source = "senado"
 
-    def fetch(self) -> list[dict]:
+    def fetch(self) -> list[dict[str, Any]]:
         with self.build_client() as client:
             records = retry_invalid_response(
                 lambda: self._download_records(client),
@@ -44,7 +45,7 @@ class SenateConnector(Connector):
                 max_attempts=settings.http_max_attempts,
             )
 
-        rows: list[dict] = []
+        rows: list[dict[str, Any]] = []
         for record in records:
             senator_id = _text(record.get("ID"))
             if senator_id is None:
@@ -65,7 +66,7 @@ class SenateConnector(Connector):
             )
         return rows
 
-    def _download_records(self, client: httpx.Client) -> list[dict]:
+    def _download_records(self, client: httpx.Client) -> list[dict[str, Any]]:
         response = client.get(SENATORS_URL)
         response.raise_for_status()
         try:
@@ -84,6 +85,5 @@ class SenateConnector(Connector):
             raise InvalidResponseError("el listado de senadores contiene filas invalidas")
         return records
 
-    def persist(self, session: Session, data: object) -> int:
-        assert isinstance(data, list)
+    def persist(self, session: Session, data: list[dict[str, Any]]) -> int:
         return upsert_rows(session, Senator, data, ["senator_id"])

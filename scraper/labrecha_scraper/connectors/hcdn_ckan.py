@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import httpx
 
 CKAN_PACKAGE_URL = "https://datos.hcdn.gob.ar/api/3/action/package_show"
@@ -9,16 +11,19 @@ CKAN_METADATA_TIMEOUT_SECONDS = 120.0
 LARGE_DOWNLOAD_TIMEOUT_SECONDS = 300.0
 
 
-def fetch_package_resources(client: httpx.Client, dataset_id: str) -> list[dict]:
+def fetch_package_resources(client: httpx.Client, dataset_id: str) -> list[dict[str, Any]]:
     response = client.get(
         CKAN_PACKAGE_URL, params={"id": dataset_id}, timeout=CKAN_METADATA_TIMEOUT_SECONDS
     )
     response.raise_for_status()
-    return response.json()["result"]["resources"]
+    resources: list[dict[str, Any]] = response.json()["result"]["resources"]
+    return resources
 
 
-def find_resource_url(resources: list[dict], dataset_id: str, resource_format: str) -> str:
+def find_resource_url(
+    resources: list[dict[str, Any]], dataset_id: str, resource_format: str
+) -> str:
     for resource in resources:
         if (resource.get("format") or "").upper() == resource_format and resource.get("url"):
-            return resource["url"]
+            return str(resource["url"])
     raise ValueError(f"no se encontró recurso {resource_format} en el dataset {dataset_id}")

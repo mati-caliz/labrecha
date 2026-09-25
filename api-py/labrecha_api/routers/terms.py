@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from labrecha_db import IndicatorHistory
+from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import select
-from sqlalchemy.orm import Session
 
 from labrecha_api.clock import today_in_argentina
-from labrecha_api.db import get_session
+from labrecha_api.db import SessionDependency
 from labrecha_api.government_terms import TERMS, GovernmentTerm
 from labrecha_api.schemas import IndicatorTermsOut, IndicatorTermStat, TermMethod
 from labrecha_api.series_change import (
@@ -18,6 +17,7 @@ from labrecha_api.series_change import (
     method_for,
     most_covered_source,
 )
+from labrecha_db import IndicatorHistory
 
 router = APIRouter(prefix="/terms", tags=["terms"])
 
@@ -55,9 +55,10 @@ def _term_stat(
 
 @router.get("/{indicator_code}", response_model=IndicatorTermsOut)
 def indicator_by_term(
+    *,
     indicator_code: str,
-    source: str | None = Query(default=None),
-    session: Session = Depends(get_session),
+    source: Annotated[str | None, Query()] = None,
+    session: SessionDependency,
 ) -> IndicatorTermsOut:
     conditions = [IndicatorHistory.indicator_code == indicator_code]
     if source is not None:

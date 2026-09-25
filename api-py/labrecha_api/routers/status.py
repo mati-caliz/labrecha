@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends
-from labrecha_db import ScrapeRun
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from labrecha_api.db import get_session
 from labrecha_api.schemas import ScrapeRunOut
+from labrecha_db import ScrapeRun
 
 router = APIRouter(tags=["status"])
 
@@ -17,7 +19,7 @@ def health() -> dict[str, str]:
 
 
 @router.get("/scrape-runs", response_model=list[ScrapeRunOut])
-def latest_scrape_runs(session: Session = Depends(get_session)) -> list[ScrapeRunOut]:
+def latest_scrape_runs(session: Annotated[Session, Depends(get_session)]) -> list[ScrapeRunOut]:
     latest = (
         select(ScrapeRun.job_name, func.max(ScrapeRun.started_at).label("started_at"))
         .group_by(ScrapeRun.job_name)

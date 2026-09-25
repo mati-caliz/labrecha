@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import pytest
 from fastapi.testclient import TestClient
-from labrecha_api.config import get_settings
 from sqlalchemy.orm import Session
+
+from labrecha_api.config import get_settings
 
 CREATED = 201
 OK = 200

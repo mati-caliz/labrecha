@@ -3,10 +3,11 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 
 import pytest
-from labrecha_db import ErrorEvent
-from labrecha_scraper.prune_errors import prune_error_events
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+
+from labrecha_db import ErrorEvent
+from labrecha_scraper.prune_errors import prune_error_events
 
 RETENTION_DAYS = 90
 MAX_ROWS = 5

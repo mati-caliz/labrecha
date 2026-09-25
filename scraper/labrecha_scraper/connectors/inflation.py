@@ -5,7 +5,7 @@ from decimal import Decimal
 
 import httpx
 
-from labrecha_scraper.base import Connector, IndicatorPoint
+from labrecha_scraper.base import IndicatorConnector, IndicatorPoint
 from labrecha_scraper.units import Unit
 
 MONTHLY_URL = "https://api.argentinadatos.com/v1/finanzas/indices/inflacion"
@@ -15,7 +15,7 @@ NATIONAL_GEOGRAPHY = "Nacional"
 MEASURING_AGENCY = "INDEC"
 
 
-class InflationConnector(Connector):
+class InflationConnector(IndicatorConnector):
     name = "inflation"
     source = "argentinadatos"
 

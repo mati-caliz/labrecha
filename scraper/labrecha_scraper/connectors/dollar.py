@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from decimal import Decimal
 
-from labrecha_scraper.base import Connector, IndicatorPoint
+from labrecha_scraper.base import IndicatorConnector, IndicatorPoint
 from labrecha_scraper.units import Unit
 
 DOLLAR_URL = "https://dolarapi.com/v1/dolares"
@@ -28,7 +28,7 @@ def _parse_date(raw: str | None) -> date:
     return datetime.fromisoformat(raw).date()
 
 
-class DollarConnector(Connector):
+class DollarConnector(IndicatorConnector):
     name = "dollar"
     source = "dolarapi"
 

@@ -5,12 +5,13 @@ import json
 import re
 from dataclasses import dataclass, field
 from datetime import date
+from typing import Any
 
 import httpx
-from labrecha_db import GazetteSummary, TaxChange
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from labrecha_db import GazetteSummary, TaxChange
 from labrecha_scraper.base import Connector, upsert_rows
 from labrecha_scraper.clock import today_in_argentina
 from labrecha_scraper.db import SessionLocal
@@ -44,8 +45,8 @@ class Notice:
 
 @dataclass
 class GazetteData:
-    summaries: list[dict] = field(default_factory=list)
-    tax_changes: list[dict] = field(default_factory=list)
+    summaries: list[dict[str, Any]] = field(default_factory=list)
+    tax_changes: list[dict[str, Any]] = field(default_factory=list)
 
 
 def _clean(raw_html: str) -> str:
@@ -98,7 +99,7 @@ def _build_prompt(batch: list[Notice]) -> str:
     )
 
 
-class OfficialGazetteConnector(Connector):
+class OfficialGazetteConnector(Connector[GazetteData]):
     name = "official_gazette"
     source = "official_gazette"
     min_rows = 0
@@ -113,8 +114,7 @@ class OfficialGazetteConnector(Connector):
         summaries, tax_changes = self._summarize(pending)
         return GazetteData(summaries=summaries, tax_changes=tax_changes)
 
-    def persist(self, session: Session, data: object) -> int:
-        assert isinstance(data, GazetteData)
+    def persist(self, session: Session, data: GazetteData) -> int:
         summaries = upsert_rows(
             session, GazetteSummary, data.summaries, ["regulation_id"], update_on_conflict=False
         )
@@ -163,9 +163,11 @@ class OfficialGazetteConnector(Connector):
         notice.title = _title(response.text)
         notice.body = _body(_clean(response.text))
 
-    def _summarize(self, notices: list[Notice]) -> tuple[list[dict], list[dict]]:
-        summaries: list[dict] = []
-        tax_changes: list[dict] = []
+    def _summarize(
+        self, notices: list[Notice]
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+        summaries: list[dict[str, Any]] = []
+        tax_changes: list[dict[str, Any]] = []
         for start in range(0, len(notices), BATCH_SIZE):
             batch = notices[start : start + BATCH_SIZE]
             results = run_claude_json_array(_build_prompt(batch))
@@ -197,7 +199,7 @@ class OfficialGazetteConnector(Connector):
                     tax_changes.append(tax_change)
         return summaries, tax_changes
 
-    def _build_tax_change(self, notice: Notice, item: dict) -> dict | None:
+    def _build_tax_change(self, notice: Notice, item: dict[str, Any]) -> dict[str, Any] | None:
         if not item.get("cambio_impositivo"):
             return None
         change_type = str(item.get("tipo_cambio") or "").strip().lower()

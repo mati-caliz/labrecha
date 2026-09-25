@@ -5,6 +5,7 @@ from pathlib import Path
 
 import httpx
 import pytest
+
 from labrecha_db import CHAMBER_SENATE
 from labrecha_scraper.connectors.senate_votes import SenateVotesConnector
 

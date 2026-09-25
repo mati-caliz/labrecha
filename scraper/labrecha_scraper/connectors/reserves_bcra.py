@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date
 from decimal import Decimal
 
-from labrecha_scraper.base import Connector, IndicatorPoint
+from labrecha_scraper.base import IndicatorConnector, IndicatorPoint
 from labrecha_scraper.clock import today_in_argentina
 from labrecha_scraper.units import Unit
 
@@ -12,7 +12,7 @@ PAGE_LIMIT = 1000
 BACKFILL_FROM = "1996-01-01"
 
 
-class ReservesBcraConnector(Connector):
+class ReservesBcraConnector(IndicatorConnector):
     name = "reserves_bcra"
     source = "bcra"
 

@@ -1,24 +1,25 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
-from labrecha_db import PoliticalEvent
+from fastapi import APIRouter, Query
 from sqlalchemy import select
-from sqlalchemy.orm import Session
 
-from labrecha_api.db import get_session
+from labrecha_api.db import SessionDependency
 from labrecha_api.schemas import PoliticalEventOut
+from labrecha_db import PoliticalEvent
 
 router = APIRouter(prefix="/political-events", tags=["political-events"])
 
 
 @router.get("", response_model=list[PoliticalEventOut])
 def list_political_events(
-    date_from: date | None = Query(default=None),
-    date_to: date | None = Query(default=None),
-    category: str | None = Query(default=None),
-    session: Session = Depends(get_session),
+    *,
+    date_from: Annotated[date | None, Query()] = None,
+    date_to: Annotated[date | None, Query()] = None,
+    category: Annotated[str | None, Query()] = None,
+    session: SessionDependency,
 ) -> list[PoliticalEventOut]:
     conditions = []
     if date_from is not None:

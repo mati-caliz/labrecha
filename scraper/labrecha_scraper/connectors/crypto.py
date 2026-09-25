@@ -4,7 +4,7 @@ from datetime import UTC
 from datetime import datetime as datetime_type
 from decimal import Decimal
 
-from labrecha_scraper.base import Connector, IndicatorPoint
+from labrecha_scraper.base import IndicatorConnector, IndicatorPoint
 from labrecha_scraper.units import Unit
 
 SIMPLE_PRICE_URL = "https://api.coingecko.com/api/v3/simple/price"
@@ -20,7 +20,7 @@ COINGECKO_IDS: dict[str, str] = {
 }
 
 
-class CryptoConnector(Connector):
+class CryptoConnector(IndicatorConnector):
     name = "crypto"
     source = "coingecko"
 

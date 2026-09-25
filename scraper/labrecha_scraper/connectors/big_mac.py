@@ -5,7 +5,7 @@ import io
 from datetime import date
 from decimal import Decimal
 
-from labrecha_scraper.base import Connector, IndicatorPoint
+from labrecha_scraper.base import IndicatorConnector, IndicatorPoint
 from labrecha_scraper.units import Unit
 
 CSV_URL = (
@@ -16,7 +16,7 @@ ISO_ARGENTINA = "ARG"
 MIN_EXPECTED_POINTS = 3
 
 
-class BigMacConnector(Connector):
+class BigMacConnector(IndicatorConnector):
     name = "big_mac"
     source = "the_economist"
 

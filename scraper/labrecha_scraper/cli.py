@@ -5,6 +5,8 @@ import sys
 import time
 from collections.abc import Callable
 
+from sqlalchemy import select
+
 from labrecha_db import ScrapeRun
 from labrecha_db.migrate import (
     current_revision,
@@ -14,8 +16,6 @@ from labrecha_db.migrate import (
     stamp,
     upgrade,
 )
-from sqlalchemy import select
-
 from labrecha_scraper.base import STATUS_SUCCESS, run_job
 from labrecha_scraper.config import settings
 from labrecha_scraper.db import SessionLocal

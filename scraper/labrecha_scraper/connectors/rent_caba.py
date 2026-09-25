@@ -4,10 +4,11 @@ import csv
 import io
 from datetime import date
 from decimal import Decimal, InvalidOperation
+from typing import Any
 
-from labrecha_db import RentByNeighborhood
 from sqlalchemy.orm import Session
 
+from labrecha_db import RentByNeighborhood
 from labrecha_scraper.base import Connector, upsert_rows
 
 CSV_URL = (
@@ -43,24 +44,23 @@ def _price(raw: str) -> Decimal | None:
         return None
 
 
-class RentCabaConnector(Connector):
+class RentCabaConnector(Connector[list[dict[str, Any]]]):
     name = "rent_caba"
     source = "caba"
 
-    def fetch(self) -> list[dict]:
+    def fetch(self) -> list[dict[str, Any]]:
         with self.build_client() as client:
             response = client.get(CSV_URL)
             response.raise_for_status()
         return _monthly_series(response.content.decode("utf-8-sig"))
 
-    def persist(self, session: Session, data: object) -> int:
-        assert isinstance(data, list)
+    def persist(self, session: Session, data: list[dict[str, Any]]) -> int:
         return upsert_rows(session, RentByNeighborhood, data, ["neighborhood", "date"])
 
 
-def _monthly_series(csv_text: str) -> list[dict]:
+def _monthly_series(csv_text: str) -> list[dict[str, Any]]:
     reader = csv.DictReader(io.StringIO(csv_text), delimiter=";")
-    by_neighborhood_and_month: dict[tuple[str, date], dict] = {}
+    by_neighborhood_and_month: dict[tuple[str, date], dict[str, Any]] = {}
     for row in reader:
         if row.get("ambientes") != ROOMS:
             continue

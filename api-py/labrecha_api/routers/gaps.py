@@ -5,14 +5,14 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date, timedelta
 from decimal import Decimal
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from labrecha_db import IndicatorHistory
 from sqlalchemy import func, select, tuple_
 from sqlalchemy.orm import Session
 
 from labrecha_api.clock import today_in_argentina
-from labrecha_api.db import get_session
+from labrecha_api.db import SessionDependency, get_session
 from labrecha_api.schemas import (
     GapExclusion,
     GapHistoryOut,
@@ -20,6 +20,7 @@ from labrecha_api.schemas import (
     GapMeasurement,
     GapOut,
 )
+from labrecha_db import IndicatorHistory
 
 router = APIRouter(prefix="/gaps", tags=["gaps"])
 
@@ -157,9 +158,10 @@ def _build_gap(code: str, day: date, measurements: list[Measurement]) -> GapOut 
 
 @router.get("", response_model=list[GapOut])
 def list_gaps(
-    limit: int = Query(default=DEFAULT_LIMIT, ge=1, le=MAX_LIMIT),
-    min_sources: int = Query(default=MIN_SOURCES, ge=2),
-    session: Session = Depends(get_session),
+    *,
+    limit: Annotated[int, Query(ge=1, le=MAX_LIMIT)] = DEFAULT_LIMIT,
+    min_sources: Annotated[int, Query(ge=2)] = MIN_SOURCES,
+    session: SessionDependency,
 ) -> list[GapOut]:
     latest_by_code = _latest_shared_dates(session, min_sources)
     grouped = _measurements_at(session, latest_by_code)
@@ -174,7 +176,7 @@ def list_gaps(
 
 
 @router.get("/{indicator_code}", response_model=GapOut)
-def get_gap(indicator_code: str, session: Session = Depends(get_session)) -> GapOut:
+def get_gap(indicator_code: str, session: Annotated[Session, Depends(get_session)]) -> GapOut:
     latest_by_code = _latest_shared_dates(session, MIN_SOURCES, indicator_code)
     day = latest_by_code.get(indicator_code)
     if day is None:
@@ -236,7 +238,9 @@ def _measurements_by_date(session: Session, indicator_code: str) -> dict[date, l
 
 
 @router.get("/{indicator_code}/history", response_model=GapHistoryOut)
-def get_gap_history(indicator_code: str, session: Session = Depends(get_session)) -> GapHistoryOut:
+def get_gap_history(
+    indicator_code: str, session: Annotated[Session, Depends(get_session)]
+) -> GapHistoryOut:
     by_date = _measurements_by_date(session, indicator_code)
     unit = _comparable_unit([item for values in by_date.values() for item in values])
     if unit is None:
