@@ -56,7 +56,7 @@ check_python() {
       ruff format --check .
       ruff check .
       mypy
-      python -m pytest -q -p no:cacheprovider --cov=labrecha_api --cov=labrecha_db --cov-branch \
+      python -m pytest -q -p no:cacheprovider --cov=api-py/labrecha_api --cov=shared/labrecha_db --cov-branch \
         --cov-report=term:skip-covered --cov-report=json:/tmp/coverage.json api-py/tests
       python scripts/check_coverage.py /tmp/coverage.json
     '
