@@ -37,6 +37,8 @@ ignore = [
     "PLR0913",                # un test puede pedir muchas fixtures
     "FBT",                    # parametrize pasa booleanos posicionales
 ]
+# Lo copia sync.sh y lo corre el gate como script suelto: no pertenece a ningún paquete.
+"scripts/check_coverage.py" = ["INP001"]
 
 [lint.pydocstyle]
 convention = "google"

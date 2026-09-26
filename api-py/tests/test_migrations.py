@@ -13,7 +13,9 @@ from labrecha_db.migrate import (
     build_config,
     current_revision,
     describe_schema_drift,
+    has_managed_tables,
     head_revision,
+    stamp,
     upgrade,
 )
 
@@ -94,3 +96,46 @@ def test_full_downgrade_and_upgrade_roundtrip(roundtrip_database_url: str) -> No
     upgrade(roundtrip_database_url)
     assert current_revision(roundtrip_database_url) == head_revision()
     assert describe_schema_drift(roundtrip_database_url) == []
+
+
+def test_empty_database_has_no_revision_nor_managed_tables(roundtrip_database_url: str) -> None:
+    assert current_revision(roundtrip_database_url) is None
+    assert not has_managed_tables(roundtrip_database_url)
+
+
+def test_stamp_marks_the_revision_without_creating_tables(roundtrip_database_url: str) -> None:
+    stamp(roundtrip_database_url)
+
+    assert current_revision(roundtrip_database_url) == head_revision()
+    assert not has_managed_tables(roundtrip_database_url)
+
+
+DRIFTING_STATEMENTS = (
+    "CREATE TABLE unmanaged_scratch (id integer)",
+    "DROP INDEX ix_indicator_history_date",
+    "ALTER TABLE posts ALTER COLUMN title DROP NOT NULL",
+    "DROP TABLE tax_changes",
+)
+
+
+def test_drift_names_each_managed_difference_and_ignores_foreign_tables(
+    roundtrip_database_url: str,
+) -> None:
+    upgrade(roundtrip_database_url)
+    assert has_managed_tables(roundtrip_database_url)
+    engine = create_engine(roundtrip_database_url)
+    try:
+        with engine.begin() as connection:
+            for statement in DRIFTING_STATEMENTS:
+                connection.execute(text(statement))
+    finally:
+        engine.dispose()
+
+    drift = describe_schema_drift(roundtrip_database_url)
+
+    assert sorted(drift) == [
+        "add_index: indicator_history.ix_indicator_history_date",
+        "add_index: tax_changes.ix_tax_changes_date",
+        "add_table: tax_changes",
+        "modify_nullable: posts.title",
+    ]

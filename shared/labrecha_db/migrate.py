@@ -15,6 +15,8 @@ from sqlalchemy import Connection, create_engine, inspect
 from labrecha_db.models import Base
 
 MIGRATIONS_PATH = Path(__file__).resolve().parent / "migrations"
+COLUMN_CHANGE_PREFIX = "modify_"
+COLUMN_CHANGE_KEY_LENGTH = 4
 
 
 @contextmanager
@@ -75,10 +77,24 @@ def _difference_table_name(subject: object) -> str:
     return str(getattr(subject, "name", ""))
 
 
+def _describe_column_change(difference: tuple[Any, ...]) -> str | None:
+    action, _schema, table_name, column_name = difference[:COLUMN_CHANGE_KEY_LENGTH]
+    if table_name not in Base.metadata.tables:
+        return None
+    return f"{action}: {table_name}.{column_name}"
+
+
 def _describe(difference: tuple[Any, ...] | list[Any]) -> str | None:
     if isinstance(difference, list):
-        return "; ".join(filter(None, (_describe(item) for item in difference)))
+        descriptions = [
+            description
+            for description in (_describe(item) for item in difference)
+            if description is not None
+        ]
+        return "; ".join(descriptions) if descriptions else None
     action = difference[0]
+    if action.startswith(COLUMN_CHANGE_PREFIX):
+        return _describe_column_change(difference)
     subject = difference[-1]
     table_name = _difference_table_name(subject)
     if table_name not in Base.metadata.tables:
